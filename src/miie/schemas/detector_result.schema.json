@@ -1,0 +1,21 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "DetectorResult",
+  "type": "object",
+  "required": [
+    "detector_outputs"
+  ],
+  "properties": {
+    "detector_outputs": {
+      "type": "object",
+      "description": "Detector outputs keyed by detector ID",
+      "properties": {
+        "D-01": {"type": "object"},
+        "D-02": {"type": "object"},
+        "D-03": {"type": "object"}
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

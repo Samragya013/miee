@@ -1,0 +1,40 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "MetricDataFrame",
+  "type": "object",
+  "required": [
+    "repo_id",
+    "run_id",
+    "timestamp",
+    "metrics"
+  ],
+  "properties": {
+    "repo_id": {
+      "type": "string",
+      "description": "Identifier matching the RepositoryContext"
+    },
+    "run_id": {
+      "type": "string",
+      "description": "Unique identifier for this analysis run"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Analysis timestamp in ISO 8601 format"
+    },
+    "metrics": {
+      "type": "object",
+      "description": "Map of metric ID to window ID to array of values",
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": {
+          "type": ["array", "null"],
+          "items": {
+            "type": ["number", "null"]
+          }
+        }
+      }
+    }
+  },
+  "additionalProperties": false
+}

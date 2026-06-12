@@ -1,0 +1,340 @@
+from miie.contracts.interfaces import IIngestionEngine
+from miie.contracts.errors import IngestionError
+from miie.schemas.models import RepositoryContext
+from typing import Optional, Union
+from pathlib import Path
+import subprocess
+import datetime
+import os
+
+
+def validate_repository(repo_path: Union[str, Path]) -> None:
+    """
+    Validate that the given path is a valid Git repository.
+
+    Args:
+        repo_path: Path to the repository as a string or Path object.
+
+    Raises:
+        IngestionError: If the path does not exist, is not a directory,
+                        does not contain a .git subdirectory, or if a
+                        traversal attempt is detected.
+    """
+    # Convert to Path if string
+    if isinstance(repo_path, str):
+        repo_path = Path(repo_path)
+    elif not isinstance(repo_path, Path):
+        raise IngestionError("repo_path must be a string or Path object")
+
+    # Perform safe path resolution to prevent traversal attacks
+    try:
+        resolved_path = repo_path.resolve()
+    except Exception as e:
+        raise IngestionError(f"Failed to resolve path: {e}")
+
+    # Check if path exists
+    if not resolved_path.exists():
+        raise IngestionError(f"Repository path does not exist: {resolved_path}")
+
+    # Check if path is a directory
+    if not resolved_path.is_dir():
+        raise IngestionError(f"Repository path is not a directory: {resolved_path}")
+
+    # Check if .git subdirectory exists
+    git_dir = resolved_path / ".git"
+    if not git_dir.exists():
+        raise IngestionError(f"Repository path does not contain a .git directory: {resolved_path}")
+
+    # If all checks pass, return nothing (implicitly None)
+
+
+def cache_path_for_repository(repo_id: str) -> Path:
+    """
+    Calculate the cache path for a given repository ID.
+
+    Args:
+        repo_id: A string identifier for the repository.
+
+    Returns:
+        A Path object representing the normalized cache path for the repository.
+
+    Raises:
+        ValueError: If the resulting path would escape the cache root.
+    """
+    cache_root = Path.home() / ".miie" / "cache"
+    repo_cache_path = cache_root / "repos" / repo_id
+    normalized_path = repo_cache_path.resolve()
+    resolved_cache_root = cache_root.resolve()
+    try:
+        normalized_path.relative_to(resolved_cache_root)
+    except ValueError:
+        raise ValueError(f"Attempted to escape cache root: {normalized_path} is not under {resolved_cache_root}")
+    return normalized_path
+
+
+class RepositoryIngestionEngine(IIngestionEngine):
+    def ingest(
+        self,
+        repo_path: str,
+        cache_dir: Optional[Path] = None,
+        keep_cache: bool = False,
+        shallow_depth: Optional[int] = None
+    ) -> RepositoryContext:
+        """
+        Ingest repository metadata and return a RepositoryContext object.
+
+        Args:
+            repo_path: Path to the repository as a string.
+            cache_dir: Optional directory for caching (not used in this implementation).
+            keep_cache: Whether to keep cache (not used).
+            shallow_depth: Optional depth for shallow clone (not used).
+
+        Returns:
+            RepositoryContext: Populated with repository metadata.
+
+        Raises:
+            IngestionError: If any step fails.
+        """
+        # Validate the repository
+        validate_repository(repo_path)
+        path_obj = Path(repo_path) if isinstance(repo_path, str) else repo_path
+
+        # Extract metadata
+        repo_id = self._get_repo_id(path_obj)
+        repository_name = self._get_repository_name(path_obj)
+        total_commits = self._get_commit_count(path_obj)
+        first_commit_date = self._get_first_commit_date(path_obj)
+        last_commit_date = self._get_last_commit_date(path_obj)
+        contributor_count = self._get_contributor_count(path_obj)
+        is_shallow = self._is_shallow_clone(path_obj)
+        is_fork = self._is_fork_repository(path_obj)
+        language_distribution = self._get_language_distribution(path_obj)  # Returns None for now
+
+        # Determine if remote (we don't have remote info, so assume False for local)
+        is_remote = False
+        remote_url = None
+
+        # Construct and return RepositoryContext
+        try:
+            return RepositoryContext(
+                repo_id=repo_id,
+                local_path=path_obj.resolve(),
+                is_remote=is_remote,
+                remote_url=remote_url,
+                total_commits=total_commits,
+                first_commit_date=first_commit_date,
+                last_commit_date=last_commit_date,
+                contributor_count=contributor_count,
+                is_shallow=is_shallow,
+                is_fork=is_fork,
+                language_distribution=language_distribution
+            )
+        except ValueError as e:
+            raise IngestionError(f"Invalid repository context: {e}")
+
+    def validate(self, context: RepositoryContext) -> bool:
+        """
+        Validate the repository context by checking if the local path is a valid Git repository.
+
+        Args:
+            context: Repository context containing the local path to validate.
+
+        Returns:
+            True if the repository is valid, False otherwise.
+        """
+        try:
+            validate_repository(context.local_path)
+            return True
+        except IngestionError:
+            return False
+
+    # Helper methods
+    @staticmethod
+    def _get_repo_id(repo_path: Path) -> str:
+        """
+        Generate a unique repository ID based on the absolute path.
+
+        Args:
+            repo_path: Path to the repository.
+
+        Returns:
+            A string ID (using SHA256 hash of the absolute path).
+        """
+        import hashlib
+        absolute_path = str(repo_path.resolve())
+        return hashlib.sha256(absolute_path.encode()).hexdigest()
+
+    @staticmethod
+    def _get_repository_name(repo_path: Path) -> str:
+        """
+        Get the repository name (last part of the path).
+
+        Args:
+            repo_path: Path to the repository.
+
+        Returns:
+            The repository name.
+        """
+        return repo_path.name
+
+    @staticmethod
+    def _get_commit_count(repo_path: Path) -> int:
+        """
+        Get the total number of commits in the repository.
+
+        Args:
+            repo_path: Path to the repository.
+
+        Returns:
+            The number of commits.
+
+        Raises:
+            IngestionError: If the git command fails.
+        """
+        try:
+            # Run git rev-list --count HEAD
+            result = subprocess.run(
+                ['git', 'rev-list', '--count', 'HEAD'],
+                cwd=repo_path,
+                capture_output=True,
+                text=True,
+                check=True
+            )
+            count_str = result.stdout.strip()
+            return int(count_str)
+        except subprocess.CalledProcessError as e:
+            raise IngestionError(f"Failed to get commit count: {e.stderr.strip()}")
+        except ValueError as e:
+            raise IngestionError(f"Failed to parse commit count: {e}")
+
+    @staticmethod
+    def _get_first_commit_date(repo_path: Path) -> Optional[datetime.datetime]:
+        """
+        Get the date of the first commit.
+
+        Args:
+            repo_path: Path to the repository.
+
+        Returns:
+            datetime object of the first commit, or None if not available.
+        """
+        try:
+            # Get the timestamp of the first commit (oldest)
+            result = subprocess.run(
+                ['git', 'log', '--reverse', '--format=%at', 'HEAD'],
+                cwd=repo_path,
+                capture_output=True,
+                text=True,
+                check=True
+            )
+            timestamp_str = result.stdout.strip().split('\n')[0] if result.stdout.strip() else None
+            if timestamp_str is None:
+                return None
+            timestamp = int(timestamp_str)
+            return datetime.datetime.fromtimestamp(timestamp, tz=datetime.timezone.utc)
+        except (subprocess.CalledProcessError, ValueError, IndexError) as e:
+            # If we fail, we return None (optional field)
+            return None
+
+    @staticmethod
+    def _get_last_commit_date(repo_path: Path) -> Optional[datetime.datetime]:
+        """
+        Get the date of the most recent commit.
+
+        Args:
+            repo_path: Path to the repository.
+
+        Returns:
+            datetime object of the last commit, or None if not available.
+        """
+        try:
+            result = subprocess.run(
+                ['git', 'log', '-1', '--format=%at'],
+                cwd=repo_path,
+                capture_output=True,
+                text=True,
+                check=True
+            )
+            timestamp_str = result.stdout.strip()
+            if not timestamp_str:
+                return None
+            timestamp = int(timestamp_str)
+            return datetime.datetime.fromtimestamp(timestamp, tz=datetime.timezone.utc)
+        except (subprocess.CalledProcessError, ValueError) as e:
+            return None
+
+    @staticmethod
+    def _get_contributor_count(repo_path: Path) -> int:
+        """
+        Get the number of unique contributors.
+
+        Args:
+            repo_path: Path to the repository.
+
+        Returns:
+            The number of contributors.
+
+        Raises:
+            IngestionError: If the git command fails.
+        """
+        try:
+            # Use git shortlog to get commit counts per contributor, then count lines
+            result = subprocess.run(
+                ['git', 'shortlog', '-sn', '--all'],
+                cwd=repo_path,
+                capture_output=True,
+                text=True,
+                check=True
+            )
+            # Each line is a contributor, empty output means 0
+            lines = [line for line in result.stdout.strip().split('\n') if line]
+            return len(lines)
+        except subprocess.CalledProcessError as e:
+            raise IngestionError(f"Failed to get contributor count: {e.stderr.strip()}")
+
+    @staticmethod
+    def _is_shallow_clone(repo_path: Path) -> bool:
+        """
+        Check if the repository is a shallow clone.
+
+        Args:
+            repo_path: Path to the repository.
+
+        Returns:
+            True if shallow clone, False otherwise.
+        """
+        git_dir = repo_path / '.git'
+        shallow_file = git_dir / 'shallow'
+        return shallow_file.exists()
+
+    @staticmethod
+    def _is_fork_repository(repo_path: Path) -> bool:
+        """
+        Check if the repository is a fork.
+        Without remote information, we cannot reliably detect forks.
+        Return False as placeholder.
+
+        Args:
+            repo_path: Path to the repository.
+
+        Returns:
+            False (cannot detect locally).
+        """
+        # We cannot determine if it's a fork without remote URLs.
+        # We could try to get remote URLs, but even then,fork detection is not reliable.
+        # For now, return False.
+        return False
+
+    @staticmethod
+    def _get_language_distribution(repo_path: Path) -> Optional[dict]:
+        """
+        Get the language distribution in the repository.
+        Not implemented; returns None as per requirements.
+
+        Args:
+            repo_path: Path to the repository.
+
+        Returns:
+            None.
+        """
+        return None

@@ -1,0 +1,70 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "RepositoryContext",
+  "type": "object",
+  "required": [
+    "repo_id",
+    "local_path",
+    "is_remote",
+    "total_commits",
+    "first_commit_date",
+    "last_commit_date",
+    "contributor_count",
+    "is_shallow",
+    "is_fork"
+  ],
+  "properties": {
+    "repo_id": {
+      "type": "string",
+      "description": "Unique identifier for the repository"
+    },
+    "local_path": {
+      "type": "string",
+      "description": "Filesystem path to the repository"
+    },
+    "is_remote": {
+      "type": "boolean",
+      "description": "Whether the repository is remote (requires cloning)"
+    },
+    "remote_url": {
+      "type": ["string", "null"],
+      "description": "URL for remote repositories (null for local)"
+    },
+    "total_commits": {
+      "type": "integer",
+      "minimum": 10,
+      "description": "Total number of commits in the repository"
+    },
+    "first_commit_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Date of the first commit in ISO 8601 format"
+    },
+    "last_commit_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Date of the last commit in ISO 8601 format"
+    },
+    "contributor_count": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Number of unique contributors"
+    },
+    "is_shallow": {
+      "type": "boolean",
+      "description": "Whether the repository is a shallow clone"
+    },
+    "is_fork": {
+      "type": "boolean",
+      "description": "Whether the repository is a fork"
+    },
+    "language_distribution": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "integer"
+      },
+      "description": "Distribution of languages in the repository (language -> byte count)"
+    }
+  },
+  "additionalProperties": false
+}

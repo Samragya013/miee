@@ -1,0 +1,187 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "EvidencePackage",
+  "type": "object",
+  "required": [
+    "provenance",
+    "windows",
+    "metrics",
+    "detector_outputs",
+    "scores"
+  ],
+  "properties": {
+    "provenance": {
+      "type": "object",
+      "required": [
+        "miie_version",
+        "config_hash",
+        "timestamp",
+        "seed",
+        "platform",
+        "python_version",
+        "dependency_hash"
+      ],
+      "properties": {
+        "miie_version": {
+          "type": "string",
+          "description": "MIIE version that generated this evidence"
+        },
+        "config_hash": {
+          "type": "string",
+          "description": "Hash of the configuration used"
+        },
+        "timestamp": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Analysis timestamp in ISO 8601 format"
+        },
+        "seed": {
+          "type": "integer",
+          "description": "Random seed used for reproducibility"
+        },
+        "platform": {
+          "type": "string",
+          "description": "Platform identifier (e.g., 'linux-x86_64')"
+        },
+        "python_version": {
+          "type": "string",
+          "description": "Python version used"
+        },
+        "dependency_hash": {
+          "type": "string",
+          "description": "Hash of dependencies for reproducibility"
+        }
+      },
+      "additionalProperties": false
+    },
+    "windows": {
+      "type": "array",
+      "description": "Analysis windows",
+      "items": {
+        "type": "object",
+        "required": ["id", "start", "end", "commits"],
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Window identifier"
+          },
+          "start": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Window start time in ISO 8601 format"
+          },
+          "end": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Window end time in ISO 8601 format"
+          },
+          "commits": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Number of commits in window"
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "metrics": {
+      "type": "object",
+      "description": "Map of metric ID to window ID to array of values (same structure as MetricDataFrame.metrics)",
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": {
+          "type": ["array", "null"],
+          "items": {
+            "type": ["number", "null"]
+          }
+        }
+      }
+    },
+    "detector_outputs": {
+      "type": "object",
+      "description": "Detector outputs keyed by detector ID",
+      "properties": {
+        "D-01": {"type": "object"},
+        "D-02": {"type": "object"},
+        "D-03": {"type": "object"}
+      },
+      "additionalProperties": false
+    },
+    "scores": {
+      "type": "object",
+      "required": ["integrity", "confidence"],
+      "properties": {
+        "integrity": {
+          "type": "object",
+          "required": ["overall", "per_metric"],
+          "properties": {
+            "overall": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1,
+              "description": "Overall integrity score"
+            },
+            "per_metric": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1
+              },
+              "description": "Integrity scores per metric"
+            }
+          },
+          "additionalProperties": false
+        },
+        "confidence": {
+          "type": "object",
+          "required": ["overall", "factors"],
+          "properties": {
+            "overall": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1,
+              "description": "Overall confidence score"
+            },
+            "factors": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "number"
+              },
+              "description": "Confidence score contributing factors"
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "warnings": {
+      "type": "array",
+      "description": "Warnings generated during analysis",
+      "items": {
+        "type": "object",
+        "properties": {
+          "stage": {
+            "type": "string",
+            "description": "Pipeline stage where warning originated"
+          },
+          "message": {
+            "type": "string",
+            "description": "Warning message"
+          },
+          "metric_id": {
+            "type": ["string", "null"],
+            "description": "Associated metric ID (if applicable)"
+          },
+          "detector_id": {
+            "type": ["string", "null"],
+            "description": "Associated detector ID (if applicable)"
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}

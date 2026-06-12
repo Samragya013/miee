@@ -1,0 +1,2 @@
+- [Day 4 Pre-Execution Audit](memory/day4-pre-execution-audit.md) — Completed audit verifying authorization and readiness for Day 4 Contract Layer implementation
+- [Day 7 Metric Extraction Complete](memory/day-7-metric-extraction-complete.md) — Day 7 Metric Extraction Foundation (M-02/M-06) implementation completed successfully

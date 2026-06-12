@@ -1,0 +1,252 @@
+"""
+Tests for EvidencePackage schema validation.
+"""
+
+import datetime
+from pathlib import Path
+
+import pytest
+
+from miie.schemas.models import EvidencePackage
+from miie.schemas.serialization import json_dumps, json_loads
+
+
+def test_evidence_package_creation():
+    """Test creating a valid EvidencePackage with mock data."""
+    evidence = EvidencePackage(
+        provenance={
+            "miie_version": "1.0.0",
+            "config_hash": "abc123",
+            "timestamp": datetime.datetime(2020, 6, 15, 10, 30, 0, tzinfo=datetime.timezone.utc).isoformat(),
+            "seed": 42,
+            "platform": "linux-x86_64",
+            "python_version": "3.10.0",
+            "dependency_hash": "def456"
+        },
+        windows=[
+            {
+                "id": "w01",
+                "start": datetime.datetime(2020, 1, 1, tzinfo=datetime.timezone.utc).isoformat(),
+                "end": datetime.datetime(2020, 3, 31, tzinfo=datetime.timezone.utc).isoformat(),
+                "commits": 50
+            },
+            {
+                "id": "w02",
+                "start": datetime.datetime(2020, 4, 1, tzinfo=datetime.timezone.utc).isoformat(),
+                "end": datetime.datetime(2020, 6, 30, tzinfo=datetime.timezone.utc).isoformat(),
+                "commits": 75
+            }
+        ],
+        metrics={
+            "M-02": {  # Commit Frequency
+                "w01": [10.0, 12.0, 15.0],
+                "w02": None  # Missing data
+            }
+        },
+        detector_outputs={
+            "D-01": {},  # Mock distributional drift results
+            "D-02": {},  # Mock correlation breakdown results
+            "D-03": {}   # Mock threshold compression results
+        },
+        scores={
+            "integrity": {
+                "overall": 0.75,
+                "per_metric": {
+                    "M-02": 0.80
+                }
+            },
+            "confidence": {
+                "overall": 0.85,
+                "factors": {
+                    "sample_size": 0.9,
+                    "data_quality": 0.8
+                }
+            }
+        }
+    )
+
+    assert evidence.provenance["miie_version"] == "1.0.0"
+    assert len(evidence.windows) == 2
+    assert "M-02" in evidence.metrics
+    assert len(evidence.detector_outputs) == 3
+    assert "integrity" in evidence.scores
+    assert "confidence" in evidence.scores
+
+
+def test_evidence_package_invalid_provenance():
+    """Test that EvidencePackage rejects invalid provenance."""
+    with pytest.raises(ValueError):
+        EvidencePackage(
+            provenance={
+                "miie_version": "1.0.0"
+                # Missing required fields
+            },
+            windows=[],
+            metrics={},
+            detector_outputs={},
+            scores={}
+        )
+
+
+def test_evidence_package_invalid_window():
+    """Test that EvidencePackage rejects invalid window structure."""
+    with pytest.raises(ValueError):
+        EvidencePackage(
+            provenance={
+                "miie_version": "1.0.0",
+                "config_hash": "abc123",
+                "timestamp": datetime.datetime(2020, 6, 15, tzinfo=datetime.timezone.utc).isoformat(),
+                "seed": 42,
+                "platform": "linux-x86_64",
+                "python_version": "3.10.0",
+                "dependency_hash": "def456"
+            },
+            windows=[
+                {
+                    "id": "w01"
+                    # Missing required fields: start, end, commits
+                }
+            ],
+            metrics={},
+            detector_outputs={},
+            scores={}
+        )
+
+
+def test_evidence_package_invalid_metric():
+    """Test that EvidencePackage rejects invalid metric IDs."""
+    with pytest.raises(ValueError):
+        EvidencePackage(
+            provenance={
+                "miie_version": "1.0.0",
+                "config_hash": "abc123",
+                "timestamp": datetime.datetime(2020, 6, 15, tzinfo=datetime.timezone.utc).isoformat(),
+                "seed": 42,
+                "platform": "linux-x86_64",
+                "python_version": "3.10.0",
+                "dependency_hash": "def456"
+            },
+            windows=[],
+            metrics={
+                "M-08": [100.0]  # Invalid metric ID
+            },
+            detector_outputs={},
+            scores={}
+        )
+
+
+def test_evidence_package_invalid_detector():
+    """Test that EvidencePackage rejects invalid detector IDs."""
+    with pytest.raises(ValueError):
+        EvidencePackage(
+            provenance={
+                "miie_version": "1.0.0",
+                "config_hash": "abc123",
+                "timestamp": datetime.datetime(2020, 6, 15, tzinfo=datetime.timezone.utc).isoformat(),
+                "seed": 42,
+                "platform": "linux-x86_64",
+                "python_version": "3.10.0",
+                "dependency_hash": "def456"
+            },
+            windows=[],
+            metrics={},
+            detector_outputs={
+                "D-04": {}  # Invalid detector ID
+            },
+            scores={}
+        )
+
+
+def test_evidence_package_serialization():
+    """Test deterministic serialization of EvidencePackage."""
+    evidence = EvidencePackage(
+        provenance={
+            "miie_version": "1.0.0",
+            "config_hash": "abc123",
+            "timestamp": datetime.datetime(2020, 6, 15, 10, 30, 0, tzinfo=datetime.timezone.utc).isoformat(),
+            "seed": 42,
+            "platform": "linux-x86_64",
+            "python_version": "3.10.0",
+            "dependency_hash": "def456"
+        },
+        windows=[
+            {
+                "id": "w01",
+                "start": datetime.datetime(2020, 1, 1, tzinfo=datetime.timezone.utc).isoformat(),
+                "end": datetime.datetime(2020, 3, 31, tzinfo=datetime.timezone.utc).isoformat(),
+                "commits": 50
+            }
+        ],
+        metrics={},
+        detector_outputs={
+            "D-01": {},
+            "D-02": {},
+            "D-03": {}
+        },
+        scores={
+            "integrity": {
+                "overall": 0.75,
+                "per_metric": {}
+            },
+            "confidence": {
+                "overall": 0.85,
+                "factors": {}
+            }
+        }
+    )
+
+    # Convert to dict for JSON serialization
+    evidence_dict = {
+        "provenance": evidence.provenance,
+        "windows": evidence.windows,
+        "metrics": evidence.metrics,
+        "detector_outputs": evidence.detector_outputs,
+        "scores": evidence.scores,
+        "warnings": evidence.warnings
+    }
+
+    # Serialize
+    json_str = json_dumps(evidence_dict)
+
+    # Deserialize
+    parsed = json_loads(json_str)
+
+    # Should be byte-identical on second serialization
+    json_str2 = json_dumps(parsed)
+    assert json_str == json_str2
+
+
+def test_evidence_package_empty():
+    """Test EvidencePackage with minimal valid data."""
+    evidence = EvidencePackage(
+        provenance={
+            "miie_version": "1.0.0",
+            "config_hash": "abc123",
+            "timestamp": datetime.datetime(2020, 6, 15, tzinfo=datetime.timezone.utc).isoformat(),
+            "seed": 42,
+            "platform": "linux-x86_64",
+            "python_version": "3.10.0",
+            "dependency_hash": "def456"
+        },
+        windows=[],
+        metrics={},
+        detector_outputs={
+            "D-01": {},
+            "D-02": {},
+            "D-03": {}
+        },
+        scores={
+            "integrity": {
+                "overall": 0.0,
+                "per_metric": {}
+            },
+            "confidence": {
+                "overall": 0.0,
+                "factors": {}
+            }
+        }
+    )
+
+    assert len(evidence.windows) == 0
+    assert len(evidence.metrics) == 0
+    assert len(evidence.detector_outputs) == 3
