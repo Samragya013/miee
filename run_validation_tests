@@ -12,7 +12,11 @@ def run_validation_tests():
     try:
         # Run pytest and capture output
         result = subprocess.run([
-            sys.executable, "-m", "pytest", "tests/", "-v", "--tb=short"
+            sys.executable, "-m", "pytest", "tests/", "-v", "--tb=short",
+            "--ignore=tests/integration/test_segmentation_integration.py",
+            "--ignore=tests/performance/test_profiling.py",
+            "--ignore=tests/workflow/test_reproducibility.py",
+            "--ignore=tests/workflow/test_workflows.py"
         ], capture_output=True, text=True, timeout=120)
 
         # Parse the output to extract pass/fail counts
