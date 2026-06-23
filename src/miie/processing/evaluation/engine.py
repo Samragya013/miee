@@ -3,8 +3,8 @@
 Implements the IEvaluationEngine interface for evaluating benchmark results against ground truth.
 """
 from typing import Dict, Any, List, Union
-from src.miie.schemas.models import EvaluationResult
-from src.miie.contracts.interfaces import IEvaluationEngine
+from miie.schemas.models import EvaluationResult
+from miie.contracts.interfaces import IEvaluationEngine
 
 
 class EvaluationEngine(IEvaluationEngine):

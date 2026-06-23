@@ -8,7 +8,7 @@ from pathlib import Path
 
 import pytest
 
-from src.miie.utils.hashing import (
+from miie.utils.hashing import (
     compute_config_hash,
     compute_file_hash,
     compute_dependency_hash,
@@ -37,7 +37,7 @@ class TestManifestProvenance:
 
     def test_manifest_has_all_required_fields(self, tmp_path):
         """Manifest must contain every field listed in BSD §20.5 required array."""
-        from src.miie.processing.reporting.engine import ReportGenerator
+        from miie.processing.reporting.engine import ReportGenerator
 
         gen = ReportGenerator()
         result = {"integrity": {"overall": 1.0}, "confidence": {"overall": 1.0}}
@@ -64,7 +64,7 @@ class TestManifestProvenance:
             assert field in manifest, f"Missing required manifest field: {field}"
 
     def test_manifest_manifest_version_is_1_0_0(self, tmp_path):
-        from src.miie.processing.reporting.engine import ReportGenerator
+        from miie.processing.reporting.engine import ReportGenerator
 
         gen = ReportGenerator()
         report_out = gen.generate(
@@ -77,7 +77,7 @@ class TestManifestProvenance:
         assert manifest["manifest_version"] == "1.0.0"
 
     def test_manifest_miie_version_is_1_0_0(self, tmp_path):
-        from src.miie.processing.reporting.engine import ReportGenerator
+        from miie.processing.reporting.engine import ReportGenerator
 
         gen = ReportGenerator()
         report_out = gen.generate(
@@ -90,7 +90,7 @@ class TestManifestProvenance:
         assert manifest["miie_version"] == "1.0.0"
 
     def test_manifest_timestamp_is_utc_iso8601(self, tmp_path):
-        from src.miie.processing.reporting.engine import ReportGenerator
+        from miie.processing.reporting.engine import ReportGenerator
 
         gen = ReportGenerator()
         report_out = gen.generate(
@@ -105,7 +105,7 @@ class TestManifestProvenance:
         assert "T" in ts, f"Timestamp must be ISO 8601, got: {ts}"
 
     def test_manifest_seed_matches_input(self, tmp_path):
-        from src.miie.processing.reporting.engine import ReportGenerator
+        from miie.processing.reporting.engine import ReportGenerator
 
         gen = ReportGenerator()
         report_out = gen.generate(
@@ -119,7 +119,7 @@ class TestManifestProvenance:
         assert manifest["seed"] == 123
 
     def test_manifest_platform_is_nonempty(self, tmp_path):
-        from src.miie.processing.reporting.engine import ReportGenerator
+        from miie.processing.reporting.engine import ReportGenerator
 
         gen = ReportGenerator()
         report_out = gen.generate(
@@ -133,7 +133,7 @@ class TestManifestProvenance:
         assert len(manifest["platform"]) > 0
 
     def test_manifest_artifact_checksums_match_actual_files(self, tmp_path):
-        from src.miie.processing.reporting.engine import ReportGenerator
+        from miie.processing.reporting.engine import ReportGenerator
 
         gen = ReportGenerator()
         report_out = gen.generate(

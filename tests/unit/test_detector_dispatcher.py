@@ -4,14 +4,14 @@ Tests dispatcher routing, orchestration, and validation.
 """
 
 import pytest
-from src.miie.processing.detection.dispatcher import DetectorDispatcherEngine
-from src.miie.processing.detection.registry import DetectorRegistry
-from src.miie.processing.detection.mock_detectors import (
+from miie.processing.detection.dispatcher import DetectorDispatcherEngine
+from miie.processing.detection.registry import DetectorRegistry
+from miie.processing.detection.mock_detectors import (
     MockDistributionDriftDetector,
     MockCorrelationBreakdownDetector,
     MockThresholdCompressionDetector
 )
-from src.miie.schemas.models import MetricDataFrame
+from miie.schemas.models import MetricDataFrame
 import datetime
 
 
@@ -131,5 +131,5 @@ class TestDetectorDispatcher:
         results = self.dispatcher.invoke(metric_dataframe=self.test_metric_dataframe, windows=[])
 
         # Check that it's the correct type
-        from src.miie.schemas.models import DetectorResults
+        from miie.schemas.models import DetectorResults
         assert isinstance(results, DetectorResults)

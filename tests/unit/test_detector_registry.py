@@ -4,8 +4,8 @@ Tests registry registration, lookup, duplicate prevention, and validation.
 """
 
 import pytest
-from src.miie.processing.detection.registry import DetectorRegistry
-from src.miie.processing.detection.mock_detectors import (
+from miie.processing.detection.registry import DetectorRegistry
+from miie.processing.detection.mock_detectors import (
     MockDistributionDriftDetector,
     MockCorrelationBreakdownDetector,
     MockThresholdCompressionDetector

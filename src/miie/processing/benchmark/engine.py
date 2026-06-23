@@ -7,9 +7,9 @@ from datetime import datetime
 import hashlib
 import json
 
-from src.miie.schemas.models import BenchmarkRun
-from src.miie.schemas.serialization import json_dumps
-from src.miie.contracts.interfaces import IBenchmarkEngine
+from miie.schemas.models import BenchmarkRun
+from miie.schemas.serialization import json_dumps
+from miie.contracts.interfaces import IBenchmarkEngine
 
 
 class BenchmarkEngine(IBenchmarkEngine):

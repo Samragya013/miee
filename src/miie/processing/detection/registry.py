@@ -4,7 +4,7 @@ Manages registration and lookup of D-01 through D-03 detectors.
 """
 
 from typing import Dict, List, Optional
-from src.miie.processing.detection.base import BaseDetector
+from miie.processing.detection.base import BaseDetector
 
 
 class DetectorRegistry:

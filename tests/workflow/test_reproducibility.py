@@ -7,18 +7,18 @@ from unittest.mock import Mock
 import numpy as np
 from scipy.stats import rankdata
 
-from src.miie.orchestration.pipeline import AnalysisPipeline
+from miie.orchestration.pipeline import AnalysisPipeline
 from tests.fixtures.mock_services import MockIngestionEngine
 from tests.fixtures.mock_services import MockExtractionEngine
-from src.miie.processing.segmentation import MockSegmentationEngine
-from src.miie.processing.detection.mock_detectors import MockDetectorEngine
-from src.miie.processing.scoring.mock_scoring import MockScoringEngine
-from src.miie.processing.evidence import MockEvidenceEngine
-from src.miie.processing.explanation.mock_explanation import MockExplanationEngine
-from src.miie.processing.reporting.engine import MockReportGenerator
-from src.miie.benchmark.runner import MockBenchmarkRunner
-from src.miie.benchmark.evaluation import EvaluationEngine as MockEvaluationEngine
-from src.miie.utils.seed import SeedManager
+from miie.processing.segmentation import MockSegmentationEngine
+from miie.processing.detection.mock_detectors import MockDetectorEngine
+from miie.processing.scoring.mock_scoring import MockScoringEngine
+from miie.processing.evidence import MockEvidenceEngine
+from miie.processing.explanation.mock_explanation import MockExplanationEngine
+from miie.processing.reporting.engine import MockReportGenerator
+from miie.benchmark.runner import MockBenchmarkRunner
+from miie.benchmark.evaluation import EvaluationEngine as MockEvaluationEngine
+from miie.utils.seed import SeedManager
 
 
 class TestReproducibility:
@@ -269,8 +269,8 @@ class TestDeterminismFixes:
     def test_scoring_engine_bitwise_identical_runs(self):
         """Running the scoring engine twice with identical inputs produces identical scores."""
         from datetime import datetime, timezone
-        from src.miie.schemas.models import DetectorResults, MetricDataFrame, WindowDefinition
-        from src.miie.processing.scoring.engine import ScoringEngine
+        from miie.schemas.models import DetectorResults, MetricDataFrame, WindowDefinition
+        from miie.processing.scoring.engine import ScoringEngine
         from datetime import date
 
         engine = ScoringEngine()
@@ -307,7 +307,7 @@ class TestDeterminismFixes:
 
     def test_json_dumps_deterministic(self):
         """json_dumps must produce identical output for same input."""
-        from src.miie.schemas.serialization import json_dumps
+        from miie.schemas.serialization import json_dumps
 
         obj = {"z": 1, "a": 2, "m": {"b": 3, "a": 1}}
         s1 = json_dumps(obj)

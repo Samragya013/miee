@@ -5,7 +5,7 @@ Implements the BaseDetector contract without actual detection mathematics.
 
 from abc import ABC, abstractmethod
 from typing import Dict, List, Optional
-from src.miie.schemas.models import DetectorResult, MetricDataFrame
+from miie.schemas.models import DetectorResult, MetricDataFrame
 
 
 class BaseDetector(ABC):

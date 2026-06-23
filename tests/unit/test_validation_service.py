@@ -7,7 +7,7 @@ import sys
 import os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..'))
 
-from src.miie.validation.service import validation_service, ValidationError
+from miie.validation.service import validation_service, ValidationError
 
 def test_schema_loading():
     """Test that all schemas are loaded and valid."""

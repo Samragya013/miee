@@ -1,10 +1,10 @@
 """Unit tests for mock explanation engines."""
-from src.miie.processing.explanation.mock_explanation import (
+from miie.processing.explanation.mock_explanation import (
     MockExplanationEngine,
     MockZeroExplanationEngine,
     MockDetailedExplanationEngine
 )
-from src.miie.schemas.models import (
+from miie.schemas.models import (
     EvidencePackage, ScorePackage, WindowDefinition, DetectorResults,
     Provenance, IntegrityScore, ConfidenceScore
 )

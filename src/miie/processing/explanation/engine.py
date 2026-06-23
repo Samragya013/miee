@@ -5,8 +5,8 @@ Implements the IExplanationEngine interface for generating explanation reports.
 from typing import Dict, Any, List, Optional
 from datetime import datetime
 
-from src.miie.schemas.models import EvidencePackage, ExplanationReport, ScorePackage
-from src.miie.contracts.interfaces import IExplanationEngine
+from miie.schemas.models import EvidencePackage, ExplanationReport, ScorePackage
+from miie.contracts.interfaces import IExplanationEngine
 
 
 class ExplanationEngine(IExplanationEngine):

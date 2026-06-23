@@ -2,8 +2,8 @@
 import pytest
 from unittest.mock import Mock
 
-from src.miie.benchmark.evaluation import EvaluationEngine
-from src.miie.schemas.models import BenchmarkRun, EvaluationResult
+from miie.benchmark.evaluation import EvaluationEngine
+from miie.schemas.models import BenchmarkRun, EvaluationResult
 
 
 class TestEvaluationEngineIntegration:

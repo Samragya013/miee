@@ -4,10 +4,10 @@ Detector Dispatcher Engine Implementation.
 Implements the IDetectorEngine interface for invoking detectors on metric data.
 """
 from typing import Dict, Any, List, Optional
-from src.miie.schemas.models import MetricDataFrame, DetectorResults
-from src.miie.processing.detection.registry import DetectorRegistry
-from src.miie.processing.detection.base import BaseDetector
-from src.miie.contracts.interfaces import IDetectorEngine
+from miie.schemas.models import MetricDataFrame, DetectorResults
+from miie.processing.detection.registry import DetectorRegistry
+from miie.processing.detection.base import BaseDetector
+from miie.contracts.interfaces import IDetectorEngine
 
 
 class DetectorDispatcherEngine(IDetectorEngine):

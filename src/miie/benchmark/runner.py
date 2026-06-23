@@ -11,10 +11,10 @@ from datetime import datetime
 from pathlib import Path
 from typing import Dict, Any, List, Optional
 
-from src.miie.schemas.models import BenchmarkRun
-from src.miie.schemas.serialization import json_dumps
-from src.miie.contracts.interfaces import IBenchmarkEngine
-from src.miie.processing.benchmark.engine import BenchmarkEngine as ProcessingBenchmarkEngine
+from miie.schemas.models import BenchmarkRun
+from miie.schemas.serialization import json_dumps
+from miie.contracts.interfaces import IBenchmarkEngine
+from miie.processing.benchmark.engine import BenchmarkEngine as ProcessingBenchmarkEngine
 
 
 class BenchmarkRunner(IBenchmarkEngine):

@@ -4,9 +4,9 @@ Executes detectors through registry and collects results.
 """
 
 from typing import List, Optional
-from src.miie.schemas.models import MetricDataFrame, DetectorResult
-from src.miie.processing.detection.registry import DetectorRegistry
-from src.miie.processing.detection.base import BaseDetector
+from miie.schemas.models import MetricDataFrame, DetectorResult
+from miie.processing.detection.registry import DetectorRegistry
+from miie.processing.detection.base import BaseDetector
 
 
 class DetectorRunner:

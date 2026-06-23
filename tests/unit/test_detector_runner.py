@@ -4,14 +4,14 @@ Tests runner execution, result collection, failure handling, and deterministic o
 """
 
 import pytest
-from src.miie.processing.detection.runner import DetectorRunner
-from src.miie.processing.detection.registry import DetectorRegistry
-from src.miie.processing.detection.mock_detectors import (
+from miie.processing.detection.runner import DetectorRunner
+from miie.processing.detection.registry import DetectorRegistry
+from miie.processing.detection.mock_detectors import (
     MockDistributionDriftDetector,
     MockCorrelationBreakdownDetector,
     MockThresholdCompressionDetector
 )
-from src.miie.schemas.models import MetricDataFrame, DetectorResult
+from miie.schemas.models import MetricDataFrame, DetectorResult
 import datetime
 
 

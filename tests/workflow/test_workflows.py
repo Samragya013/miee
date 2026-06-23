@@ -2,27 +2,27 @@
 import pytest
 from unittest.mock import Mock, patch
 
-from src.miie.orchestration.pipeline import AnalysisPipeline
-from src.miie.processing.ingestion import RepositoryIngestionEngine
-from src.miie.processing.extraction import MetricExtractionEngine
-from src.miie.processing.segmentation import WindowSegmentationEngine
-from src.miie.processing.detection.dispatcher import DetectorDispatcherEngine
-from src.miie.processing.scoring.engine import ScoringEngine
-from src.miie.processing.evidence import EvidenceEngine
-from src.miie.processing.explanation.engine import ExplanationEngine
-from src.miie.processing.reporting.engine import ReportGenerator
-from src.miie.benchmark.runner import BenchmarkRunner
-from src.miie.benchmark.evaluation import EvaluationEngine
+from miie.orchestration.pipeline import AnalysisPipeline
+from miie.processing.ingestion import RepositoryIngestionEngine
+from miie.processing.extraction import MetricExtractionEngine
+from miie.processing.segmentation import WindowSegmentationEngine
+from miie.processing.detection.dispatcher import DetectorDispatcherEngine
+from miie.processing.scoring.engine import ScoringEngine
+from miie.processing.evidence import EvidenceEngine
+from miie.processing.explanation.engine import ExplanationEngine
+from miie.processing.reporting.engine import ReportGenerator
+from miie.benchmark.runner import BenchmarkRunner
+from miie.benchmark.evaluation import EvaluationEngine
 from tests.fixtures.mock_services import MockIngestionEngine
 from tests.fixtures.mock_services import MockExtractionEngine
-from src.miie.processing.segmentation import MockSegmentationEngine
-from src.miie.processing.detection.mock_detectors import MockDetectorEngine
-from src.miie.processing.scoring.mock_scoring import MockScoringEngine
-from src.miie.processing.evidence import MockEvidenceEngine
-from src.miie.processing.explanation.mock_explanation import MockExplanationEngine
-from src.miie.processing.reporting.engine import MockReportGenerator
-from src.miie.benchmark.runner import MockBenchmarkRunner
-from src.miie.benchmark.evaluation import EvaluationEngine as MockEvaluationEngine
+from miie.processing.segmentation import MockSegmentationEngine
+from miie.processing.detection.mock_detectors import MockDetectorEngine
+from miie.processing.scoring.mock_scoring import MockScoringEngine
+from miie.processing.evidence import MockEvidenceEngine
+from miie.processing.explanation.mock_explanation import MockExplanationEngine
+from miie.processing.reporting.engine import MockReportGenerator
+from miie.benchmark.runner import MockBenchmarkRunner
+from miie.benchmark.evaluation import EvaluationEngine as MockEvaluationEngine
 
 
 class TestWorkflows:
@@ -103,7 +103,7 @@ class TestWorkflows:
     def test_wf04_evaluate_benchmark_results(self):
         """Verify evaluation engine workflow."""
         # Create mock benchmark run
-        from src.miie.schemas.models import BenchmarkRun
+        from miie.schemas.models import BenchmarkRun
         mock_benchmark_run = Mock(spec=BenchmarkRun)
         mock_benchmark_run.predictions = {
             "D-01": {
@@ -129,7 +129,7 @@ class TestWorkflows:
         )
 
         # More specifically, check it's an EvaluationResult
-        from src.miie.schemas.models import EvaluationResult
+        from miie.schemas.models import EvaluationResult
         assert isinstance(eval_result, EvaluationResult)
 
     def test_wf05_complete_pipeline_with_real_components(self):
@@ -139,7 +139,7 @@ class TestWorkflows:
         # but we verify the type annotations and interface compliance
 
         # Verify that our mock components implement the required protocols
-        from src.miie.contracts.interfaces import (
+        from miie.contracts.interfaces import (
             IIngestionEngine, IExtractionEngine, ISegmentationEngine,
             IDetectorEngine, IScoringEngine, IEvidenceEngine,
             IExplanationEngine, IBenchmarkEngine, IEvaluationEngine,

@@ -5,10 +5,10 @@ No real detection mathematics implemented.
 """
 
 from typing import Dict, List, Optional, Any
-from src.miie.processing.detection.base import BaseDetector
-from src.miie.processing.detection.dispatcher import DetectorDispatcherEngine
-from src.miie.processing.detection.registry import DetectorRegistry
-from src.miie.schemas.models import DetectorResult, DetectorResults, MetricDataFrame
+from miie.processing.detection.base import BaseDetector
+from miie.processing.detection.dispatcher import DetectorDispatcherEngine
+from miie.processing.detection.registry import DetectorRegistry
+from miie.schemas.models import DetectorResult, DetectorResults, MetricDataFrame
 
 
 class MockDistributionDriftDetector(BaseDetector):

@@ -4,8 +4,8 @@ Implements D-02 detector per TFS Section 5.2.
 """
 import numpy as np
 from typing import Dict, List, Tuple, Optional
-from src.miie.processing.detection.base import BaseDetector
-from src.miie.schemas.models import DetectorResult, MetricDataFrame
+from miie.processing.detection.base import BaseDetector
+from miie.schemas.models import DetectorResult, MetricDataFrame
 from scipy.stats import rankdata
 import itertools
 

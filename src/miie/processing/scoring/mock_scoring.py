@@ -6,8 +6,8 @@ Provides deterministic mock scoring engines for testing purposes.
 from typing import Dict, Any, List, Optional
 from datetime import datetime, timezone
 
-from src.miie.schemas.models import ScorePackage, DetectorResults, MetricDataFrame, WindowDefinition, IntegrityScore, ConfidenceScore
-from src.miie.contracts.interfaces import IScoringEngine
+from miie.schemas.models import ScorePackage, DetectorResults, MetricDataFrame, WindowDefinition, IntegrityScore, ConfidenceScore
+from miie.contracts.interfaces import IScoringEngine
 
 
 class MockScoringEngine(IScoringEngine):

@@ -1,7 +1,7 @@
 import pytest
 from pathlib import Path
 from unittest.mock import patch
-from src.miie.processing.ingestion import cache_path_for_repository
+from miie.processing.ingestion import cache_path_for_repository
 
 
 def test_cache_path_for_repository_returns_correct_structure():

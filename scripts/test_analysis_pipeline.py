@@ -10,17 +10,17 @@ from pathlib import Path
 # Add the current directory to Python path to allow importing from src
 sys.path.insert(0, str(Path(__file__).parent))
 
-from src.miie.orchestration.pipeline import AnalysisPipeline
-from src.miie.processing.ingestion import MockIngestionEngine
-from src.miie.processing.extraction import MockExtractionEngine
-from src.miie.processing.segmentation import MockSegmentationEngine
-from src.miie.processing.detection.mock_detectors import MockDetectorEngine
-from src.miie.processing.scoring.engine import MockScoringEngine
-from src.miie.processing.evidence import MockEvidenceEngine
-from src.miie.processing.explanation.engine import MockExplanationEngine
-from src.miie.processing.reporting.engine import MockReportGenerator
-from src.miie.processing.benchmark.engine import MockBenchmarkEngine
-from src.miie.processing.evaluation.engine import MockEvaluationEngine
+from miie.orchestration.pipeline import AnalysisPipeline
+from miie.processing.ingestion import MockIngestionEngine
+from miie.processing.extraction import MockExtractionEngine
+from miie.processing.segmentation import MockSegmentationEngine
+from miie.processing.detection.mock_detectors import MockDetectorEngine
+from miie.processing.scoring.engine import MockScoringEngine
+from miie.processing.evidence import MockEvidenceEngine
+from miie.processing.explanation.engine import MockExplanationEngine
+from miie.processing.reporting.engine import MockReportGenerator
+from miie.processing.benchmark.engine import MockBenchmarkEngine
+from miie.processing.evaluation.engine import MockEvaluationEngine
 
 
 def test_analysis_pipeline_with_mocks():

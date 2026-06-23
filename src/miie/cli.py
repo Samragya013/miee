@@ -211,8 +211,12 @@ def analyze(ctx, repo_path, metrics, detectors, output_dir, formats, window_stra
 
     score_pkg = results["score_package"]
     click.echo(f"Analysis complete.")
-    click.echo(f"  Integrity : {score_pkg.integrity.overall:.4f}")
-    click.echo(f"  Confidence: {score_pkg.confidence.overall:.4f}")
+    integrity = score_pkg.integrity
+    confidence = score_pkg.confidence
+    integrity_overall = integrity.get("overall", 0.0) if isinstance(integrity, dict) else integrity.overall
+    confidence_overall = confidence.get("overall", 0.0) if isinstance(confidence, dict) else confidence.overall
+    click.echo(f"  Integrity : {integrity_overall:.4f}")
+    click.echo(f"  Confidence: {confidence_overall:.4f}")
 
     report_out = results.get("report_output")
     if report_out and report_out.report_paths:
@@ -222,7 +226,7 @@ def analyze(ctx, repo_path, metrics, detectors, output_dir, formats, window_stra
     click.echo("Done.")
 
     # Exit 1 if integrity score < 1.0 (integrity failures detected)
-    if score_pkg.integrity.overall < 1.0:
+    if integrity_overall < 1.0:
         sys.exit(1)
 
 

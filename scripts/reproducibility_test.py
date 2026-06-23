@@ -13,12 +13,12 @@ from pathlib import Path
 # Add src to path
 sys.path.insert(0, 'src')
 
-from src.miie.processing.segmentation import MockSegmentationEngine
-from src.miie.processing.scoring.engine import ScoringEngine
-from src.miie.processing.scoring.mock_scoring import MockScoringEngine
-from src.miie.processing.evidence import MockEvidenceEngine
-from src.miie.processing.reporting.engine import MockReportGenerator
-from src.miie.schemas.models import (
+from miie.processing.segmentation import MockSegmentationEngine
+from miie.processing.scoring.engine import ScoringEngine
+from miie.processing.scoring.mock_scoring import MockScoringEngine
+from miie.processing.evidence import MockEvidenceEngine
+from miie.processing.reporting.engine import MockReportGenerator
+from miie.schemas.models import (
     RepositoryContext, MetricDataFrame, WindowDefinition,
     DetectorResults, ScorePackage, EvidencePackage
 )

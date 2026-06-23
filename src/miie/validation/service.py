@@ -8,7 +8,7 @@ from typing import Dict, Any, Optional
 import jsonschema
 from jsonschema import ValidationError as JsonschemaValidationError
 
-from src.miie.contracts.errors import ValidationError
+from miie.contracts.errors import ValidationError
 
 
 class ValidationService:

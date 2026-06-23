@@ -1,3 +1,3 @@
 """Benchmark Processing Package.
 """
-from src.miie.processing.benchmark.engine import BenchmarkEngine
+from miie.processing.benchmark.engine import BenchmarkEngine

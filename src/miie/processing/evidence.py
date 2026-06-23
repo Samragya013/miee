@@ -8,7 +8,7 @@ from datetime import datetime, timezone
 import hashlib
 
 from ..schemas.models import EvidencePackage, ScorePackage, DetectorResults, WindowDefinition, Provenance, WarningItem
-from src.miie.schemas.models import RepositoryContext, MetricDataFrame
+from miie.schemas.models import RepositoryContext, MetricDataFrame
 
 
 class EvidenceEngine:
@@ -49,7 +49,7 @@ class EvidenceEngine:
         metrics_used = list(metric_dataframe.metrics.keys()) if hasattr(metric_dataframe, 'metrics') else []
         windows_analyzed = [w.window_id for w in windows] if windows and hasattr(windows[0], 'window_id') else ["w00"]
         integrity_verification = {"verified": True, "method": "foundation"}
-        confidence_indicators = score_package.confidence.factors
+        confidence_indicators = score_package.confidence.get("factors", {}) if isinstance(score_package.confidence, dict) else score_package.confidence.factors
         reproducibility_info = {"seed": seed, "deterministic": True}
         das_notation = f"DAS:{seed}:{_hash_suffix}"
 
@@ -100,7 +100,7 @@ class MockEvidenceEngine:
         metrics_used = list(metric_dataframe.metrics.keys()) if hasattr(metric_dataframe, 'metrics') else []
         windows_analyzed = [w.window_id for w in windows] if windows and hasattr(windows[0], 'window_id') else ["w00"]
         integrity_verification = {"verified": True, "method": "mock"}
-        confidence_indicators = score_package.confidence.factors
+        confidence_indicators = score_package.confidence.get("factors", {}) if isinstance(score_package.confidence, dict) else score_package.confidence.factors
         reproducibility_info = {"seed": seed, "deterministic": True}
         das_notation = f"DAS:mock:{seed}"
 

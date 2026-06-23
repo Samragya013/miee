@@ -1,11 +1,11 @@
 """Integration test demonstrating Day 10 dry-run pipeline execution."""
-from src.miie.processing.scoring.engine import ScoringEngine
-from src.miie.processing.explanation.engine import ExplanationEngine
-from src.miie.processing.benchmark.engine import BenchmarkEngine
-from src.miie.processing.evaluation.engine import EvaluationEngine
-from src.miie.processing.reporting.engine import ReportGenerator
-from src.miie.processing.scoring.mock_scoring import MockScoringEngine
-from src.miie.schemas.models import (
+from miie.processing.scoring.engine import ScoringEngine
+from miie.processing.explanation.engine import ExplanationEngine
+from miie.processing.benchmark.engine import BenchmarkEngine
+from miie.processing.evaluation.engine import EvaluationEngine
+from miie.processing.reporting.engine import ReportGenerator
+from miie.processing.scoring.mock_scoring import MockScoringEngine
+from miie.schemas.models import (
     RepositoryContext, MetricDataFrame, WindowDefinition, DetectorResults,
     ScorePackage, EvidencePackage, ExplanationReport, BenchmarkRun,
     EvaluationResult, ReportOutput, Provenance, IntegrityScore, ConfidenceScore
@@ -288,7 +288,7 @@ def test_day10_components_can_be_instantiated_together():
     assert isinstance(report_generator, ReportGenerator)
 
     # Verify they all implement their respective interfaces
-    from src.miie.contracts.interfaces import (
+    from miie.contracts.interfaces import (
         IExplanationEngine, IBenchmarkEngine, IEvaluationEngine, IReportGenerator
     )
 

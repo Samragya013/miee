@@ -6,9 +6,9 @@ import math
 from typing import Dict, Any, List, Optional
 from datetime import datetime, timezone
 
-from src.miie.schemas.models import ScorePackage, DetectorResults, MetricDataFrame, WindowDefinition
-from src.miie.contracts.interfaces import IScoringEngine
-from src.miie.contracts.errors import ValidationError
+from miie.schemas.models import ScorePackage, DetectorResults, MetricDataFrame, WindowDefinition
+from miie.contracts.interfaces import IScoringEngine
+from miie.contracts.errors import ValidationError
 
 
 class ScoringEngine(IScoringEngine):

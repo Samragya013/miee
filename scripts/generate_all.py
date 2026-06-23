@@ -5,7 +5,7 @@ import shutil
 import os
 import stat
 from pathlib import Path
-from src.miie.benchmark.generator import BenchmarkDatasetGenerator
+from miie.benchmark.generator import BenchmarkDatasetGenerator
 
 def remove_readonly(func, path, exc):
     os.chmod(path, stat.S_IWRITE)

@@ -12,10 +12,10 @@ import sys
 from datetime import datetime, timezone
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 
-from src.miie.schemas.models import ReportOutput
-from src.miie.contracts.interfaces import IReportGenerator
-from src.miie.schemas.serialization import json_dumps
-from src.miie.utils.hashing import (
+from miie.schemas.models import ReportOutput
+from miie.contracts.interfaces import IReportGenerator
+from miie.schemas.serialization import json_dumps
+from miie.utils.hashing import (
     compute_config_hash, compute_file_hash, compute_dependency_hash,
     get_git_commit, get_platform_info, get_python_version,
 )

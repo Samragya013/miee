@@ -1,7 +1,7 @@
 """Unit tests for EvaluationEngine implementation."""
-from src.miie.processing.evaluation.engine import EvaluationEngine
-from src.miie.processing.benchmark.engine import BenchmarkEngine
-from src.miie.schemas.models import EvaluationResult, BenchmarkRun
+from miie.processing.evaluation.engine import EvaluationEngine
+from miie.processing.benchmark.engine import BenchmarkEngine
+from miie.schemas.models import EvaluationResult, BenchmarkRun
 import datetime
 
 

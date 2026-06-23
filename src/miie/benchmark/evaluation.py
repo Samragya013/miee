@@ -6,8 +6,8 @@ from typing import Dict, Any, List, Tuple, Optional
 import math
 import random
 
-from src.miie.schemas.models import BenchmarkRun, EvaluationResult
-from src.miie.contracts.interfaces import IEvaluationEngine
+from miie.schemas.models import BenchmarkRun, EvaluationResult
+from miie.contracts.interfaces import IEvaluationEngine
 
 
 class EvaluationEngine(IEvaluationEngine):

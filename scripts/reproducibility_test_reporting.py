@@ -13,7 +13,7 @@ from pathlib import Path
 # Add src to path
 sys.path.insert(0, 'src')
 
-from src.miie.processing.reporting.engine import MockReportGenerator
+from miie.processing.reporting.engine import MockReportGenerator
 import tempfile
 from pathlib import Path
 

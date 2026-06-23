@@ -1,6 +1,6 @@
 """Unit tests for ReportGenerator implementation."""
-from src.miie.processing.reporting.engine import ReportGenerator
-from src.miie.schemas.models import ReportOutput
+from miie.processing.reporting.engine import ReportGenerator
+from miie.schemas.models import ReportOutput
 from pathlib import Path
 import tempfile
 import os

@@ -2,8 +2,8 @@
 import json
 import tempfile
 from pathlib import Path
-from src.miie.processing.reporting.engine import ReportGenerator
-from src.miie.schemas.models import ReportOutput
+from miie.processing.reporting.engine import ReportGenerator
+from miie.schemas.models import ReportOutput
 
 
 def test_report_generator_integration_basic():

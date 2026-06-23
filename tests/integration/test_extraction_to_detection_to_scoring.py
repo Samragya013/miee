@@ -3,18 +3,18 @@
 Tests the complete pipeline from MetricDataFrame through detector framework to scoring.
 """
 import pytest
-from src.miie.processing.extraction import MetricExtractionEngine
-from src.miie.processing.detection.registry import DetectorRegistry
-from src.miie.processing.detection.dispatcher import DetectorDispatcherEngine
-from src.miie.processing.detection.runner import DetectorRunner
-from src.miie.processing.detection.mock_detectors import (
+from miie.processing.extraction import MetricExtractionEngine
+from miie.processing.detection.registry import DetectorRegistry
+from miie.processing.detection.dispatcher import DetectorDispatcherEngine
+from miie.processing.detection.runner import DetectorRunner
+from miie.processing.detection.mock_detectors import (
     MockDistributionDriftDetector,
     MockCorrelationBreakdownDetector,
     MockThresholdCompressionDetector
 )
-from src.miie.processing.scoring.engine import ScoringEngine
-from src.miie.processing.scoring.mock_scoring import MockScoringEngine
-from src.miie.schemas.models import MetricDataFrame
+from miie.processing.scoring.engine import ScoringEngine
+from miie.processing.scoring.mock_scoring import MockScoringEngine
+from miie.schemas.models import MetricDataFrame
 import datetime
 
 

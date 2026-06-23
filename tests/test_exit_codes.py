@@ -8,7 +8,7 @@ from unittest.mock import patch, MagicMock
 import pytest
 from click.testing import CliRunner
 
-from src.miie.cli import cli
+from miie.cli import cli
 
 
 @pytest.fixture
@@ -103,7 +103,7 @@ class TestCLIErrorsIncludeSuggestion:
     """CLIError.__str__ should include suggestion text (ACS §19)."""
 
     def test_cli_error_with_suggestion(self):
-        from src.miie.contracts.errors import CLIError
+        from miie.contracts.errors import CLIError
         err = CLIError(
             message="Invalid repository",
             error_code="INVALID-REPO",
@@ -114,7 +114,7 @@ class TestCLIErrorsIncludeSuggestion:
         assert "[INVALID-REPO]" in s
 
     def test_cli_error_without_suggestion(self):
-        from src.miie.contracts.errors import CLIError
+        from miie.contracts.errors import CLIError
         err = CLIError(
             message="Something failed",
             error_code="GENERIC-ERROR",
@@ -124,7 +124,7 @@ class TestCLIErrorsIncludeSuggestion:
         assert "Suggestion" not in s
 
     def test_cli_error_to_dict_includes_suggestion(self):
-        from src.miie.contracts.errors import CLIError
+        from miie.contracts.errors import CLIError
         err = CLIError(
             message="Bad input",
             error_code="BAD-INPUT",

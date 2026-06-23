@@ -8,8 +8,8 @@ from pathlib import Path
 
 import pytest
 
-from src.miie.processing.evidence import EvidenceEngine, MockEvidenceEngine
-from src.miie.schemas.models import (
+from miie.processing.evidence import EvidenceEngine, MockEvidenceEngine
+from miie.schemas.models import (
     RepositoryContext,
     MetricDataFrame,
     WindowDefinition,

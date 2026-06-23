@@ -1,7 +1,7 @@
 import sys
 import shutil
 sys.path.insert(0, 'src')
-from src.miie.benchmark.generator import BenchmarkDatasetGenerator
+from miie.benchmark.generator import BenchmarkDatasetGenerator
 from pathlib import Path
 
 print("Cleaning up test output directory...")

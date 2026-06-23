@@ -9,8 +9,8 @@ from datetime import datetime, timedelta
 from pathlib import Path
 from typing import List, Optional
 
-from src.miie.contracts.interfaces import IDatasetGenerator
-from src.miie.schemas.models import (
+from miie.contracts.interfaces import IDatasetGenerator
+from miie.schemas.models import (
     RepositoryContext,
     MetricDataFrame,
     WindowDefinition,
@@ -24,7 +24,7 @@ from src.miie.schemas.models import (
     GroundTruthInput,
     Annotation,
 )
-from src.miie.schemas.serialization import json_dumps
+from miie.schemas.serialization import json_dumps
 
 
 class BenchmarkDatasetGenerator(IDatasetGenerator):

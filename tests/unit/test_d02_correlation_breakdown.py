@@ -3,10 +3,10 @@ Unit tests for D02 Correlation Breakdown Detector.
 """
 import numpy as np
 import pytest
-from src.miie.processing.detection.correlation_breakdown_detector import (
+from miie.processing.detection.correlation_breakdown_detector import (
     CorrelationBreakdownDetector
 )
-from src.miie.schemas.models import MetricDataFrame
+from miie.schemas.models import MetricDataFrame
 import datetime
 
 
@@ -92,7 +92,7 @@ class TestCorrelationBreakdownDetector:
     def test_execute_returns_detector_result(self):
         """Test that execute returns a DetectorResult."""
         result = self.detector.execute(self.test_metric_dataframe)
-        from src.miie.schemas.models import DetectorResult
+        from miie.schemas.models import DetectorResult
         assert isinstance(result, DetectorResult)
         assert hasattr(result, 'detector_outputs')
         assert self.detector.get_detector_id() in result.detector_outputs

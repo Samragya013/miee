@@ -1,6 +1,6 @@
 """Unit tests for BenchmarkEngine implementation."""
-from src.miie.processing.benchmark.engine import BenchmarkEngine
-from src.miie.schemas.models import BenchmarkRun
+from miie.processing.benchmark.engine import BenchmarkEngine
+from miie.schemas.models import BenchmarkRun
 import datetime
 
 

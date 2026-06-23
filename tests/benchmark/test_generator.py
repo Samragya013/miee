@@ -8,7 +8,7 @@ from pathlib import Path
 
 import pytest
 
-from src.miie.benchmark.generator import BenchmarkDatasetGenerator
+from miie.benchmark.generator import BenchmarkDatasetGenerator
 
 
 def remove_readonly(func, path, exc):

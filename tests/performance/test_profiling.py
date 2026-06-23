@@ -3,17 +3,17 @@ import time
 import pytest
 from unittest.mock import Mock
 
-from src.miie.orchestration.pipeline import AnalysisPipeline
+from miie.orchestration.pipeline import AnalysisPipeline
 from tests.fixtures.mock_services import MockIngestionEngine
 from tests.fixtures.mock_services import MockExtractionEngine
-from src.miie.processing.segmentation import MockSegmentationEngine
-from src.miie.processing.detection.mock_detectors import MockDetectorEngine
-from src.miie.processing.scoring.mock_scoring import MockScoringEngine
-from src.miie.processing.evidence import MockEvidenceEngine
-from src.miie.processing.explanation.mock_explanation import MockExplanationEngine
-from src.miie.processing.reporting.engine import MockReportGenerator
-from src.miie.benchmark.runner import MockBenchmarkRunner
-from src.miie.benchmark.evaluation import EvaluationEngine as MockEvaluationEngine
+from miie.processing.segmentation import MockSegmentationEngine
+from miie.processing.detection.mock_detectors import MockDetectorEngine
+from miie.processing.scoring.mock_scoring import MockScoringEngine
+from miie.processing.evidence import MockEvidenceEngine
+from miie.processing.explanation.mock_explanation import MockExplanationEngine
+from miie.processing.reporting.engine import MockReportGenerator
+from miie.benchmark.runner import MockBenchmarkRunner
+from miie.benchmark.evaluation import EvaluationEngine as MockEvaluationEngine
 
 
 class TestPerformanceProfiling:
@@ -143,7 +143,7 @@ class TestPerformanceProfiling:
         assert benchmark_time < 5.0  # Should be fast with mocks
 
         # Test evaluation engine performance
-        from src.miie.schemas.models import BenchmarkRun
+        from miie.schemas.models import BenchmarkRun
         mock_benchmark_run = Mock(spec=BenchmarkRun)
         mock_benchmark_run.predictions = {
             "D-01": {

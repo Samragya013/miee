@@ -2,9 +2,9 @@
 import datetime
 from pathlib import Path
 
-from src.miie.processing.scoring.engine import ScoringEngine
-from src.miie.processing.scoring.mock_scoring import MockScoringEngine, MockZeroScoringEngine, MockPerfectScoringEngine
-from src.miie.schemas.models import (
+from miie.processing.scoring.engine import ScoringEngine
+from miie.processing.scoring.mock_scoring import MockScoringEngine, MockZeroScoringEngine, MockPerfectScoringEngine
+from miie.schemas.models import (
     DetectorResults, MetricDataFrame, WindowDefinition, ScorePackage,
     RepositoryContext
 )

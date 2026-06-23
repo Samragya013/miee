@@ -8,18 +8,18 @@ import tempfile
 from datetime import datetime, timedelta
 from pathlib import Path
 
-from src.miie.orchestration.pipeline import AnalysisPipeline
+from miie.orchestration.pipeline import AnalysisPipeline
 from tests.fixtures.mock_services import MockIngestionEngine
 from tests.fixtures.mock_services import MockExtractionEngine
-from src.miie.processing.segmentation import MockSegmentationEngine
-from src.miie.processing.detection.mock_detectors import MockDetectorEngine
-from src.miie.processing.scoring.mock_scoring import MockScoringEngine
-from src.miie.processing.evidence import MockEvidenceEngine
-from src.miie.processing.explanation.engine import MockExplanationEngine
-from src.miie.processing.reporting.engine import MockReportGenerator
-from src.miie.processing.benchmark.engine import MockBenchmarkEngine
-from src.miie.processing.evaluation.engine import MockEvaluationEngine
-from src.miie.schemas.models import MetricDataFrame, RepositoryContext, WindowDefinition
+from miie.processing.segmentation import MockSegmentationEngine
+from miie.processing.detection.mock_detectors import MockDetectorEngine
+from miie.processing.scoring.mock_scoring import MockScoringEngine
+from miie.processing.evidence import MockEvidenceEngine
+from miie.processing.explanation.engine import MockExplanationEngine
+from miie.processing.reporting.engine import MockReportGenerator
+from miie.processing.benchmark.engine import MockBenchmarkEngine
+from miie.processing.evaluation.engine import MockEvaluationEngine
+from miie.schemas.models import MetricDataFrame, RepositoryContext, WindowDefinition
 
 
 class TestSegmentationIntegration:

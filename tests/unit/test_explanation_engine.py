@@ -1,8 +1,8 @@
 """Unit tests for ExplanationEngine implementation."""
-from src.miie.processing.explanation.engine import ExplanationEngine
-from src.miie.processing.scoring.engine import ScoringEngine
-from src.miie.processing.scoring.mock_scoring import MockScoringEngine
-from src.miie.schemas.models import (
+from miie.processing.explanation.engine import ExplanationEngine
+from miie.processing.scoring.engine import ScoringEngine
+from miie.processing.scoring.mock_scoring import MockScoringEngine
+from miie.schemas.models import (
     EvidencePackage, ScorePackage, WindowDefinition, DetectorResults, MetricDataFrame,
     Provenance, IntegrityScore, ConfidenceScore
 )
