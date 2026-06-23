@@ -1,0 +1,113 @@
+{# MIIE Compression Explanation Template (D-03) #}
+{# This template explains compression ratio analysis results #}
+
+{% if analysis_result is defined %}
+# MIIE Compression Analysis Explanation Report
+
+**Generated at:** {{ analysis_result.get('generated_at', 'unknown') }}
+**Detector:** D-03 (Compression Ratio Analyzer)
+**MIEE Version:** {{ analysis_result.get('miie_version', '1.0.0') }}
+
+## Executive Summary
+Compression analysis completed. Average compression ratio: {{ avg_compression_ratio | default(0.0) }}:{{ avg_compression_ratio | default(0.0) | multiply(1) | round(2) }}.
+
+## Compression Analysis Overview
+- **Files Analyzed:** {{ file_count | default(0) }}
+- **Average Compression Ratio:** {{ "%.2f"|format(avg_compression_ratio) }}:1
+- **Compression Threshold:** {{ compression_threshold | default(2.0) }}:1
+- **Space Savings:** {{ space_savings_percent | default(0.0) }}%
+
+## Compression Ratio Distribution
+{% if compression_ratios %}
+- **Minimum Ratio:** {{ "%.2f"|format(compression_ratios.min) }}:1
+- **Maximum Ratio:** {{ "%.2f"|format(compression_ratios.max) }}:1
+- **Median Ratio:** {{ "%.2f"|format(compression_ratios.median) }}:1
+- **Standard Deviation:** {{ "%.2f"|format(compression_ratios.std_dev) }}
+- **25th Percentile:** {{ "%.2f"|format(compression_ratios.p25) }}:1
+- **75th Percentile:** {{ "%.2f"|format(compression_ratios.p75) }}:1
+{% endif %}
+
+## File Type Compression Analysis
+{% if file_type_analysis %}
+### By File Extension
+{% for ext, stats in file_type_analysis.items() %}
+**{{ ext }} files:**
+- Count: {{ stats.count }}
+- Avg Ratio: {{ "%.2f"|format(stats.avg_ratio) }}:1
+- Total Size: {{ stats.total_size }} bytes
+- Compressed Size: {{ stats.compressed_size }} bytes
+{% endfor %}
+{% endif %}
+
+## Compression Efficiency Categories
+{% if efficiency_categories %}
+- **High Efficiency** (> 5:1): {{ efficiency_categories.high_efficiency.count }} files
+- **Medium Efficiency** (2-5:1): {{ efficiency_categories.medium_efficiency.count }} files
+- **Low Efficiency** (< 2:1): {{ efficiency_categories.low_efficiency.count }} files
+{% endif %}
+
+## Compression Algorithm Analysis
+{% if algorithm_performance %}
+### Algorithm Performance Comparison
+{% for alg, perf in algorithm_performance.items() %}
+**{{ alg }}:**
+- Average Ratio: {{ "%.2f"|format(perf.avg_ratio) }}:1
+- Speed: {{ perf.speed_rating | default('unknown') }}
+- Memory Usage: {{ perf.memory_usage | default('unknown') }}
+{% endfor %}
+{% endif %}
+
+## Temporal Compression Trends
+{% if temporal_trends %}
+- **Trend Direction:** {{ trend_direction | default('stable') }}
+- **Change Over Time:** {{ trend_slope | default(0.0) }} ratio units/day
+- **Seasonal Pattern Detected:** {{ seasonal_pattern | default(false) | yesno }}
+{% endif %}
+
+## Data Characteristics Impacting Compression
+{% if data_characteristics %}
+### Factors Affecting Compression Ratios
+- **Entropy Level:** {{ entropy_level | default('unknown') }} (higher = less compressible)
+- **Repetition Factor:** {{ repetition_factor | default(0.0) }} (higher = more compressible)
+- **Data Density:** {{ data_density | default('unknown') }}
+- **File Format Overhead:** {{ format_overhead | default('unknown') }}%
+{% endif %}
+
+## Recommended Actions
+{% if avg_compression_ratio > compression_threshold %}
+1. **Leverage Compression:** Current compression efficiency is favorable for storage/transfer
+2. **Consider Archive Formats:** Explore specialized formats for long-term retention
+3. **Monitor Trends:** Watch for degradation in compression efficiency over time
+4. **Optimize Resource Allocation:** Allocate storage based on actual compressed size
+{% else %}
+1. **Investigate Low Compression:** Review data characteristics that may prevent effective compression
+2. **Consider Data Transformation:** Apply preprocessing to improve compressibility
+3. **Evaluate Alternatives:** Consider if current data format is optimal for use case
+4. **Check Data Quality:** Investigate if corruption or noise is reducing compressibility
+{% endif %}
+
+## Technical Details
+- **Analysis Method:** {{ analysis_method | default('DEFLATE Compression') }}
+- **Total Original Size:** {{ total_original_size | default(0) }} bytes
+- **Total Compressed Size:** {{ total_compressed_size | default(0) }} bytes
+- **Processing Time:** {{ processing_time_ms | default(0) }} ms
+- **Memory Peak:** {{ memory_peak_mb | default(0) }} MB
+{% else %}
+# MIIE Compression Analysis Explanation Report
+
+**Generated at:** {{ generated_at | default('unknown') }}
+**Detector:** D-03 (Compression Ratio Analyzer)
+**MIEE Version:** {{ miie_version | default('1.0.0') }}
+
+## Executive Summary
+Compression analysis completed. No significant compression patterns detected.
+
+## Compression Analysis Overview
+- **Files Analyzed:** 0
+- **Average Compression Ratio:** 1.0:1 (no compression)
+- **Compression Threshold:** 2.0:1
+- **Space Savings:** 0.0%
+
+## Conclusion
+Analysis indicates minimal compressibility in the tested dataset, suggesting data may already be in a compressed format or lack redundant patterns.
+{% endif %}

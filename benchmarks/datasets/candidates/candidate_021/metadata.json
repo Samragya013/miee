@@ -1,0 +1,21 @@
+{
+  "candidate_id": "candidate_021",
+  "seed": 1021,
+  "anomaly_type": "volatility_clustering",
+  "anomaly_present": true,
+  "metrics": {
+    "M-02": true,
+    "M-06": true
+  },
+  "metadata": {
+    "total_commits": 2375,
+    "date_range": [
+      "2025-01-01",
+      "2025-12-31"
+    ],
+    "contributor_count": 19
+  },
+  "repo_id": "repo_021",
+  "generation_seed": 1021,
+  "generation_timestamp": "2026-06-20T00:00:00Z"
+}

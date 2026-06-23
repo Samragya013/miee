@@ -13,24 +13,31 @@ import sys
 from typing import Any, Union
 
 
-def json_dumps(obj: Any, *, sort_keys: bool = True) -> str:
+def json_dumps(obj: Any, *, sort_keys: bool = True, indent: int = None, default=None) -> str:
     """
     Serialize object to JSON string with deterministic ordering.
 
     Args:
         obj: Object to serialize
         sort_keys: Whether to sort dictionary keys (default: True for determinism)
+        indent: Number of spaces for pretty-printing (default: None for compact output)
+        default: Fallback serializer for non-JSON-native types (e.g., default=str)
 
     Returns:
         JSON string with sorted keys and compact separators
     """
-    return json.dumps(
-        obj,
+    kwargs = dict(
+        obj=obj,
         sort_keys=sort_keys,
-        separators=(',', ':'),  # Eliminate whitespace for determinism and compactness
-        ensure_ascii=False,     # Allow UTF-8 characters
-        indent=None             # No pretty-printing for compact, deterministic output
+        ensure_ascii=False,
     )
+    if default is not None:
+        kwargs['default'] = default
+    if indent is not None:
+        kwargs['indent'] = indent
+        return json.dumps(**kwargs)
+    kwargs['separators'] = (',', ':')  # Eliminate whitespace for determinism
+    return json.dumps(**kwargs)
 
 
 def json_loads(s: Union[str, bytes]) -> Any:

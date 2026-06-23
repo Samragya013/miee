@@ -1,0 +1,62 @@
+{# MIIE Dry Run Report Template #}
+{# This template generates a mock dry-run report for testing purposes #}
+
+{% if analysis_result is defined %}
+# MIIE Dry Run Analysis Report
+
+**Generated at:** {{ analysis_result.get('generated_at', 'unknown') }}
+**Report Type:** Dry Run (Mock)
+**MIEE Version:** {{ analysis_result.get('miie_version', '1.0.0') }}
+
+## Executive Summary
+This is a mock dry-run report generated for testing purposes. No actual analysis was performed.
+
+## Analysis Overview
+- **Repository:** {{ analysis_result.get('repository', {}).get('repo_id', 'unknown') }}
+- **Analysis Window:** {{ analysis_result.get('window', {}).get('id', 'unknown') }}
+- **Status:** Completed (Mock)
+
+## Detector Results (Mock)
+{% if analysis_result.get('detector_results') %}
+### D-01 (Syntax Checker)
+- **Status:** PASSED (Mock)
+- **Files Processed:** {{ analysis_result.detector_results.get('D-01', {}).get('files_processed', 0) }}
+- **Issues Found:** {{ analysis_result.detector_results.get('D-01', {}).get('issues_found', 0) }}
+
+### D-02 (Semantic Analyzer)
+- **Status:** PASSED (Mock)
+- **Complexity Score:** {{ analysis_result.detector_results.get('D-02', {}).get('complexity_score', 0.0) }}
+- **Dependencies Analyzed:** {{ analysis_result.detector_results.get('D-02', {}).get('dependencies_analyzed', 0) }}
+
+### D-03 (Security Scanner)
+- **Status:** PASSED (Mock)
+- **Security Score:** {{ analysis_result.detector_results.get('D-03', {}).get('security_score', 1.0) }}
+- **Vulnerabilities Found:** {{ analysis_result.detector_results.get('D-03', {}).get('vulnerabilities_found', 0) }}
+{% endif %}
+
+## Metrics Summary (Mock)
+{% if analysis_result.get('metrics') %}
+### Processed Metrics
+{% for metric_name, metric_value in analysis_result.metrics.items() %}
+- **{{ metric_name }}:** {{ metric_value }}
+{% endfor %}
+{% endif %}
+
+## Conclusion
+This dry-run report confirms the MIIE pipeline is properly configured and ready for actual analysis execution.
+{% else %}
+# MIIE Dry Run Analysis Report
+
+**Generated at:** {{ generated_at | default('unknown') }}
+**Report Type:** Dry Run (Mock)
+**MIEE Version:** {{ miie_version | default('1.0.0') }}
+
+## Executive Summary
+This is a mock dry-run report generated for testing purposes. No actual analysis was performed.
+
+## Analysis Overview
+- **Status:** Completed (Mock)
+
+## Conclusion
+This dry-run report confirms the MIIE pipeline is properly configured and ready for actual analysis execution.
+{% endif %}

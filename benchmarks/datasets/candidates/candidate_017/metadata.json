@@ -1,0 +1,21 @@
+{
+  "candidate_id": "candidate_017",
+  "seed": 1017,
+  "anomaly_type": "transient",
+  "anomaly_present": true,
+  "metrics": {
+    "M-02": true,
+    "M-06": true
+  },
+  "metadata": {
+    "total_commits": 2171,
+    "date_range": [
+      "2025-01-01",
+      "2025-12-31"
+    ],
+    "contributor_count": 23
+  },
+  "repo_id": "repo_017",
+  "generation_seed": 1017,
+  "generation_timestamp": "2026-06-20T00:00:00Z"
+}

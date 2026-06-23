@@ -1,0 +1,33 @@
+{
+  "candidate_id": "candidate_025",
+  "seed": 1025,
+  "anomaly_type": "long_memory",
+  "metrics": {
+    "M-02": {
+      "values": [
+        3.9821,
+        4.538,
+        4.7281,
+        4.5436,
+        4.8245,
+        4.832,
+        4.7296,
+        4.9928,
+        5.1867,
+        5.3159,
+        5.1232,
+        5.2441,
+        5.5666
+      ],
+      "window_count": 13
+    }
+  },
+  "metadata": {
+    "total_commits": 1059,
+    "date_range": [
+      "2025-01-01",
+      "2025-12-31"
+    ],
+    "contributor_count": 4
+  }
+}

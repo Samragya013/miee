@@ -1,0 +1,103 @@
+{# MIIE Correlation Explanation Template (D-02) #}
+{# This template explains correlation analysis results #}
+
+{% if analysis_result is defined %}
+# MIIE Correlation Analysis Explanation Report
+
+**Generated at:** {{ analysis_result.get('generated_at', 'unknown') }}
+**Detector:** D-02 (Correlation Analyzer)
+**MIEE Version:** {{ analysis_result.get('miie_version', '1.0.0') }}
+
+## Executive Summary
+Correlation analysis completed. {{ significant_pairs_count }} significant correlations found among {{ total_pairs_tested }} tested pairs.
+
+## Correlation Analysis Overview
+- **Total Pairs Tested:** {{ total_pairs_tested | default(0) }}
+- **Significant Correlations Found:** {{ significant_pairs_count | default(0) }}
+- **Correlation Threshold:** {{ correlation_threshold | default(0.7) }}
+- **P-value Threshold:** {{ pvalue_threshold | default(0.05) }}
+
+## Strongest Correlations
+{% if strong_correlations %}
+| Variable A | Variable B | Correlation | P-value | Significance |
+|------------|------------|-------------|---------|--------------|
+{% for corr in strong_correlations %}
+| {{ corr.var_a }} | {{ corr.var_b }} | {{ "%.4f"|format(corr.coefficient) }} | {{ "%.4f"|format(corr.p_value) }} | {{ corr.significance | upper }} |
+{% endfor %}
+{% else %}
+### No strong correlations detected above threshold
+{% endif %}
+
+## Correlation Matrix Summary
+{% if correlation_stats %}
+- **Mean Correlation:** {{ "%.4f"|format(correlation_stats.mean_correlation) }}
+- **Max Correlation:** {{ "%.4f"|format(correlation_stats.max_correlation) }}
+- **Min Correlation:** {{ "%.4f"|format(correlation_stats.min_correlation) }}
+- **Standard Deviation:** {{ "%.4f"|format(correlation_stats.std_deviation) }}
+{% endif %}
+
+## Variable Groups by Correlation Strength
+{% if variable_groups %}
+### Highly Correlated Groups (|r| > 0.8)
+{% for group_id, variables in variable_groups.high.items() %}
+**Group {{ group_id }}:** {{ variables | join(', ') }}
+{% endfor %}
+
+### Moderately Correlated Groups (0.5 < |r| ≤ 0.8)
+{% for group_id, variables in variable_groups.moderate.items() %}
+**Group {{ group_id }}:** {{ variables | join(', ') }}
+{% endfor %}
+
+### Weakly Correlated Variables (|r| ≤ 0.5)
+{% for group_id, variables in variable_groups.low.items() %}
+**Group {{ group_id }}:** {{ variables | join(', ') }}
+{% endfor %}
+{% endif %}
+
+## Temporal Correlation Analysis
+{% if temporal_analysis %}
+- **Lead-Lag Relationships Detected:** {{ lead_lag_detected | default(false) | yesno }}
+- **Optimal Lag Period:** {{ optimal_lag | default(0) }} periods
+- **Seasonal Correlation Strength:** {{ seasonal_strength | default(0.0) }}
+{% endif %}
+
+## Causality Notes
+> **Important:** Correlation does not imply causation. These relationships indicate statistical associations that warrant further investigation.
+
+## Recommended Actions
+{% if significant_pairs_count > 0 %}
+1. **Investigate Strong Relationships:** Focus on variables with |r| > 0.8 for potential causal links
+2. **Check for Confounding Factors:** Identify third variables that may explain observed correlations
+3. **Consider Variable Reduction:** Highly correlated variables may be redundant for modeling
+4. **Validate with Domain Experts:** Confirm statistical relationships align with domain knowledge
+{% else %}
+1. **Explore Alternative Relationships:** Consider non-linear or time-lagged relationships
+2. **Increase Sample Size:** Low correlation may be due to insufficient statistical power
+3. **Review Variable Selection:** Ensure variables are properly measured and relevant
+4. **Consider Domain-specific Metrics:** Standard correlations may not capture domain-specific relationships
+{% endif %}
+
+## Technical Details
+- **Analysis Method:** {{ analysis_method | default('Pearson Correlation') }}
+- **Variables Analyzed:** {{ variable_count | default(0) }}
+- **Degrees of Freedom:** {{ degrees_of_freedom | default(0) }}
+- **Processing Time:** {{ processing_time_ms | default(0) }} ms
+{% else %}
+# MIIE Correlation Analysis Explanation Report
+
+**Generated at:** {{ generated_at | default('unknown') }}
+**Detector:** D-02 (Correlation Analyzer)
+**MIEE Version:** {{ miie_version | default('1.0.0') }}
+
+## Executive Summary
+Correlation analysis completed. No significant correlations detected.
+
+## Correlation Analysis Overview
+- **Total Pairs Tested:** 0
+- **Significant Correlations Found:** 0
+- **Correlation Threshold:** 0.7
+- **P-value Threshold:** 0.05
+
+## Conclusion
+Analysis indicates no strong linear relationships between variables in the dataset.
+{% endif %}

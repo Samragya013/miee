@@ -1,0 +1,33 @@
+{
+  "evidence_id": "mock_evidence_42",
+  "timestamp": "2023-06-15T00:00:00Z",
+  "score_package_id": "mock_score_package_42",
+  "detector_results_ids": [
+    "D-01",
+    "D-02",
+    "D-03"
+  ],
+  "metrics_used": [
+    "M-02",
+    "M-06"
+  ],
+  "windows_analyzed": [
+    "w00"
+  ],
+  "integrity_verification": {
+    "verified": true,
+    "method": "mock"
+  },
+  "confidence_indicators": {
+    "sample_size": 0.9,
+    "variance": 0.8,
+    "missing_data": 0.9,
+    "window_balance": 0.85,
+    "detector_success": 0.95
+  },
+  "reproducibility_info": {
+    "seed": 42,
+    "deterministic": true
+  },
+  "das_notation": "DAS:mock:42"
+}

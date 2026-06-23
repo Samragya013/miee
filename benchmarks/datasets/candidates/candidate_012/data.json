@@ -1,0 +1,35 @@
+{
+  "candidate_id": "candidate_012",
+  "seed": 1012,
+  "anomaly_type": "seasonal",
+  "metrics": {
+    "M-02": {
+      "values": [
+        5.2111,
+        7.4896,
+        7.8724,
+        6.0411,
+        3.5192,
+        2.405,
+        3.6255,
+        6.1652,
+        7.9111,
+        7.4107,
+        5.0802,
+        2.8587,
+        2.5944,
+        4.5072,
+        7.0057
+      ],
+      "window_count": 15
+    }
+  },
+  "metadata": {
+    "total_commits": 1586,
+    "date_range": [
+      "2025-01-01",
+      "2025-12-31"
+    ],
+    "contributor_count": 8
+  }
+}

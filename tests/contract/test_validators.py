@@ -4,7 +4,7 @@ Tests for validation logic in the contracts layer.
 """
 
 import pytest
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 from miie.contracts.validators import (
@@ -42,9 +42,23 @@ from miie.schemas.models import (
     EvidencePackage,
     DetectorResults,
     ScorePackage,
-    BenchmarkRun
+    BenchmarkRun,
+    Provenance,
+    IntegrityScore,
+    ConfidenceScore,
+    WarningItem
 )
 import pandas as pd
+
+
+def _make_score_package():
+    """Create a minimal valid ScorePackage for testing."""
+    return ScorePackage(
+        integrity=IntegrityScore(overall=0.9, per_metric={"M-01": 0.9}, formula_version="1.0.0"),
+        confidence=ConfidenceScore(overall=0.8, factors={"sample_size": 0.8}, band="high"),
+        timestamp=datetime.now(tz=timezone.utc),
+        config_hash="abc123"
+    )
 
 
 def test_validate_repository_inputs_valid_local():
@@ -190,10 +204,13 @@ def test_validate_d02_input_valid():
         values_b=[2.0, 3.0, 4.0, 5.0, 6.0],
         metric_a="M-01",
         metric_b="M-02",
-        window_history=[
+            window_history=[
             WindowDefinition(
+                window_id="w01",
                 start_date=datetime.now() - timedelta(days=14),
-                end_date=datetime.now() - timedelta(days=7)
+                end_date=datetime.now() - timedelta(days=7),
+                commits=10,
+                strategy="fixed_size"
             )
         ],
         config={"correlation_threshold": 0.3}
@@ -210,8 +227,11 @@ def test_validate_d02_input_same_metrics():
             metric_b="M-01",  # Same as metric_a
             window_history=[
                 WindowDefinition(
+                    window_id="w02",
                     start_date=datetime.now() - timedelta(days=14),
-                    end_date=datetime.now() - timedelta(days=7)
+                    end_date=datetime.now() - timedelta(days=7),
+                    commits=10,
+                    strategy="fixed_size"
                 )
             ],
             config={"correlation_threshold": 0.3}
@@ -254,12 +274,18 @@ def test_validate_detection_inputs_valid():
     now = datetime.now()
     windows = [
         WindowDefinition(
+            window_id="w03",
             start_date=now - timedelta(days=14),
-            end_date=now - timedelta(days=8)  # End 1 day before next window starts
+            end_date=now - timedelta(days=8),  # End 1 day before next window starts
+            commits=10,
+            strategy="fixed_size"
         ),
         WindowDefinition(
-            start_date=now - timedelta(days=7),  # Start 1 day after previous window ends
-            end_date=now
+            window_id="w04",
+            start_date=now - timedelta(days=7),  # Start 1 day after previous window ends,
+            end_date=now,
+            commits=10,
+            strategy="fixed_size"
         )
     ]
 
@@ -289,8 +315,11 @@ def test_validate_detection_inputs_invalid_enabled_detector():
 
     windows = [
         WindowDefinition(
+            window_id="w05",
             start_date=datetime.now() - timedelta(days=14),
-            end_date=datetime.now() - timedelta(days=7)
+            end_date=datetime.now() - timedelta(days=7),
+            commits=10,
+            strategy="fixed_size"
         )
     ]
 
@@ -320,8 +349,11 @@ def test_validate_detection_inputs_invalid_config_detector():
 
     windows = [
         WindowDefinition(
+            window_id="w06",
             start_date=datetime.now() - timedelta(days=14),
-            end_date=datetime.now() - timedelta(days=7)
+            end_date=datetime.now() - timedelta(days=7),
+            commits=10,
+            strategy="fixed_size"
         )
     ]
 
@@ -427,8 +459,11 @@ def test_validate_scoring_inputs_valid():
 
     windows = [
         WindowDefinition(
+            window_id="w07",
             start_date=datetime.now() - timedelta(days=14),
-            end_date=datetime.now() - timedelta(days=7)
+            end_date=datetime.now() - timedelta(days=7),
+            commits=10,
+            strategy="fixed_size"
         )
     ]
 
@@ -458,8 +493,11 @@ def test_validate_scoring_inputs_invalid_weight_negative():
 
     windows = [
         WindowDefinition(
+            window_id="w08",
             start_date=datetime.now() - timedelta(days=14),
-            end_date=datetime.now() - timedelta(days=7)
+            end_date=datetime.now() - timedelta(days=7),
+            commits=10,
+            strategy="fixed_size"
         )
     ]
 
@@ -490,8 +528,11 @@ def test_validate_scoring_inputs_invalid_detector_id():
 
     windows = [
         WindowDefinition(
+            window_id="w09",
             start_date=datetime.now() - timedelta(days=14),
-            end_date=datetime.now() - timedelta(days=7)
+            end_date=datetime.now() - timedelta(days=7),
+            commits=10,
+            strategy="fixed_size"
         )
     ]
 
@@ -531,13 +572,16 @@ def test_validate_evidence_inputs_valid():
 
     windows = [
         WindowDefinition(
+            window_id="w10",
             start_date=datetime.now() - timedelta(days=10),
-            end_date=datetime.now() - timedelta(days=5)
+            end_date=datetime.now() - timedelta(days=5),
+            commits=10,
+            strategy="fixed_size"
         )
     ]
 
     detector_results = DetectorResults()
-    score_package = ScorePackage()
+    score_package = _make_score_package()
 
     # Minimal valid provenance with required fields
     provenance = {
@@ -594,7 +638,7 @@ def test_validate_evidence_inputs_invalid_windows():
             ),
             windows="not-a-list",  # Invalid type
             detector_results=DetectorResults(),
-            score_package=ScorePackage(),
+            score_package=_make_score_package(),
             configuration={"test": "config"}
         )
     assert "windows must be a list" in str(exc_info.value)
@@ -603,24 +647,25 @@ def test_validate_evidence_inputs_invalid_windows():
 def test_validate_explanation_inputs_valid():
     """Test validation of valid explanation inputs."""
     # Create minimal valid objects for testing
-    provenance = {
-        "miie_version": "1.0.0",
-        "config_hash": "abc123",
-        "timestamp": datetime.now().isoformat() + "Z",
-        "seed": 42,
-        "platform": "test-platform",
-        "python_version": "3.11.9",
-        "dependency_hash": "def456"
-    }
+    provenance = Provenance(
+        miie_version="1.0.0",
+        config_hash="abc123",
+        timestamp=datetime.now().isoformat() + "Z",
+        seed=42,
+        platform="test-platform",
+        python_version="3.11.9",
+        dependency_hash="def456"
+    )
     evidence_package = EvidencePackage(
         provenance=provenance,
         windows=[
-            {
-                "id": "w01",
-                "start": datetime.now() - timedelta(days=7),
-                "end": datetime.now(),
-                "commits": []
-            }
+            WindowDefinition(
+                window_id="w01",
+                start_date=datetime.now().date() - timedelta(days=7),
+                end_date=datetime.now().date(),
+                commits=5,
+                strategy="time"
+            )
         ],
         metrics={
             "M-01": {
@@ -628,14 +673,27 @@ def test_validate_explanation_inputs_valid():
                 "values": [float(i) for i in range(5)]
             }
         },
-        detector_outputs={
-            "D-01": {"result": "test"}
-        },
-        scores={
-            "D-01": {"score": 0.8}
-        }
+        detector_outputs=DetectorResults(
+            detector_outputs={
+                "D-01": {"result": "test"}
+            }
+        ),
+        scores=ScorePackage(
+            integrity=IntegrityScore(
+                overall=0.5,
+                per_metric={},
+                formula_version="1.0.0"
+            ),
+            confidence=ConfidenceScore(
+                overall=0.5,
+                factors={},
+                band=None
+            ),
+            timestamp=datetime.now(tz=timezone.utc),
+            config_hash="abc123"
+        )
     )
-    score_package = ScorePackage()
+    score_package = _make_score_package()
 
     # This should not raise an exception
     validate_explanation_inputs(
@@ -649,24 +707,25 @@ def test_validate_explanation_inputs_valid():
 def test_validate_explanation_inputs_invalid_metric_filter():
     """Test validation with invalid metric filter."""
     # Create minimal valid objects for testing
-    provenance = {
-        "miie_version": "1.0.0",
-        "config_hash": "abc123",
-        "timestamp": datetime.now().isoformat() + "Z",
-        "seed": 42,
-        "platform": "test-platform",
-        "python_version": "3.11.9",
-        "dependency_hash": "def456"
-    }
+    provenance = Provenance(
+        miie_version="1.0.0",
+        config_hash="abc123",
+        timestamp=datetime.now().isoformat() + "Z",
+        seed=42,
+        platform="test-platform",
+        python_version="3.11.9",
+        dependency_hash="def456"
+    )
     evidence_package = EvidencePackage(
         provenance=provenance,
         windows=[
-            {
-                "id": "w01",
-                "start": datetime.now() - timedelta(days=7),
-                "end": datetime.now(),
-                "commits": []
-            }
+            WindowDefinition(
+                window_id="w01",
+                start_date=datetime.now().date() - timedelta(days=7),
+                end_date=datetime.now().date(),
+                commits=5,
+                strategy="time"
+            )
         ],
         metrics={
             "M-01": {
@@ -674,14 +733,27 @@ def test_validate_explanation_inputs_invalid_metric_filter():
                 "values": [float(i) for i in range(5)]
             }
         },
-        detector_outputs={
-            "D-01": {"result": "test"}
-        },
-        scores={
-            "D-01": {"score": 0.8}
-        }
+        detector_outputs=DetectorResults(
+            detector_outputs={
+                "D-01": {"result": "test"}
+            }
+        ),
+        scores=ScorePackage(
+            integrity=IntegrityScore(
+                overall=0.5,
+                per_metric={},
+                formula_version="1.0.0"
+            ),
+            confidence=ConfidenceScore(
+                overall=0.5,
+                factors={},
+                band=None
+            ),
+            timestamp=datetime.now(tz=timezone.utc),
+            config_hash="abc123"
+        )
     )
-    score_package = ScorePackage()
+    score_package = _make_score_package()
 
     with pytest.raises(ValidationError) as exc_info:
         validate_explanation_inputs(
@@ -696,24 +768,25 @@ def test_validate_explanation_inputs_invalid_metric_filter():
 def test_validate_explanation_inputs_invalid_detector_filter():
     """Test validation with invalid detector filter."""
     # Create minimal valid objects for testing
-    provenance = {
-        "miie_version": "1.0.0",
-        "config_hash": "abc123",
-        "timestamp": datetime.now().isoformat() + "Z",
-        "seed": 42,
-        "platform": "test-platform",
-        "python_version": "3.11.9",
-        "dependency_hash": "def456"
-    }
+    provenance = Provenance(
+        miie_version="1.0.0",
+        config_hash="abc123",
+        timestamp=datetime.now().isoformat() + "Z",
+        seed=42,
+        platform="test-platform",
+        python_version="3.11.9",
+        dependency_hash="def456"
+    )
     evidence_package = EvidencePackage(
         provenance=provenance,
         windows=[
-            {
-                "id": "w01",
-                "start": datetime.now() - timedelta(days=7),
-                "end": datetime.now(),
-                "commits": []
-            }
+            WindowDefinition(
+                window_id="w01",
+                start_date=datetime.now().date() - timedelta(days=7),
+                end_date=datetime.now().date(),
+                commits=5,
+                strategy="time"
+            )
         ],
         metrics={
             "M-01": {
@@ -721,14 +794,27 @@ def test_validate_explanation_inputs_invalid_detector_filter():
                 "values": [float(i) for i in range(5)]
             }
         },
-        detector_outputs={
-            "D-01": {"result": "test"}
-        },
-        scores={
-            "D-01": {"score": 0.8}
-        }
+        detector_outputs=DetectorResults(
+            detector_outputs={
+                "D-01": {"result": "test"}
+            }
+        ),
+        scores=ScorePackage(
+            integrity=IntegrityScore(
+                overall=0.5,
+                per_metric={},
+                formula_version="1.0.0"
+            ),
+            confidence=ConfidenceScore(
+                overall=0.5,
+                factors={},
+                band=None
+            ),
+            timestamp=datetime.now(tz=timezone.utc),
+            config_hash="abc123"
+        )
     )
-    score_package = ScorePackage()
+    score_package = _make_score_package()
 
     with pytest.raises(ValidationError) as exc_info:
         validate_explanation_inputs(

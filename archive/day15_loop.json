@@ -1,0 +1,6 @@
+{
+  "cron_id": "182cc34e",
+  "interval": "Every 10 minutes",
+  "started": "2026-06-20T00:00:00Z",
+  "experiment": "Day 15 D02 Correlation Breakdown Detector implementation"
+}

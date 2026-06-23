@@ -1,0 +1,38 @@
+{
+  "candidate_id": "candidate_021",
+  "seed": 1021,
+  "anomaly_type": "volatility_clustering",
+  "metrics": {
+    "M-06": {
+      "values": [
+        2.7162,
+        3.9273,
+        4.5044,
+        4.135,
+        5.9596,
+        7.368,
+        4.9361,
+        5.1646,
+        3.8409,
+        5.0537,
+        4.6807,
+        5.1339,
+        1.5444,
+        4.1908,
+        6.4513,
+        5.4777,
+        5.21,
+        5.9519
+      ],
+      "window_count": 18
+    }
+  },
+  "metadata": {
+    "total_commits": 2375,
+    "date_range": [
+      "2025-01-01",
+      "2025-12-31"
+    ],
+    "contributor_count": 19
+  }
+}

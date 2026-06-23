@@ -1,0 +1,21 @@
+{
+  "repo_id": "repo_094",
+  "category": "medium_active",
+  "language": "java",
+  "parameters": {
+    "duration_days": 180,
+    "total_commits": 570,
+    "contributors": 5,
+    "bot_ratio": 0.05,
+    "window_count": 6,
+    "window_size_days": 30
+  },
+  "generation_seed": 136,
+  "generation_timestamp": "2026-06-23T17:42:58.617157+00:00",
+  "anomaly_present": false,
+  "anomaly_type": null,
+  "expected_metrics": [
+    "M-02",
+    "M-06"
+  ]
+}

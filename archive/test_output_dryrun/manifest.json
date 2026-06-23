@@ -1,0 +1,14 @@
+{
+  "run_id": "dry_run_42_20230615_120000",
+  "timestamp": "2023-06-15T12:00:00+00:00",
+  "version": "1.0.0",
+  "configuration": {
+    "seed": 42,
+    "dry_run": true,
+    "metrics": [
+      "M-02",
+      "M-06"
+    ]
+  },
+  "repository_id": "mock_repo_id"
+}

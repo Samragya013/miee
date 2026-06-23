@@ -26,8 +26,8 @@ METRIC_REGISTRY: FrozenSet[MetricInfo] = frozenset([
         metric_id="M-01",
         name="Code Coverage",
         description="Percentage of code covered by automated tests",
-        extraction_status="unavailable",
-        data_source="Coverage artifacts (cobertura.xml, jacoco.xml, lcov.info)",
+        extraction_status="implemented",
+        data_source="Coverage artifacts (coverage.xml, lcov.info, .coverage)",
         unit="percentage"
     ),
     MetricInfo(
@@ -42,25 +42,25 @@ METRIC_REGISTRY: FrozenSet[MetricInfo] = frozenset([
         metric_id="M-03",
         name="Review Participation",
         description="Number of developers participating in code reviews",
-        extraction_status="unavailable",
-        data_source="Pull request/comment systems",
+        extraction_status="implemented",
+        data_source="Pull request export JSON (--pr-export)",
         unit="count"
     ),
     MetricInfo(
         metric_id="M-04",
         name="Review Latency",
         description="Average time to complete code reviews",
-        extraction_status="unavailable",
-        data_source="Pull request/merge request timestamps",
+        extraction_status="implemented",
+        data_source="Pull request export JSON (--pr-export)",
         unit="time (hours)"
     ),
     MetricInfo(
         metric_id="M-05",
         name="Issue Resolution Time",
         description="Average time to resolve issues",
-        extraction_status="unavailable",
-        data_source="Issue tracking systems",
-        unit="time (hours)"
+        extraction_status="implemented",
+        data_source="Issue export JSON (--issue-export)",
+        unit="time (days)"
     ),
     MetricInfo(
         metric_id="M-06",
@@ -74,8 +74,8 @@ METRIC_REGISTRY: FrozenSet[MetricInfo] = frozenset([
         metric_id="M-07",
         name="Cyclomatic Complexity",
         description="Measure of code complexity based on control flow",
-        extraction_status="unavailable",
-        data_source="Static analysis tools",
+        extraction_status="implemented",
+        data_source="Static analysis tools (lizard or radon)",
         unit="score"
     )
 ])

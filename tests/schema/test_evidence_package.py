@@ -7,35 +7,46 @@ from pathlib import Path
 
 import pytest
 
-from miie.schemas.models import EvidencePackage
+from miie.schemas.models import (
+    EvidencePackage,
+    Provenance,
+    WindowDefinition,
+    DetectorResults,
+    ScorePackage,
+    IntegrityScore,
+    ConfidenceScore,
+    WarningItem
+)
 from miie.schemas.serialization import json_dumps, json_loads
 
 
 def test_evidence_package_creation():
     """Test creating a valid EvidencePackage with mock data."""
     evidence = EvidencePackage(
-        provenance={
-            "miie_version": "1.0.0",
-            "config_hash": "abc123",
-            "timestamp": datetime.datetime(2020, 6, 15, 10, 30, 0, tzinfo=datetime.timezone.utc).isoformat(),
-            "seed": 42,
-            "platform": "linux-x86_64",
-            "python_version": "3.10.0",
-            "dependency_hash": "def456"
-        },
+        provenance=Provenance(
+            miie_version="1.0.0",
+            config_hash="abc123",
+            timestamp=datetime.datetime(2020, 6, 15, 10, 30, 0, tzinfo=datetime.timezone.utc).isoformat(),
+            seed=42,
+            platform="linux-x86_64",
+            python_version="3.10.0",
+            dependency_hash="def456"
+        ),
         windows=[
-            {
-                "id": "w01",
-                "start": datetime.datetime(2020, 1, 1, tzinfo=datetime.timezone.utc).isoformat(),
-                "end": datetime.datetime(2020, 3, 31, tzinfo=datetime.timezone.utc).isoformat(),
-                "commits": 50
-            },
-            {
-                "id": "w02",
-                "start": datetime.datetime(2020, 4, 1, tzinfo=datetime.timezone.utc).isoformat(),
-                "end": datetime.datetime(2020, 6, 30, tzinfo=datetime.timezone.utc).isoformat(),
-                "commits": 75
-            }
+            WindowDefinition(
+                window_id="w01",
+                start_date=datetime.date(2020, 1, 1),
+                end_date=datetime.date(2020, 3, 31),
+                commits=50,
+                strategy="time"
+            ),
+            WindowDefinition(
+                window_id="w02",
+                start_date=datetime.date(2020, 4, 1),
+                end_date=datetime.date(2020, 6, 30),
+                commits=75,
+                strategy="time"
+            )
         ],
         metrics={
             "M-02": {  # Commit Frequency
@@ -43,34 +54,39 @@ def test_evidence_package_creation():
                 "w02": None  # Missing data
             }
         },
-        detector_outputs={
-            "D-01": {},  # Mock distributional drift results
-            "D-02": {},  # Mock correlation breakdown results
-            "D-03": {}   # Mock threshold compression results
-        },
-        scores={
-            "integrity": {
-                "overall": 0.75,
-                "per_metric": {
+        detector_outputs=DetectorResults(
+            detector_outputs={
+                "D-01": {},  # Mock distributional drift results
+                "D-02": {},  # Mock correlation breakdown results
+                "D-03": {}   # Mock threshold compression results
+            }
+        ),
+        scores=ScorePackage(
+            integrity=IntegrityScore(
+                overall=0.75,
+                per_metric={
                     "M-02": 0.80
-                }
-            },
-            "confidence": {
-                "overall": 0.85,
-                "factors": {
+                },
+                formula_version="1.0.0"
+            ),
+            confidence=ConfidenceScore(
+                overall=0.85,
+                factors={
                     "sample_size": 0.9,
                     "data_quality": 0.8
-                }
-            }
-        }
+                },
+                band="high"
+            ),
+            timestamp=datetime.datetime(2020, 6, 15, 10, 30, 0, tzinfo=datetime.timezone.utc),
+            config_hash="abc123"
+        )
     )
 
-    assert evidence.provenance["miie_version"] == "1.0.0"
+    assert evidence.provenance.miie_version == "1.0.0"
     assert len(evidence.windows) == 2
     assert "M-02" in evidence.metrics
-    assert len(evidence.detector_outputs) == 3
-    assert "integrity" in evidence.scores
-    assert "confidence" in evidence.scores
+    assert len(evidence.detector_outputs.detector_outputs) == 3
+    assert isinstance(evidence.scores, ScorePackage)
 
 
 def test_evidence_package_invalid_provenance():
@@ -160,48 +176,81 @@ def test_evidence_package_invalid_detector():
 def test_evidence_package_serialization():
     """Test deterministic serialization of EvidencePackage."""
     evidence = EvidencePackage(
-        provenance={
-            "miie_version": "1.0.0",
-            "config_hash": "abc123",
-            "timestamp": datetime.datetime(2020, 6, 15, 10, 30, 0, tzinfo=datetime.timezone.utc).isoformat(),
-            "seed": 42,
-            "platform": "linux-x86_64",
-            "python_version": "3.10.0",
-            "dependency_hash": "def456"
-        },
+        provenance=Provenance(
+            miie_version="1.0.0",
+            config_hash="abc123",
+            timestamp=datetime.datetime(2020, 6, 15, 10, 30, 0, tzinfo=datetime.timezone.utc).isoformat(),
+            seed=42,
+            platform="linux-x86_64",
+            python_version="3.10.0",
+            dependency_hash="def456"
+        ),
         windows=[
-            {
-                "id": "w01",
-                "start": datetime.datetime(2020, 1, 1, tzinfo=datetime.timezone.utc).isoformat(),
-                "end": datetime.datetime(2020, 3, 31, tzinfo=datetime.timezone.utc).isoformat(),
-                "commits": 50
-            }
+            WindowDefinition(
+                window_id="w01",
+                start_date=datetime.date(2020, 1, 1),
+                end_date=datetime.date(2020, 3, 31),
+                commits=50,
+                strategy="time"
+            )
         ],
         metrics={},
-        detector_outputs={
-            "D-01": {},
-            "D-02": {},
-            "D-03": {}
-        },
-        scores={
-            "integrity": {
-                "overall": 0.75,
-                "per_metric": {}
-            },
-            "confidence": {
-                "overall": 0.85,
-                "factors": {}
+        detector_outputs=DetectorResults(
+            detector_outputs={
+                "D-01": {},
+                "D-02": {},
+                "D-03": {}
             }
-        }
+        ),
+        scores=ScorePackage(
+            integrity=IntegrityScore(
+                overall=0.75,
+                per_metric={},
+                formula_version="1.0.0"
+            ),
+            confidence=ConfidenceScore(
+                overall=0.85,
+                factors={},
+                band="high"
+            ),
+            timestamp=datetime.datetime(2020, 6, 15, 10, 30, 0, tzinfo=datetime.timezone.utc),
+            config_hash="abc123"
+        )
     )
 
     # Convert to dict for JSON serialization
     evidence_dict = {
-        "provenance": evidence.provenance,
-        "windows": evidence.windows,
+        "provenance": {
+            "miie_version": evidence.provenance.miie_version,
+            "config_hash": evidence.provenance.config_hash,
+            "timestamp": evidence.provenance.timestamp,
+            "seed": evidence.provenance.seed,
+            "platform": evidence.provenance.platform,
+            "python_version": evidence.provenance.python_version,
+            "dependency_hash": evidence.provenance.dependency_hash,
+        },
+        "windows": [
+            {
+                "window_id": w.window_id,
+                "start_date": w.start_date.isoformat(),
+                "end_date": w.end_date.isoformat(),
+                "commits": w.commits,
+                "strategy": w.strategy,
+            }
+            for w in evidence.windows
+        ],
         "metrics": evidence.metrics,
-        "detector_outputs": evidence.detector_outputs,
-        "scores": evidence.scores,
+        "detector_outputs": evidence.detector_outputs.detector_outputs,
+        "scores": {
+            "integrity": {
+                "overall": evidence.scores.integrity.overall,
+                "per_metric": evidence.scores.integrity.per_metric,
+            },
+            "confidence": {
+                "overall": evidence.scores.confidence.overall,
+                "factors": evidence.scores.confidence.factors,
+            },
+        },
         "warnings": evidence.warnings
     }
 
@@ -219,34 +268,40 @@ def test_evidence_package_serialization():
 def test_evidence_package_empty():
     """Test EvidencePackage with minimal valid data."""
     evidence = EvidencePackage(
-        provenance={
-            "miie_version": "1.0.0",
-            "config_hash": "abc123",
-            "timestamp": datetime.datetime(2020, 6, 15, tzinfo=datetime.timezone.utc).isoformat(),
-            "seed": 42,
-            "platform": "linux-x86_64",
-            "python_version": "3.10.0",
-            "dependency_hash": "def456"
-        },
+        provenance=Provenance(
+            miie_version="1.0.0",
+            config_hash="abc123",
+            timestamp=datetime.datetime(2020, 6, 15, tzinfo=datetime.timezone.utc).isoformat(),
+            seed=42,
+            platform="linux-x86_64",
+            python_version="3.10.0",
+            dependency_hash="def456"
+        ),
         windows=[],
         metrics={},
-        detector_outputs={
-            "D-01": {},
-            "D-02": {},
-            "D-03": {}
-        },
-        scores={
-            "integrity": {
-                "overall": 0.0,
-                "per_metric": {}
-            },
-            "confidence": {
-                "overall": 0.0,
-                "factors": {}
+        detector_outputs=DetectorResults(
+            detector_outputs={
+                "D-01": {},
+                "D-02": {},
+                "D-03": {}
             }
-        }
+        ),
+        scores=ScorePackage(
+            integrity=IntegrityScore(
+                overall=0.0,
+                per_metric={},
+                formula_version="1.0.0"
+            ),
+            confidence=ConfidenceScore(
+                overall=0.0,
+                factors={},
+                band=None
+            ),
+            timestamp=datetime.datetime(2020, 6, 15, tzinfo=datetime.timezone.utc),
+            config_hash="abc123"
+        )
     )
 
     assert len(evidence.windows) == 0
     assert len(evidence.metrics) == 0
-    assert len(evidence.detector_outputs) == 3
+    assert len(evidence.detector_outputs.detector_outputs) == 3

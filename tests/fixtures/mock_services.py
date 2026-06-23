@@ -5,7 +5,7 @@ Provides mock implementations of all engine protocols for testing.
 
 from typing import Optional, Dict, Any, List
 from pathlib import Path
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 from miie.contracts.interfaces import (
     IIngestionEngine,
@@ -25,7 +25,11 @@ from miie.schemas.models import (
     WindowDefinition,
     DetectorResults,
     ScorePackage,
+    IntegrityScore,
+    ConfidenceScore,
     EvidencePackage,
+    Provenance,
+    WarningItem,
     ExplanationReport,
     ReportOutput,
     BenchmarkRun,
@@ -80,8 +84,8 @@ class MockExtractionEngine(IExtractionEngine):
         self.extract_called = True
 
         # Create deterministic metric data matching MetricDataFrame format
-        base_time = datetime.now() - timedelta(days=30)
-        timestamps = [base_time + timedelta(days=i) for i in range(30)]
+        fixed_base_time = datetime(2026, 5, 24, tzinfo=timezone.utc)
+        timestamps = [fixed_base_time + timedelta(days=i) for i in range(30)]
 
         metrics_dict = {}
         for metric_id in metric_list:
@@ -96,7 +100,7 @@ class MockExtractionEngine(IExtractionEngine):
         return MetricDataFrame(
             repo_id=context.repo_id,
             run_id="test-run-001",
-            timestamp=datetime.now(),
+            timestamp=fixed_base_time,
             metrics=metrics_dict
         )
 
@@ -117,15 +121,18 @@ class MockSegmentationEngine(ISegmentationEngine):
         self.segment_called = True
 
         # Create deterministic windows matching WindowDefinition format
-        base_time = datetime.now() - timedelta(days=30)
+        fixed_base_time = datetime(2026, 5, 24, tzinfo=timezone.utc)
         windows = []
 
         for i in range(0, 30, size):
-            start_time = base_time + timedelta(days=i)
-            end_time = base_time + timedelta(days=min(i + size, 30))
+            start_time = fixed_base_time + timedelta(days=i)
+            end_time = fixed_base_time + timedelta(days=min(i + size, 30))
             windows.append(WindowDefinition(
-                start_date=start_time,
-                end_date=end_time
+                window_id=f"w{i:02d}",
+                start_date=start_time.date() if hasattr(start_time, 'date') else start_time,
+                end_date=end_time.date() if hasattr(end_time, 'date') else end_time,
+                commits=10,
+                strategy="fixed_size"
             ))
 
         return windows
@@ -189,7 +196,20 @@ class MockScoringEngine(IScoringEngine):
             scores[f"{detector_id}_integrity"] = 0.75
             scores[f"{detector_id}_confidence"] = 0.80
 
-        return ScorePackage(scores=scores)
+        return ScorePackage(
+            integrity=IntegrityScore(
+                overall=0.75,
+                per_metric={},
+                formula_version="1.0.0"
+            ),
+            confidence=ConfidenceScore(
+                overall=0.80,
+                factors={},
+                band="medium"
+            ),
+            timestamp=datetime(2023, 6, 15, 12, 0, 0, tzinfo=timezone.utc),
+            config_hash="mock_hash"
+        )
 
 
 class MockEvidenceEngine(IEvidenceEngine):
@@ -209,30 +229,20 @@ class MockEvidenceEngine(IEvidenceEngine):
     ) -> EvidencePackage:
         self.generate_called = True
 
-        # Create windows list in the format expected by EvidencePackage
-        windows_list = []
-        for i, window in enumerate(windows):
-            windows_list.append({
-                "id": f"window_{i}",
-                "start": window.start_date.isoformat(),
-                "end": window.end_date.isoformat(),
-                "commits": 50  # placeholder
-            })
-
         return EvidencePackage(
-            provenance={
-                "miie_version": "1.0.0",
-                "config_hash": "abc123def456",
-                "timestamp": datetime.now().isoformat(),
-                "seed": 42,
-                "platform": "test-platform",
-                "python_version": "3.9.0",
-                "dependency_hash": "dep123hash456"
-            },
-            windows=windows_list,
+            provenance=Provenance(
+                miie_version="1.0.0",
+                config_hash="abc123def456",
+                timestamp=datetime(2023, 6, 15, 12, 0, 0, tzinfo=timezone.utc).isoformat(),
+                seed=42,
+                platform="test-platform",
+                python_version="3.9.0",
+                dependency_hash="dep123hash456"
+            ),
+            windows=windows,
             metrics=metric_dataframe.metrics,
-            detector_outputs=detector_results.detector_outputs,
-            scores=score_package.scores,
+            detector_outputs=detector_results,
+            scores=score_package,
             warnings=[]
         )
 

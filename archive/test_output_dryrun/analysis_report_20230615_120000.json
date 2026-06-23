@@ -1,0 +1,21 @@
+{
+  "metadata": {
+    "generated_at": "2023-06-15T12:00:00",
+    "report_version": "1.0.0",
+    "generator": "MIIE Mock Report Generator"
+  },
+  "analysis_result": {
+    "_dry_run": true,
+    "repository_context": "RepositoryContext(repo_id='mock_repo_id', local_path=WindowsPath('.'), is_remote=False, total_commits=100, first_commit_date=datetime.datetime(2023, 1, 1, 0, 0, tzinfo=datetime.timezone.utc), last_commit_date=datetime.datetime(2023, 12, 31, 0, 0, tzinfo=datetime.timezone.utc), contributor_count=5, is_shallow=False, is_fork=False, remote_url=None, language_distribution={'Python': 0.7, 'JavaScript': 0.3})",
+    "metric_dataframe": "MetricDataFrame(repo_id='mock_repo_id', run_id='mock_run_id', timestamp='2023-06-15T00:00:00Z', metrics={'M-02': {'w00': [10.5, 11.3, 9.8]}, 'M-06': {'w00': [5.2, 4.8, 6.1]}})",
+    "windows": [
+      "WindowDefinition(id='w00', start_date=datetime.date(2023, 1, 1), end_date=datetime.date(2023, 12, 31), commit_count=1, strategy='commit', size_config={'size': 100})"
+    ],
+    "detector_results": "DetectorResults(detector_outputs={'D-01': {'drift_detected': False, 'drift_magnitude': 0.0}, 'D-02': {'correlation_breakdown': False, 'correlation_change': 0.0}, 'D-03': {'threshold_compressed': False, 'compression_ratio': 1.0}})",
+    "score_package": "ScorePackage(integrity={'overall': 0.75, 'per_metric': {'M-02': 0.8}}, confidence={'overall': 0.85, 'factors': {'sample_size': 0.9, 'variance': 0.8, 'missing_data': 0.9, 'window_balance': 0.85, 'detector_success': 0.95}}, timestamp=datetime.datetime(2026, 6, 20, 10, 10, 47, 15852, tzinfo=datetime.timezone.utc), config_hash='mock-config-hash', formula_version='TFS_v1.0')",
+    "evidence_package": "EvidencePackage(evidence_id='mock_evidence_42', score_package_id='mock_score_package_42', detector_results_ids=['D-01', 'D-02', 'D-03'], metrics_used=['M-02', 'M-06'], windows_analyzed=['w00'], provenance={'miie_version': '1.0.0', 'config_hash': 'mock', 'timestamp': '2023-06-15T00:00:00Z', 'seed': 42, 'platform': 'test', 'python_version': '3.9.0', 'dependency_hash': 'mock'}, windows=[{'id': 'w00', 'start': '2023-01-01T00:00:00Z', 'end': '2023-12-31T00:00:00Z', 'commits': 1}], metrics={'M-02': {'w00': [10.5, 11.3, 9.8]}, 'M-06': {'w00': [5.2, 4.8, 6.1]}}, detector_outputs={'D-01': {'drift_detected': False, 'drift_magnitude': 0.0}, 'D-02': {'correlation_breakdown': False, 'correlation_change': 0.0}, 'D-03': {'threshold_compressed': False, 'compression_ratio': 1.0}}, scores={'integrity': {'overall': 0.75, 'per_metric': {'M-02': 0.8}}, 'confidence': {'overall': 0.85, 'factors': {'sample_size': 0.9, 'variance': 0.8, 'missing_data': 0.9, 'window_balance': 0.85, 'detector_success': 0.95}}}, integrity_verification={'verified': True, 'method': 'mock'}, confidence_indicators={'sample_size': 0.9, 'variance': 0.8, 'missing_data': 0.9, 'window_balance': 0.85, 'detector_success': 0.95}, reproducibility_info={'seed': 42, 'deterministic': True}, das_notation='DAS:mock:42', warnings=[])",
+    "explanation_report": "ExplanationReport(narratives=['Integrity score indicates moderate data consistency.', 'Confidence score reflects reasonable data quality and coverage.', 'Analysis performed across 2 temporal windows.', 'Results based on outputs from 3 detectors: D-01, D-02, D-03.'], recommendations=['Consider increasing analysis window count for better statistical significance.', 'Review data ingestion processes to improve data completeness.', 'Monitor trends over time for early detection of changes.'])",
+    "benchmark_run": null,
+    "evaluation_result": null
+  }
+}

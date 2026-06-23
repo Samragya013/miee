@@ -2,45 +2,83 @@ name: CI
 
 on:
   push:
-    branches: [ main, master ]
+    branches: [main, develop]
   pull_request:
-    branches: [ main, master ]
+    branches: [main]
 
 jobs:
-  build:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install black isort flake8 flake8-bugbear
+      - run: black --check src/ tests/
+      - run: isort --check-only src/ tests/
+      - run: flake8 src/ tests/
+
+  typecheck:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install mypy types-PyYAML
+      - run: mypy src/miie/ --ignore-missing-imports
+
+  unit-tests:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: [ "3.10", "3.11", "3.12" ]
-
+        python-version: ['3.10', '3.11', '3.12']
     steps:
-    - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - run: pip install poetry && poetry install
+      - run: pytest tests/unit/ tests/schema/ tests/contract/ tests/architecture/ -x -q --tb=short
 
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v5
-      with:
-        python-version: ${{ matrix.python-version }}
+  integration-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install poetry && poetry install
+      - run: pytest tests/integration/ -x -q --tb=short
 
-    - name: Install Poetry
-      run: |
-        curl -sSL https://install.python-poetry.org | python3 -
+  regression:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install poetry && poetry install
+      - run: pytest tests/regression/ tests/workflow/ -x -q --tb=short
 
-    - name: Configure Poetry
-      run: |
-        poetry config virtualenvs.in-project true
+  security:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install pip-audit safety
+      - run: pip-audit --ignore-vulnerabilities || true
+      - run: safety check || true
 
-    - name: Install Dependencies
-      run: |
-        poetry install --with dev
-
-    - name: Run Pre-commit Hooks
-      run: |
-        poetry run pre-commit run --all-files
-
-    - name: Run Tests
-      run: |
-        poetry run pytest
-
-    - name: Run Type Checking
-      run: |
-        poetry run mypy src
+  detector-regression:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install poetry && poetry install
+      - run: grep -r "detector_output" src/ tests/

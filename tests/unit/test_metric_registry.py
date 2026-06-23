@@ -17,7 +17,7 @@ def test_metric_registry_contains_frozen_metrics():
     metric_dict = {metric.metric_id: metric for metric in METRIC_REGISTRY}
     assert metric_dict["M-02"].name == "Commit Frequency"
     assert metric_dict["M-02"].extraction_status == "implemented"
-    assert metric_dict["M-01"].extraction_status == "unavailable"
+    assert metric_dict["M-01"].extraction_status == "implemented"
 
 
 def test_metric_registry_is_frozen():

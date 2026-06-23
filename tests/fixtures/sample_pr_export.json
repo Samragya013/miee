@@ -1,0 +1,26 @@
+[
+  {
+    "id": "PR-1",
+    "created_at": "2025-06-01T10:00:00Z",
+    "first_review_at": "2025-06-01T14:00:00Z",
+    "reviewers": ["alice", "bob"]
+  },
+  {
+    "id": "PR-2",
+    "created_at": "2025-06-02T09:00:00Z",
+    "first_review_at": "2025-06-02T11:30:00Z",
+    "reviewers": ["charlie"]
+  },
+  {
+    "id": "PR-3",
+    "created_at": "2025-06-03T08:00:00Z",
+    "first_review_at": null,
+    "reviewers": []
+  },
+  {
+    "id": "PR-4",
+    "created_at": "2025-06-04T07:00:00Z",
+    "first_review_at": "2025-06-05T07:00:00Z",
+    "reviewers": ["alice", "dave", "eve"]
+  }
+]

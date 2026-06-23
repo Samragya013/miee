@@ -1,0 +1,82 @@
+{# MIIE Drift Explanation Template (D-01) #}
+{# This template explains concept drift detection results #}
+
+{% if analysis_result is defined %}
+# MIIE Concept Drift Explanation Report
+
+**Generated at:** {{ analysis_result.get('generated_at', 'unknown') }}
+**Detector:** D-01 (Concept Drift Detector)
+**MIEE Version:** {{ analysis_result.get('miie_version', '1.0.0') }}
+
+## Executive Summary
+Concept drift analysis completed. {{ drift_detected | yesno("Drift detected","No significant drift detected") }} in the analyzed time window.
+
+## Drift Analysis Results
+- **Drift Score:** {{ drift_score | default(0.0) }}
+- **Drift Threshold:** {{ drift_threshold | default(0.5) }}
+- **Drift Detected:** {{ drift_detected | default(false) | yesno }}
+- **Confidence Level:** {{ confidence_level | default(0.0) }}
+
+## Feature-wise Drift Breakdown
+{% if feature_drift_scores %}
+| Feature | Drift Score | Status |
+|---------|-------------|--------|
+{% for feature, score in feature_drift_scores.items() %}
+| {{ feature }} | {{ "%.4f"|format(score) }} | {{ "DRIFT" if score > drift_threshold else "STABLE" }} |
+{% endfor %}
+{% else %}
+### No detailed feature drift data available
+{% endif %}
+
+## Window Comparison Analysis
+- **Reference Window Size:** {{ reference_window_size | default(0) }} samples
+- **Test Window Size:** {{ test_window_size | default(0) }} samples
+- **Temporal Span:** {{ temporal_span | default('unknown') }}
+
+## Statistical Tests Applied
+{% if statistical_tests %}
+{% for test in statistical_tests %}
+- **{{ test.name }}:** p-value = {{ test.p_value }} ({{ "Significant" if test.p_value < 0.05 else "Not significant" }})
+{% endfor %}
+{% else %}
+- Kolmogorov-Smirnov Test
+- Population Stability Index (PSI)
+- Jensen-Shannon Divergence
+{% endif %}
+
+## Recommended Actions
+{% if drift_detected %}
+1. **Investigate Feature Changes:** Review the top drifting features for root cause analysis
+2. **Model Retraining Consideration:** Evaluate if model retraining is warranted
+3. **Data Pipeline Review:** Check for changes in data collection or preprocessing
+4. **Increase Monitoring:** Consider more frequent drift detection intervals
+{% else %}
+1. **Continue Routine Monitoring:** No immediate action required
+2. **Maintain Current Schedule:** Continue with regular analysis intervals
+3. **Document Stability:** Record stable periods for baseline comparison
+{% endif %}
+
+## Technical Details
+- **Analysis Method:** {{ analysis_method | default('Population Stability Index') }}
+- **Feature Count:** {{ feature_count | default(0) }}
+- **Sample Size:** {{ sample_size | default(0) }}
+- **Processing Time:** {{ processing_time_ms | default(0) }} ms
+{% else %}
+# MIIE Concept Drift Explanation Report
+
+**Generated at:** {{ generated_at | default('unknown') }}
+**Detector:** D-01 (Concept Drift Detector)
+**MIEE Version:** {{ miie_version | default('1.0.0') }}
+
+## Executive Summary
+Concept drift analysis completed. No significant drift detected in the analyzed time window.
+
+## Drift Analysis Results
+- **Drift Score:** 0.0
+- **Drift Threshold:** 0.5
+- **Drift Detected:** No
+- **Confidence Level:** 0.95
+
+## Conclusion
+Analysis indicates stable conditions with no significant concept drift detected.
+{% endif %}

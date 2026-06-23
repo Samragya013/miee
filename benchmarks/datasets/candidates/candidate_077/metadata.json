@@ -1,0 +1,21 @@
+{
+  "repo_id": "repo_077",
+  "category": "large_active",
+  "language": "javascript",
+  "parameters": {
+    "duration_days": 180,
+    "total_commits": 485,
+    "contributors": 5,
+    "bot_ratio": 0.05,
+    "window_count": 6,
+    "window_size_days": 30
+  },
+  "generation_seed": 119,
+  "generation_timestamp": "2026-06-23T17:42:58.602348+00:00",
+  "anomaly_present": false,
+  "anomaly_type": null,
+  "expected_metrics": [
+    "M-02",
+    "M-06"
+  ]
+}

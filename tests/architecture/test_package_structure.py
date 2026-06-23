@@ -19,7 +19,10 @@ EXPECTED_PACKAGES = {
     "contracts",
     "schemas",
     "reporting",
-    "common"
+    "common",
+    "utils",
+    "config",
+    "api"
 }
 
 def test_src_miie_exists():

@@ -116,6 +116,11 @@ class TemplateError(MIIEError):
 
 
 # CLI-specific error classes for standardized error reporting
+class ConfigError(MIIEError):
+    """M-12: Configuration validation or loading error."""
+    pass
+
+
 class CLIError(MIIEError):
     """Base class for CLI command errors."""
 
@@ -138,6 +143,13 @@ class CLIError(MIIEError):
         base_dict = super().to_dict()
         base_dict['suggestion'] = self.suggestion
         return base_dict
+
+    def __str__(self) -> str:
+        """String representation including suggestion (ACS §19)."""
+        msg = f"[{self.error_code}] {self.message}"
+        if self.suggestion:
+            msg += f". Suggestion: {self.suggestion}"
+        return msg
 
 
 class IngestionCLIError(CLIError):

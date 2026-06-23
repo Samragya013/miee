@@ -1,0 +1,16 @@
+{
+  "execution_time_seconds": 0.123,
+  "timestamp": "2023-06-15T12:00:00+00:00",
+  "seed": 42,
+  "components_executed": [
+    "ingestion",
+    "extraction",
+    "segmentation",
+    "detection",
+    "scoring",
+    "evidence",
+    "explanation",
+    "reporting"
+  ],
+  "memory_usage_mb": 45.6
+}

@@ -1,0 +1,20 @@
+{
+  "repo_id": "repo_081",
+  "category": "small_active",
+  "language": "python",
+  "parameters": {
+    "duration_days": 180,
+    "total_commits": 505,
+    "contributors": 5,
+    "bot_ratio": 0.05,
+    "window_count": 6,
+    "window_size_days": 30
+  },
+  "generation_seed": 123,
+  "generation_timestamp": "2026-06-23T17:42:58.605347+00:00",
+  "anomaly_present": true,
+  "anomaly_type": "drift",
+  "expected_metrics": [
+    "M-02"
+  ]
+}

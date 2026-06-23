@@ -1,0 +1,31 @@
+{
+  "detector_outputs": {
+    "D-01": {
+      "status": "completed",
+      "findings": []
+    },
+    "D-02": {
+      "status": "completed",
+      "findings": []
+    },
+    "D-03": {
+      "status": "completed",
+      "findings": []
+    }
+  },
+  "integrity_scores": {
+    "overall": 0.85,
+    "per_metric": {
+      "M-02": 0.8,
+      "M-06": 0.9
+    }
+  },
+  "confidence_scores": {
+    "overall": 0.75,
+    "factors": {
+      "sample_size": 0.8,
+      "data_quality": 0.7,
+      "temporal_coverage": 0.75
+    }
+  }
+}

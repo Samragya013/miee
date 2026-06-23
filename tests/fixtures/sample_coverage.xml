@@ -1,0 +1,18 @@
+<?xml version="1.0" ?>
+<coverage version="5.0" timestamp="1719200000" lines-valid="200" lines-covered="150" line-rate="0.75" branches-valid="80" branches-covered="56" branch-rate="0.7">
+  <packages>
+    <package name="src" line-rate="0.75" branch-rate="0.7">
+      <classes>
+        <class name="main.py" filename="src/main.py" line-rate="0.8" branch-rate="0.75">
+          <methods/>
+          <lines>
+            <line number="1" type="stmt" hits="1"/>
+            <line number="2" type="stmt" hits="1"/>
+            <line number="3" type="stmt" hits="0"/>
+            <line number="4" type="stmt" hits="1"/>
+          </lines>
+        </class>
+      </classes>
+    </package>
+  </packages>
+</coverage>
