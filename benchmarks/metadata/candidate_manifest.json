@@ -1,0 +1,1753 @@
+{
+  "benchmark_info": {
+    "name": "MIIE Synthetic Benchmark Candidates",
+    "version": "1.0.0",
+    "description": "Synthetic benchmark candidates for testing MIIE detector algorithms",
+    "generation_date": "2026-06-23",
+    "total_candidates": 120,
+    "status": "candidate"
+  },
+  "candidates": {
+    "candidate_001": {
+      "id": "candidate_001",
+      "name": "candidate_001",
+      "repo_id": "repo_001",
+      "anomaly_present": false,
+      "anomaly_type": null,
+      "expected_metrics": [],
+      "tags": [
+        "synthetic"
+      ],
+      "path": "datasets/candidates/candidate_001"
+    },
+    "candidate_002": {
+      "id": "candidate_002",
+      "name": "candidate_002",
+      "repo_id": "repo_002",
+      "anomaly_present": false,
+      "anomaly_type": null,
+      "expected_metrics": [],
+      "tags": [
+        "synthetic"
+      ],
+      "path": "datasets/candidates/candidate_002"
+    },
+    "candidate_003": {
+      "id": "candidate_003",
+      "name": "candidate_003",
+      "repo_id": "repo_003",
+      "anomaly_present": false,
+      "anomaly_type": null,
+      "expected_metrics": [],
+      "tags": [
+        "synthetic"
+      ],
+      "path": "datasets/candidates/candidate_003"
+    },
+    "candidate_004": {
+      "id": "candidate_004",
+      "name": "candidate_004",
+      "repo_id": "repo_004",
+      "anomaly_present": false,
+      "anomaly_type": null,
+      "expected_metrics": [],
+      "tags": [
+        "synthetic"
+      ],
+      "path": "datasets/candidates/candidate_004"
+    },
+    "candidate_005": {
+      "id": "candidate_005",
+      "name": "candidate_005",
+      "repo_id": "repo_005",
+      "anomaly_present": false,
+      "anomaly_type": null,
+      "expected_metrics": [],
+      "tags": [
+        "synthetic"
+      ],
+      "path": "datasets/candidates/candidate_005"
+    },
+    "candidate_006": {
+      "id": "candidate_006",
+      "name": "candidate_006",
+      "repo_id": "repo_006",
+      "anomaly_present": false,
+      "anomaly_type": null,
+      "expected_metrics": [],
+      "tags": [
+        "synthetic"
+      ],
+      "path": "datasets/candidates/candidate_006"
+    },
+    "candidate_007": {
+      "id": "candidate_007",
+      "name": "candidate_007",
+      "repo_id": "repo_007",
+      "anomaly_present": false,
+      "anomaly_type": null,
+      "expected_metrics": [],
+      "tags": [
+        "synthetic"
+      ],
+      "path": "datasets/candidates/candidate_007"
+    },
+    "candidate_008": {
+      "id": "candidate_008",
+      "name": "candidate_008",
+      "repo_id": "repo_008",
+      "anomaly_present": false,
+      "anomaly_type": null,
+      "expected_metrics": [],
+      "tags": [
+        "synthetic"
+      ],
+      "path": "datasets/candidates/candidate_008"
+    },
+    "candidate_009": {
+      "id": "candidate_009",
+      "name": "candidate_009",
+      "repo_id": "repo_009",
+      "anomaly_present": false,
+      "anomaly_type": null,
+      "expected_metrics": [],
+      "tags": [
+        "synthetic"
+      ],
+      "path": "datasets/candidates/candidate_009"
+    },
+    "candidate_010": {
+      "id": "candidate_010",
+      "name": "candidate_010",
+      "repo_id": "repo_010",
+      "anomaly_present": false,
+      "anomaly_type": null,
+      "expected_metrics": [],
+      "tags": [
+        "synthetic"
+      ],
+      "path": "datasets/candidates/candidate_010"
+    },
+    "candidate_011": {
+      "id": "candidate_011",
+      "name": "candidate_011",
+      "repo_id": "repo_011",
+      "anomaly_present": false,
+      "anomaly_type": null,
+      "expected_metrics": [],
+      "tags": [
+        "synthetic"
+      ],
+      "path": "datasets/candidates/candidate_011"
+    },
+    "candidate_012": {
+      "id": "candidate_012",
+      "name": "candidate_012",
+      "repo_id": "repo_012",
+      "anomaly_present": true,
+      "anomaly_type": "seasonal",
+      "expected_metrics": [
+        "M-02",
+        "M-06"
+      ],
+      "tags": [
+        "synthetic"
+      ],
+      "path": "datasets/candidates/candidate_012"
+    },
+    "candidate_013": {
+      "id": "candidate_013",
+      "name": "candidate_013",
+      "repo_id": "repo_013",
+      "anomaly_present": true,
+      "anomaly_type": "outlier",
+      "expected_metrics": [
+        "M-02",
+        "M-06"
+      ],
+      "tags": [
+        "synthetic"
+      ],
+      "path": "datasets/candidates/candidate_013"
+    },
+    "candidate_014": {
+      "id": "candidate_014",
+      "name": "candidate_014",
+      "repo_id": "repo_014",
+      "anomaly_present": true,
+      "anomaly_type": "missing_data",
+      "expected_metrics": [
+        "M-02",
+        "M-06"
+      ],
+      "tags": [
+        "synthetic"
+      ],
+      "path": "datasets/candidates/candidate_014"
+    },
+    "candidate_015": {
+      "id": "candidate_015",
+      "name": "candidate_015",
+      "repo_id": "repo_015",
+      "anomaly_present": true,
+      "anomaly_type": "drift",
+      "expected_metrics": [
+        "M-02",
+        "M-06"
+      ],
+      "tags": [
+        "synthetic"
+      ],
+      "path": "datasets/candidates/candidate_015"
+    },
+    "candidate_016": {
+      "id": "candidate_016",
+      "name": "candidate_016",
+      "repo_id": "repo_016",
+      "anomaly_present": true,
+      "anomaly_type": "low_signal",
+      "expected_metrics": [
+        "M-02",
+        "M-06"
+      ],
+      "tags": [
+        "synthetic"
+      ],
+      "path": "datasets/candidates/candidate_016"
+    },
+    "candidate_017": {
+      "id": "candidate_017",
+      "name": "candidate_017",
+      "repo_id": "repo_017",
+      "anomaly_present": true,
+      "anomaly_type": "transient",
+      "expected_metrics": [
+        "M-02",
+        "M-06"
+      ],
+      "tags": [
+        "synthetic"
+      ],
+      "path": "datasets/candidates/candidate_017"
+    },
+    "candidate_018": {
+      "id": "candidate_018",
+      "name": "candidate_018",
+      "repo_id": "repo_018",
+      "anomaly_present": true,
+      "anomaly_type": "scale_free",
+      "expected_metrics": [
+        "M-02",
+        "M-06"
+      ],
+      "tags": [
+        "synthetic"
+      ],
+      "path": "datasets/candidates/candidate_018"
+    },
+    "candidate_019": {
+      "id": "candidate_019",
+      "name": "candidate_019",
+      "repo_id": "repo_019",
+      "anomaly_present": true,
+      "anomaly_type": "long_range_dependence",
+      "expected_metrics": [
+        "M-02",
+        "M-06"
+      ],
+      "tags": [
+        "synthetic"
+      ],
+      "path": "datasets/candidates/candidate_019"
+    },
+    "candidate_020": {
+      "id": "candidate_020",
+      "name": "candidate_020",
+      "repo_id": "repo_020",
+      "anomaly_present": true,
+      "anomaly_type": "anti_persistent",
+      "expected_metrics": [
+        "M-02",
+        "M-06"
+      ],
+      "tags": [
+        "synthetic"
+      ],
+      "path": "datasets/candidates/candidate_020"
+    },
+    "candidate_021": {
+      "id": "candidate_021",
+      "name": "candidate_021",
+      "repo_id": "repo_021",
+      "anomaly_present": true,
+      "anomaly_type": "volatility_clustering",
+      "expected_metrics": [
+        "M-02",
+        "M-06"
+      ],
+      "tags": [
+        "synthetic"
+      ],
+      "path": "datasets/candidates/candidate_021"
+    },
+    "candidate_022": {
+      "id": "candidate_022",
+      "name": "candidate_022",
+      "repo_id": "repo_022",
+      "anomaly_present": true,
+      "anomaly_type": "regime_shift",
+      "expected_metrics": [
+        "M-02",
+        "M-06"
+      ],
+      "tags": [
+        "synthetic"
+      ],
+      "path": "datasets/candidates/candidate_022"
+    },
+    "candidate_023": {
+      "id": "candidate_023",
+      "name": "candidate_023",
+      "repo_id": "repo_023",
+      "anomaly_present": true,
+      "anomaly_type": "fractional_gaussian",
+      "expected_metrics": [
+        "M-02",
+        "M-06"
+      ],
+      "tags": [
+        "synthetic"
+      ],
+      "path": "datasets/candidates/candidate_023"
+    },
+    "candidate_024": {
+      "id": "candidate_024",
+      "name": "candidate_024",
+      "repo_id": "repo_024",
+      "anomaly_present": true,
+      "anomaly_type": "chaotic",
+      "expected_metrics": [
+        "M-02",
+        "M-06"
+      ],
+      "tags": [
+        "synthetic"
+      ],
+      "path": "datasets/candidates/candidate_024"
+    },
+    "candidate_025": {
+      "id": "candidate_025",
+      "name": "candidate_025",
+      "repo_id": "repo_025",
+      "anomaly_present": true,
+      "anomaly_type": "long_memory",
+      "expected_metrics": [
+        "M-02",
+        "M-06"
+      ],
+      "tags": [
+        "synthetic"
+      ],
+      "path": "datasets/candidates/candidate_025"
+    },
+    "candidate_026": {
+      "id": "candidate_026",
+      "name": "candidate_026",
+      "repo_id": "repo_026",
+      "anomaly_present": true,
+      "anomaly_type": "multifractal",
+      "expected_metrics": [
+        "M-02",
+        "M-06"
+      ],
+      "tags": [
+        "synthetic"
+      ],
+      "path": "datasets/candidates/candidate_026"
+    },
+    "candidate_027": {
+      "id": "candidate_027",
+      "name": "candidate_027",
+      "repo_id": "repo_027",
+      "anomaly_present": true,
+      "anomaly_type": "intermittent",
+      "expected_metrics": [
+        "M-02",
+        "M-06"
+      ],
+      "tags": [
+        "synthetic"
+      ],
+      "path": "datasets/candidates/candidate_027"
+    },
+    "candidate_028": {
+      "id": "candidate_028",
+      "name": "candidate_028",
+      "repo_id": "repo_028",
+      "anomaly_present": false,
+      "anomaly_type": null,
+      "expected_metrics": [],
+      "tags": [
+        "synthetic"
+      ],
+      "path": "datasets/candidates/candidate_028"
+    },
+    "candidate_029": {
+      "id": "candidate_029",
+      "name": "candidate_029",
+      "repo_id": "repo_029",
+      "anomaly_present": false,
+      "anomaly_type": null,
+      "expected_metrics": [],
+      "tags": [
+        "synthetic"
+      ],
+      "path": "datasets/candidates/candidate_029"
+    },
+    "candidate_030": {
+      "id": "candidate_030",
+      "name": "candidate_030",
+      "repo_id": "repo_030",
+      "anomaly_present": true,
+      "anomaly_type": "drift",
+      "expected_metrics": [
+        "M-02",
+        "M-06"
+      ],
+      "tags": [
+        "synthetic"
+      ],
+      "path": "datasets/candidates/candidate_030"
+    },
+    "candidate_031": {
+      "id": "candidate_031",
+      "name": "candidate_031",
+      "repo_id": "repo_031",
+      "anomaly_present": false,
+      "anomaly_type": null,
+      "expected_metrics": [
+        "M-02",
+        "M-06"
+      ],
+      "tags": [
+        "synthetic"
+      ],
+      "path": "datasets/candidates/candidate_031"
+    },
+    "candidate_032": {
+      "id": "candidate_032",
+      "name": "candidate_032",
+      "repo_id": "repo_032",
+      "anomaly_present": false,
+      "anomaly_type": null,
+      "expected_metrics": [
+        "M-02",
+        "M-06"
+      ],
+      "tags": [
+        "synthetic"
+      ],
+      "path": "datasets/candidates/candidate_032"
+    },
+    "candidate_033": {
+      "id": "candidate_033",
+      "name": "candidate_033",
+      "repo_id": "repo_033",
+      "anomaly_present": false,
+      "anomaly_type": null,
+      "expected_metrics": [
+        "M-02",
+        "M-06"
+      ],
+      "tags": [
+        "synthetic"
+      ],
+      "path": "datasets/candidates/candidate_033"
+    },
+    "candidate_034": {
+      "id": "candidate_034",
+      "name": "candidate_034",
+      "repo_id": "repo_034",
+      "anomaly_present": false,
+      "anomaly_type": null,
+      "expected_metrics": [
+        "M-02",
+        "M-06"
+      ],
+      "tags": [
+        "synthetic"
+      ],
+      "path": "datasets/candidates/candidate_034"
+    },
+    "candidate_035": {
+      "id": "candidate_035",
+      "name": "candidate_035",
+      "repo_id": "repo_035",
+      "anomaly_present": false,
+      "anomaly_type": null,
+      "expected_metrics": [
+        "M-02",
+        "M-06"
+      ],
+      "tags": [
+        "synthetic"
+      ],
+      "path": "datasets/candidates/candidate_035"
+    },
+    "candidate_036": {
+      "id": "candidate_036",
+      "name": "candidate_036",
+      "repo_id": "repo_036",
+      "anomaly_present": false,
+      "anomaly_type": null,
+      "expected_metrics": [
+        "M-02",
+        "M-06"
+      ],
+      "tags": [
+        "synthetic"
+      ],
+      "path": "datasets/candidates/candidate_036"
+    },
+    "candidate_037": {
+      "id": "candidate_037",
+      "name": "candidate_037",
+      "repo_id": "repo_037",
+      "anomaly_present": false,
+      "anomaly_type": null,
+      "expected_metrics": [
+        "M-02",
+        "M-06"
+      ],
+      "tags": [
+        "synthetic"
+      ],
+      "path": "datasets/candidates/candidate_037"
+    },
+    "candidate_038": {
+      "id": "candidate_038",
+      "name": "candidate_038",
+      "repo_id": "repo_038",
+      "anomaly_present": false,
+      "anomaly_type": null,
+      "expected_metrics": [
+        "M-02",
+        "M-06"
+      ],
+      "tags": [
+        "synthetic"
+      ],
+      "path": "datasets/candidates/candidate_038"
+    },
+    "candidate_039": {
+      "id": "candidate_039",
+      "name": "candidate_039",
+      "repo_id": "repo_039",
+      "anomaly_present": false,
+      "anomaly_type": null,
+      "expected_metrics": [
+        "M-02",
+        "M-06"
+      ],
+      "tags": [
+        "synthetic"
+      ],
+      "path": "datasets/candidates/candidate_039"
+    },
+    "candidate_040": {
+      "id": "candidate_040",
+      "name": "candidate_040",
+      "repo_id": "repo_040",
+      "anomaly_present": false,
+      "anomaly_type": null,
+      "expected_metrics": [
+        "M-02",
+        "M-06"
+      ],
+      "tags": [
+        "synthetic"
+      ],
+      "path": "datasets/candidates/candidate_040"
+    },
+    "candidate_041": {
+      "id": "candidate_041",
+      "name": "candidate_041",
+      "repo_id": "repo_041",
+      "anomaly_present": true,
+      "anomaly_type": "drift",
+      "expected_metrics": [
+        "M-02"
+      ],
+      "tags": [
+        "synthetic"
+      ],
+      "path": "datasets/candidates/candidate_041"
+    },
+    "candidate_042": {
+      "id": "candidate_042",
+      "name": "candidate_042",
+      "repo_id": "repo_042",
+      "anomaly_present": true,
+      "anomaly_type": "drift",
+      "expected_metrics": [
+        "M-02"
+      ],
+      "tags": [
+        "synthetic"
+      ],
+      "path": "datasets/candidates/candidate_042"
+    },
+    "candidate_043": {
+      "id": "candidate_043",
+      "name": "candidate_043",
+      "repo_id": "repo_043",
+      "anomaly_present": true,
+      "anomaly_type": "drift",
+      "expected_metrics": [
+        "M-02"
+      ],
+      "tags": [
+        "synthetic"
+      ],
+      "path": "datasets/candidates/candidate_043"
+    },
+    "candidate_044": {
+      "id": "candidate_044",
+      "name": "candidate_044",
+      "repo_id": "repo_044",
+      "anomaly_present": true,
+      "anomaly_type": "drift",
+      "expected_metrics": [
+        "M-02"
+      ],
+      "tags": [
+        "synthetic"
+      ],
+      "path": "datasets/candidates/candidate_044"
+    },
+    "candidate_045": {
+      "id": "candidate_045",
+      "name": "candidate_045",
+      "repo_id": "repo_045",
+      "anomaly_present": true,
+      "anomaly_type": "drift",
+      "expected_metrics": [
+        "M-02"
+      ],
+      "tags": [
+        "synthetic"
+      ],
+      "path": "datasets/candidates/candidate_045"
+    },
+    "candidate_046": {
+      "id": "candidate_046",
+      "name": "candidate_046",
+      "repo_id": "repo_046",
+      "anomaly_present": true,
+      "anomaly_type": "drift",
+      "expected_metrics": [
+        "M-02"
+      ],
+      "tags": [
+        "synthetic"
+      ],
+      "path": "datasets/candidates/candidate_046"
+    },
+    "candidate_047": {
+      "id": "candidate_047",
+      "name": "candidate_047",
+      "repo_id": "repo_047",
+      "anomaly_present": true,
+      "anomaly_type": "drift",
+      "expected_metrics": [
+        "M-02"
+      ],
+      "tags": [
+        "synthetic"
+      ],
+      "path": "datasets/candidates/candidate_047"
+    },
+    "candidate_048": {
+      "id": "candidate_048",
+      "name": "candidate_048",
+      "repo_id": "repo_048",
+      "anomaly_present": true,
+      "anomaly_type": "drift",
+      "expected_metrics": [
+        "M-02"
+      ],
+      "tags": [
+        "synthetic"
+      ],
+      "path": "datasets/candidates/candidate_048"
+    },
+    "candidate_049": {
+      "id": "candidate_049",
+      "name": "candidate_049",
+      "repo_id": "repo_049",
+      "anomaly_present": true,
+      "anomaly_type": "drift",
+      "expected_metrics": [
+        "M-02"
+      ],
+      "tags": [
+        "synthetic"
+      ],
+      "path": "datasets/candidates/candidate_049"
+    },
+    "candidate_050": {
+      "id": "candidate_050",
+      "name": "candidate_050",
+      "repo_id": "repo_050",
+      "anomaly_present": true,
+      "anomaly_type": "drift",
+      "expected_metrics": [
+        "M-02"
+      ],
+      "tags": [
+        "synthetic"
+      ],
+      "path": "datasets/candidates/candidate_050"
+    },
+    "candidate_051": {
+      "id": "candidate_051",
+      "name": "candidate_051",
+      "repo_id": "repo_051",
+      "anomaly_present": false,
+      "anomaly_type": null,
+      "expected_metrics": [
+        "M-02",
+        "M-06"
+      ],
+      "tags": [
+        "synthetic"
+      ],
+      "path": "datasets/candidates/candidate_051"
+    },
+    "candidate_052": {
+      "id": "candidate_052",
+      "name": "candidate_052",
+      "repo_id": "repo_052",
+      "anomaly_present": false,
+      "anomaly_type": null,
+      "expected_metrics": [
+        "M-02",
+        "M-06"
+      ],
+      "tags": [
+        "synthetic"
+      ],
+      "path": "datasets/candidates/candidate_052"
+    },
+    "candidate_053": {
+      "id": "candidate_053",
+      "name": "candidate_053",
+      "repo_id": "repo_053",
+      "anomaly_present": false,
+      "anomaly_type": null,
+      "expected_metrics": [
+        "M-02",
+        "M-06"
+      ],
+      "tags": [
+        "synthetic"
+      ],
+      "path": "datasets/candidates/candidate_053"
+    },
+    "candidate_054": {
+      "id": "candidate_054",
+      "name": "candidate_054",
+      "repo_id": "repo_054",
+      "anomaly_present": false,
+      "anomaly_type": null,
+      "expected_metrics": [
+        "M-02",
+        "M-06"
+      ],
+      "tags": [
+        "synthetic"
+      ],
+      "path": "datasets/candidates/candidate_054"
+    },
+    "candidate_055": {
+      "id": "candidate_055",
+      "name": "candidate_055",
+      "repo_id": "repo_055",
+      "anomaly_present": false,
+      "anomaly_type": null,
+      "expected_metrics": [
+        "M-02",
+        "M-06"
+      ],
+      "tags": [
+        "synthetic"
+      ],
+      "path": "datasets/candidates/candidate_055"
+    },
+    "candidate_056": {
+      "id": "candidate_056",
+      "name": "candidate_056",
+      "repo_id": "repo_056",
+      "anomaly_present": false,
+      "anomaly_type": null,
+      "expected_metrics": [
+        "M-02",
+        "M-06"
+      ],
+      "tags": [
+        "synthetic"
+      ],
+      "path": "datasets/candidates/candidate_056"
+    },
+    "candidate_057": {
+      "id": "candidate_057",
+      "name": "candidate_057",
+      "repo_id": "repo_057",
+      "anomaly_present": false,
+      "anomaly_type": null,
+      "expected_metrics": [
+        "M-02",
+        "M-06"
+      ],
+      "tags": [
+        "synthetic"
+      ],
+      "path": "datasets/candidates/candidate_057"
+    },
+    "candidate_058": {
+      "id": "candidate_058",
+      "name": "candidate_058",
+      "repo_id": "repo_058",
+      "anomaly_present": false,
+      "anomaly_type": null,
+      "expected_metrics": [
+        "M-02",
+        "M-06"
+      ],
+      "tags": [
+        "synthetic"
+      ],
+      "path": "datasets/candidates/candidate_058"
+    },
+    "candidate_059": {
+      "id": "candidate_059",
+      "name": "candidate_059",
+      "repo_id": "repo_059",
+      "anomaly_present": false,
+      "anomaly_type": null,
+      "expected_metrics": [
+        "M-02",
+        "M-06"
+      ],
+      "tags": [
+        "synthetic"
+      ],
+      "path": "datasets/candidates/candidate_059"
+    },
+    "candidate_060": {
+      "id": "candidate_060",
+      "name": "candidate_060",
+      "repo_id": "repo_060",
+      "anomaly_present": false,
+      "anomaly_type": null,
+      "expected_metrics": [
+        "M-02",
+        "M-06"
+      ],
+      "tags": [
+        "synthetic"
+      ],
+      "path": "datasets/candidates/candidate_060"
+    },
+    "candidate_061": {
+      "id": "candidate_061",
+      "name": "candidate_061",
+      "repo_id": "repo_061",
+      "anomaly_present": false,
+      "anomaly_type": null,
+      "expected_metrics": [
+        "M-02",
+        "M-06"
+      ],
+      "tags": [
+        "synthetic"
+      ],
+      "path": "datasets/candidates/candidate_061"
+    },
+    "candidate_062": {
+      "id": "candidate_062",
+      "name": "candidate_062",
+      "repo_id": "repo_062",
+      "anomaly_present": false,
+      "anomaly_type": null,
+      "expected_metrics": [
+        "M-02",
+        "M-06"
+      ],
+      "tags": [
+        "synthetic"
+      ],
+      "path": "datasets/candidates/candidate_062"
+    },
+    "candidate_063": {
+      "id": "candidate_063",
+      "name": "candidate_063",
+      "repo_id": "repo_063",
+      "anomaly_present": false,
+      "anomaly_type": null,
+      "expected_metrics": [
+        "M-02",
+        "M-06"
+      ],
+      "tags": [
+        "synthetic"
+      ],
+      "path": "datasets/candidates/candidate_063"
+    },
+    "candidate_064": {
+      "id": "candidate_064",
+      "name": "candidate_064",
+      "repo_id": "repo_064",
+      "anomaly_present": false,
+      "anomaly_type": null,
+      "expected_metrics": [
+        "M-02",
+        "M-06"
+      ],
+      "tags": [
+        "synthetic"
+      ],
+      "path": "datasets/candidates/candidate_064"
+    },
+    "candidate_065": {
+      "id": "candidate_065",
+      "name": "candidate_065",
+      "repo_id": "repo_065",
+      "anomaly_present": false,
+      "anomaly_type": null,
+      "expected_metrics": [
+        "M-02",
+        "M-06"
+      ],
+      "tags": [
+        "synthetic"
+      ],
+      "path": "datasets/candidates/candidate_065"
+    },
+    "candidate_066": {
+      "id": "candidate_066",
+      "name": "candidate_066",
+      "repo_id": "repo_066",
+      "anomaly_present": false,
+      "anomaly_type": null,
+      "expected_metrics": [
+        "M-02",
+        "M-06"
+      ],
+      "tags": [
+        "synthetic"
+      ],
+      "path": "datasets/candidates/candidate_066"
+    },
+    "candidate_067": {
+      "id": "candidate_067",
+      "name": "candidate_067",
+      "repo_id": "repo_067",
+      "anomaly_present": false,
+      "anomaly_type": null,
+      "expected_metrics": [
+        "M-02",
+        "M-06"
+      ],
+      "tags": [
+        "synthetic"
+      ],
+      "path": "datasets/candidates/candidate_067"
+    },
+    "candidate_068": {
+      "id": "candidate_068",
+      "name": "candidate_068",
+      "repo_id": "repo_068",
+      "anomaly_present": false,
+      "anomaly_type": null,
+      "expected_metrics": [
+        "M-02",
+        "M-06"
+      ],
+      "tags": [
+        "synthetic"
+      ],
+      "path": "datasets/candidates/candidate_068"
+    },
+    "candidate_069": {
+      "id": "candidate_069",
+      "name": "candidate_069",
+      "repo_id": "repo_069",
+      "anomaly_present": false,
+      "anomaly_type": null,
+      "expected_metrics": [
+        "M-02",
+        "M-06"
+      ],
+      "tags": [
+        "synthetic"
+      ],
+      "path": "datasets/candidates/candidate_069"
+    },
+    "candidate_070": {
+      "id": "candidate_070",
+      "name": "candidate_070",
+      "repo_id": "repo_070",
+      "anomaly_present": false,
+      "anomaly_type": null,
+      "expected_metrics": [
+        "M-02",
+        "M-06"
+      ],
+      "tags": [
+        "synthetic"
+      ],
+      "path": "datasets/candidates/candidate_070"
+    },
+    "candidate_071": {
+      "id": "candidate_071",
+      "name": "candidate_071",
+      "repo_id": "repo_071",
+      "anomaly_present": false,
+      "anomaly_type": null,
+      "expected_metrics": [
+        "M-02",
+        "M-06"
+      ],
+      "tags": [
+        "synthetic"
+      ],
+      "path": "datasets/candidates/candidate_071"
+    },
+    "candidate_072": {
+      "id": "candidate_072",
+      "name": "candidate_072",
+      "repo_id": "repo_072",
+      "anomaly_present": false,
+      "anomaly_type": null,
+      "expected_metrics": [
+        "M-02",
+        "M-06"
+      ],
+      "tags": [
+        "synthetic"
+      ],
+      "path": "datasets/candidates/candidate_072"
+    },
+    "candidate_073": {
+      "id": "candidate_073",
+      "name": "candidate_073",
+      "repo_id": "repo_073",
+      "anomaly_present": false,
+      "anomaly_type": null,
+      "expected_metrics": [
+        "M-02",
+        "M-06"
+      ],
+      "tags": [
+        "synthetic"
+      ],
+      "path": "datasets/candidates/candidate_073"
+    },
+    "candidate_074": {
+      "id": "candidate_074",
+      "name": "candidate_074",
+      "repo_id": "repo_074",
+      "anomaly_present": false,
+      "anomaly_type": null,
+      "expected_metrics": [
+        "M-02",
+        "M-06"
+      ],
+      "tags": [
+        "synthetic"
+      ],
+      "path": "datasets/candidates/candidate_074"
+    },
+    "candidate_075": {
+      "id": "candidate_075",
+      "name": "candidate_075",
+      "repo_id": "repo_075",
+      "anomaly_present": false,
+      "anomaly_type": null,
+      "expected_metrics": [
+        "M-02",
+        "M-06"
+      ],
+      "tags": [
+        "synthetic"
+      ],
+      "path": "datasets/candidates/candidate_075"
+    },
+    "candidate_076": {
+      "id": "candidate_076",
+      "name": "candidate_076",
+      "repo_id": "repo_076",
+      "anomaly_present": false,
+      "anomaly_type": null,
+      "expected_metrics": [
+        "M-02",
+        "M-06"
+      ],
+      "tags": [
+        "synthetic"
+      ],
+      "path": "datasets/candidates/candidate_076"
+    },
+    "candidate_077": {
+      "id": "candidate_077",
+      "name": "candidate_077",
+      "repo_id": "repo_077",
+      "anomaly_present": false,
+      "anomaly_type": null,
+      "expected_metrics": [
+        "M-02",
+        "M-06"
+      ],
+      "tags": [
+        "synthetic"
+      ],
+      "path": "datasets/candidates/candidate_077"
+    },
+    "candidate_078": {
+      "id": "candidate_078",
+      "name": "candidate_078",
+      "repo_id": "repo_078",
+      "anomaly_present": false,
+      "anomaly_type": null,
+      "expected_metrics": [
+        "M-02",
+        "M-06"
+      ],
+      "tags": [
+        "synthetic"
+      ],
+      "path": "datasets/candidates/candidate_078"
+    },
+    "candidate_079": {
+      "id": "candidate_079",
+      "name": "candidate_079",
+      "repo_id": "repo_079",
+      "anomaly_present": false,
+      "anomaly_type": null,
+      "expected_metrics": [
+        "M-02",
+        "M-06"
+      ],
+      "tags": [
+        "synthetic"
+      ],
+      "path": "datasets/candidates/candidate_079"
+    },
+    "candidate_080": {
+      "id": "candidate_080",
+      "name": "candidate_080",
+      "repo_id": "repo_080",
+      "anomaly_present": false,
+      "anomaly_type": null,
+      "expected_metrics": [
+        "M-02",
+        "M-06"
+      ],
+      "tags": [
+        "synthetic"
+      ],
+      "path": "datasets/candidates/candidate_080"
+    },
+    "candidate_081": {
+      "id": "candidate_081",
+      "name": "candidate_081",
+      "repo_id": "repo_081",
+      "anomaly_present": true,
+      "anomaly_type": "drift",
+      "expected_metrics": [
+        "M-02"
+      ],
+      "tags": [
+        "synthetic"
+      ],
+      "path": "datasets/candidates/candidate_081"
+    },
+    "candidate_082": {
+      "id": "candidate_082",
+      "name": "candidate_082",
+      "repo_id": "repo_082",
+      "anomaly_present": true,
+      "anomaly_type": "drift",
+      "expected_metrics": [
+        "M-02"
+      ],
+      "tags": [
+        "synthetic"
+      ],
+      "path": "datasets/candidates/candidate_082"
+    },
+    "candidate_083": {
+      "id": "candidate_083",
+      "name": "candidate_083",
+      "repo_id": "repo_083",
+      "anomaly_present": true,
+      "anomaly_type": "drift",
+      "expected_metrics": [
+        "M-02"
+      ],
+      "tags": [
+        "synthetic"
+      ],
+      "path": "datasets/candidates/candidate_083"
+    },
+    "candidate_084": {
+      "id": "candidate_084",
+      "name": "candidate_084",
+      "repo_id": "repo_084",
+      "anomaly_present": true,
+      "anomaly_type": "drift",
+      "expected_metrics": [
+        "M-02"
+      ],
+      "tags": [
+        "synthetic"
+      ],
+      "path": "datasets/candidates/candidate_084"
+    },
+    "candidate_085": {
+      "id": "candidate_085",
+      "name": "candidate_085",
+      "repo_id": "repo_085",
+      "anomaly_present": true,
+      "anomaly_type": "drift",
+      "expected_metrics": [
+        "M-02"
+      ],
+      "tags": [
+        "synthetic"
+      ],
+      "path": "datasets/candidates/candidate_085"
+    },
+    "candidate_086": {
+      "id": "candidate_086",
+      "name": "candidate_086",
+      "repo_id": "repo_086",
+      "anomaly_present": true,
+      "anomaly_type": "drift",
+      "expected_metrics": [
+        "M-02"
+      ],
+      "tags": [
+        "synthetic"
+      ],
+      "path": "datasets/candidates/candidate_086"
+    },
+    "candidate_087": {
+      "id": "candidate_087",
+      "name": "candidate_087",
+      "repo_id": "repo_087",
+      "anomaly_present": true,
+      "anomaly_type": "drift",
+      "expected_metrics": [
+        "M-02"
+      ],
+      "tags": [
+        "synthetic"
+      ],
+      "path": "datasets/candidates/candidate_087"
+    },
+    "candidate_088": {
+      "id": "candidate_088",
+      "name": "candidate_088",
+      "repo_id": "repo_088",
+      "anomaly_present": true,
+      "anomaly_type": "drift",
+      "expected_metrics": [
+        "M-02"
+      ],
+      "tags": [
+        "synthetic"
+      ],
+      "path": "datasets/candidates/candidate_088"
+    },
+    "candidate_089": {
+      "id": "candidate_089",
+      "name": "candidate_089",
+      "repo_id": "repo_089",
+      "anomaly_present": true,
+      "anomaly_type": "drift",
+      "expected_metrics": [
+        "M-02"
+      ],
+      "tags": [
+        "synthetic"
+      ],
+      "path": "datasets/candidates/candidate_089"
+    },
+    "candidate_090": {
+      "id": "candidate_090",
+      "name": "candidate_090",
+      "repo_id": "repo_090",
+      "anomaly_present": true,
+      "anomaly_type": "drift",
+      "expected_metrics": [
+        "M-02"
+      ],
+      "tags": [
+        "synthetic"
+      ],
+      "path": "datasets/candidates/candidate_090"
+    },
+    "candidate_091": {
+      "id": "candidate_091",
+      "name": "candidate_091",
+      "repo_id": "repo_091",
+      "anomaly_present": false,
+      "anomaly_type": null,
+      "expected_metrics": [
+        "M-02",
+        "M-06"
+      ],
+      "tags": [
+        "synthetic"
+      ],
+      "path": "datasets/candidates/candidate_091"
+    },
+    "candidate_092": {
+      "id": "candidate_092",
+      "name": "candidate_092",
+      "repo_id": "repo_092",
+      "anomaly_present": false,
+      "anomaly_type": null,
+      "expected_metrics": [
+        "M-02",
+        "M-06"
+      ],
+      "tags": [
+        "synthetic"
+      ],
+      "path": "datasets/candidates/candidate_092"
+    },
+    "candidate_093": {
+      "id": "candidate_093",
+      "name": "candidate_093",
+      "repo_id": "repo_093",
+      "anomaly_present": false,
+      "anomaly_type": null,
+      "expected_metrics": [
+        "M-02",
+        "M-06"
+      ],
+      "tags": [
+        "synthetic"
+      ],
+      "path": "datasets/candidates/candidate_093"
+    },
+    "candidate_094": {
+      "id": "candidate_094",
+      "name": "candidate_094",
+      "repo_id": "repo_094",
+      "anomaly_present": false,
+      "anomaly_type": null,
+      "expected_metrics": [
+        "M-02",
+        "M-06"
+      ],
+      "tags": [
+        "synthetic"
+      ],
+      "path": "datasets/candidates/candidate_094"
+    },
+    "candidate_095": {
+      "id": "candidate_095",
+      "name": "candidate_095",
+      "repo_id": "repo_095",
+      "anomaly_present": false,
+      "anomaly_type": null,
+      "expected_metrics": [
+        "M-02",
+        "M-06"
+      ],
+      "tags": [
+        "synthetic"
+      ],
+      "path": "datasets/candidates/candidate_095"
+    },
+    "candidate_096": {
+      "id": "candidate_096",
+      "name": "candidate_096",
+      "repo_id": "repo_096",
+      "anomaly_present": false,
+      "anomaly_type": null,
+      "expected_metrics": [
+        "M-02",
+        "M-06"
+      ],
+      "tags": [
+        "synthetic"
+      ],
+      "path": "datasets/candidates/candidate_096"
+    },
+    "candidate_097": {
+      "id": "candidate_097",
+      "name": "candidate_097",
+      "repo_id": "repo_097",
+      "anomaly_present": false,
+      "anomaly_type": null,
+      "expected_metrics": [
+        "M-02",
+        "M-06"
+      ],
+      "tags": [
+        "synthetic"
+      ],
+      "path": "datasets/candidates/candidate_097"
+    },
+    "candidate_098": {
+      "id": "candidate_098",
+      "name": "candidate_098",
+      "repo_id": "repo_098",
+      "anomaly_present": false,
+      "anomaly_type": null,
+      "expected_metrics": [
+        "M-02",
+        "M-06"
+      ],
+      "tags": [
+        "synthetic"
+      ],
+      "path": "datasets/candidates/candidate_098"
+    },
+    "candidate_099": {
+      "id": "candidate_099",
+      "name": "candidate_099",
+      "repo_id": "repo_099",
+      "anomaly_present": false,
+      "anomaly_type": null,
+      "expected_metrics": [
+        "M-02",
+        "M-06"
+      ],
+      "tags": [
+        "synthetic"
+      ],
+      "path": "datasets/candidates/candidate_099"
+    },
+    "candidate_100": {
+      "id": "candidate_100",
+      "name": "candidate_100",
+      "repo_id": "repo_100",
+      "anomaly_present": false,
+      "anomaly_type": null,
+      "expected_metrics": [
+        "M-02",
+        "M-06"
+      ],
+      "tags": [
+        "synthetic"
+      ],
+      "path": "datasets/candidates/candidate_100"
+    },
+    "candidate_101": {
+      "id": "candidate_101",
+      "name": "candidate_101",
+      "repo_id": "repo_101",
+      "anomaly_present": false,
+      "anomaly_type": null,
+      "expected_metrics": [
+        "M-02",
+        "M-06"
+      ],
+      "tags": [
+        "synthetic"
+      ],
+      "path": "datasets/candidates/candidate_101"
+    },
+    "candidate_102": {
+      "id": "candidate_102",
+      "name": "candidate_102",
+      "repo_id": "repo_102",
+      "anomaly_present": false,
+      "anomaly_type": null,
+      "expected_metrics": [
+        "M-02",
+        "M-06"
+      ],
+      "tags": [
+        "synthetic"
+      ],
+      "path": "datasets/candidates/candidate_102"
+    },
+    "candidate_103": {
+      "id": "candidate_103",
+      "name": "candidate_103",
+      "repo_id": "repo_103",
+      "anomaly_present": false,
+      "anomaly_type": null,
+      "expected_metrics": [
+        "M-02",
+        "M-06"
+      ],
+      "tags": [
+        "synthetic"
+      ],
+      "path": "datasets/candidates/candidate_103"
+    },
+    "candidate_104": {
+      "id": "candidate_104",
+      "name": "candidate_104",
+      "repo_id": "repo_104",
+      "anomaly_present": false,
+      "anomaly_type": null,
+      "expected_metrics": [
+        "M-02",
+        "M-06"
+      ],
+      "tags": [
+        "synthetic"
+      ],
+      "path": "datasets/candidates/candidate_104"
+    },
+    "candidate_105": {
+      "id": "candidate_105",
+      "name": "candidate_105",
+      "repo_id": "repo_105",
+      "anomaly_present": false,
+      "anomaly_type": null,
+      "expected_metrics": [
+        "M-02",
+        "M-06"
+      ],
+      "tags": [
+        "synthetic"
+      ],
+      "path": "datasets/candidates/candidate_105"
+    },
+    "candidate_106": {
+      "id": "candidate_106",
+      "name": "candidate_106",
+      "repo_id": "repo_106",
+      "anomaly_present": false,
+      "anomaly_type": null,
+      "expected_metrics": [
+        "M-02",
+        "M-06"
+      ],
+      "tags": [
+        "synthetic"
+      ],
+      "path": "datasets/candidates/candidate_106"
+    },
+    "candidate_107": {
+      "id": "candidate_107",
+      "name": "candidate_107",
+      "repo_id": "repo_107",
+      "anomaly_present": false,
+      "anomaly_type": null,
+      "expected_metrics": [
+        "M-02",
+        "M-06"
+      ],
+      "tags": [
+        "synthetic"
+      ],
+      "path": "datasets/candidates/candidate_107"
+    },
+    "candidate_108": {
+      "id": "candidate_108",
+      "name": "candidate_108",
+      "repo_id": "repo_108",
+      "anomaly_present": false,
+      "anomaly_type": null,
+      "expected_metrics": [
+        "M-02",
+        "M-06"
+      ],
+      "tags": [
+        "synthetic"
+      ],
+      "path": "datasets/candidates/candidate_108"
+    },
+    "candidate_109": {
+      "id": "candidate_109",
+      "name": "candidate_109",
+      "repo_id": "repo_109",
+      "anomaly_present": false,
+      "anomaly_type": null,
+      "expected_metrics": [
+        "M-02",
+        "M-06"
+      ],
+      "tags": [
+        "synthetic"
+      ],
+      "path": "datasets/candidates/candidate_109"
+    },
+    "candidate_110": {
+      "id": "candidate_110",
+      "name": "candidate_110",
+      "repo_id": "repo_110",
+      "anomaly_present": false,
+      "anomaly_type": null,
+      "expected_metrics": [
+        "M-02",
+        "M-06"
+      ],
+      "tags": [
+        "synthetic"
+      ],
+      "path": "datasets/candidates/candidate_110"
+    },
+    "candidate_111": {
+      "id": "candidate_111",
+      "name": "candidate_111",
+      "repo_id": "repo_111",
+      "anomaly_present": false,
+      "anomaly_type": null,
+      "expected_metrics": [
+        "M-02",
+        "M-06"
+      ],
+      "tags": [
+        "synthetic"
+      ],
+      "path": "datasets/candidates/candidate_111"
+    },
+    "candidate_112": {
+      "id": "candidate_112",
+      "name": "candidate_112",
+      "repo_id": "repo_112",
+      "anomaly_present": false,
+      "anomaly_type": null,
+      "expected_metrics": [
+        "M-02",
+        "M-06"
+      ],
+      "tags": [
+        "synthetic"
+      ],
+      "path": "datasets/candidates/candidate_112"
+    },
+    "candidate_113": {
+      "id": "candidate_113",
+      "name": "candidate_113",
+      "repo_id": "repo_113",
+      "anomaly_present": false,
+      "anomaly_type": null,
+      "expected_metrics": [
+        "M-02",
+        "M-06"
+      ],
+      "tags": [
+        "synthetic"
+      ],
+      "path": "datasets/candidates/candidate_113"
+    },
+    "candidate_114": {
+      "id": "candidate_114",
+      "name": "candidate_114",
+      "repo_id": "repo_114",
+      "anomaly_present": false,
+      "anomaly_type": null,
+      "expected_metrics": [
+        "M-02",
+        "M-06"
+      ],
+      "tags": [
+        "synthetic"
+      ],
+      "path": "datasets/candidates/candidate_114"
+    },
+    "candidate_115": {
+      "id": "candidate_115",
+      "name": "candidate_115",
+      "repo_id": "repo_115",
+      "anomaly_present": false,
+      "anomaly_type": null,
+      "expected_metrics": [
+        "M-02",
+        "M-06"
+      ],
+      "tags": [
+        "synthetic"
+      ],
+      "path": "datasets/candidates/candidate_115"
+    },
+    "candidate_116": {
+      "id": "candidate_116",
+      "name": "candidate_116",
+      "repo_id": "repo_116",
+      "anomaly_present": false,
+      "anomaly_type": null,
+      "expected_metrics": [
+        "M-02",
+        "M-06"
+      ],
+      "tags": [
+        "synthetic"
+      ],
+      "path": "datasets/candidates/candidate_116"
+    },
+    "candidate_117": {
+      "id": "candidate_117",
+      "name": "candidate_117",
+      "repo_id": "repo_117",
+      "anomaly_present": false,
+      "anomaly_type": null,
+      "expected_metrics": [
+        "M-02",
+        "M-06"
+      ],
+      "tags": [
+        "synthetic"
+      ],
+      "path": "datasets/candidates/candidate_117"
+    },
+    "candidate_118": {
+      "id": "candidate_118",
+      "name": "candidate_118",
+      "repo_id": "repo_118",
+      "anomaly_present": false,
+      "anomaly_type": null,
+      "expected_metrics": [
+        "M-02",
+        "M-06"
+      ],
+      "tags": [
+        "synthetic"
+      ],
+      "path": "datasets/candidates/candidate_118"
+    },
+    "candidate_119": {
+      "id": "candidate_119",
+      "name": "candidate_119",
+      "repo_id": "repo_119",
+      "anomaly_present": false,
+      "anomaly_type": null,
+      "expected_metrics": [
+        "M-02",
+        "M-06"
+      ],
+      "tags": [
+        "synthetic"
+      ],
+      "path": "datasets/candidates/candidate_119"
+    },
+    "candidate_120": {
+      "id": "candidate_120",
+      "name": "candidate_120",
+      "repo_id": "repo_120",
+      "anomaly_present": false,
+      "anomaly_type": null,
+      "expected_metrics": [
+        "M-02",
+        "M-06"
+      ],
+      "tags": [
+        "synthetic"
+      ],
+      "path": "datasets/candidates/candidate_120"
+    }
+  }
+}
