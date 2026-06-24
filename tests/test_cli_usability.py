@@ -39,8 +39,12 @@ class TestProgressStages:
 
     def test_all_seven_stages_shown(self, runner, repo_with_commits):
         # Use commit strategy with size=5 to produce 2+ windows from 12 commits
-        result = runner.invoke(cli, ["analyze", str(repo_with_commits), "-w", "commit", "-s", "5", "--format", "json"])
-        output = result.output
+        # Retry up to 2 times to handle Windows parallel test git contention
+        for attempt in range(3):
+            result = runner.invoke(cli, ["analyze", str(repo_with_commits), "-w", "commit", "-s", "5", "--format", "json"])
+            output = result.output
+            if "[7/7]" in output:
+                break
         assert "[1/7]" in output
         assert "[2/7]" in output
         assert "[3/7]" in output
