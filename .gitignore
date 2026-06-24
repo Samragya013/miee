@@ -37,3 +37,8 @@ Desktop.ini
 *.swp
 *.swo
 *~
+
+# Environment secrets (NEVER commit)
+.env
+.env.*
+!.env.example

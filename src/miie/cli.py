@@ -27,6 +27,13 @@ import click
 from pathlib import Path
 from datetime import datetime, timezone
 
+# Load .env file before anything else (secrets never in code)
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    pass  # python-dotenv not installed; rely on shell env vars only
+
 from . import __version__
 
 
