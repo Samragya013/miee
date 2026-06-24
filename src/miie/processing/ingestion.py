@@ -269,6 +269,8 @@ class RepositoryIngestionEngine(IIngestionEngine):
                 cwd=repo_path,
                 capture_output=True,
                 text=True,
+                encoding='utf-8',
+                errors='replace',
                 check=True
             )
             count_str = result.stdout.strip()
@@ -296,6 +298,8 @@ class RepositoryIngestionEngine(IIngestionEngine):
                 cwd=repo_path,
                 capture_output=True,
                 text=True,
+                encoding='utf-8',
+                errors='replace',
                 check=True
             )
             timestamp_str = result.stdout.strip().split('\n')[0] if result.stdout.strip() else None
@@ -324,6 +328,8 @@ class RepositoryIngestionEngine(IIngestionEngine):
                 cwd=repo_path,
                 capture_output=True,
                 text=True,
+                encoding='utf-8',
+                errors='replace',
                 check=True
             )
             timestamp_str = result.stdout.strip()
@@ -355,6 +361,8 @@ class RepositoryIngestionEngine(IIngestionEngine):
                 cwd=repo_path,
                 capture_output=True,
                 text=True,
+                encoding='utf-8',
+                errors='replace',
                 check=True
             )
             # Each line is a contributor, empty output means 0

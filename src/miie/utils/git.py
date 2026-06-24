@@ -138,7 +138,7 @@ class GitCloner:
 
         # Build git clone command
         cmd = ['git', 'clone']
-        if self.shallow_depth > 0:
+        if self.shallow_depth is not None and self.shallow_depth > 0:
             cmd.extend(['--depth', str(self.shallow_depth)])
         cmd.extend([clone_url, str(target_dir)])
 
@@ -148,6 +148,8 @@ class GitCloner:
                 cmd,
                 capture_output=True,
                 text=True,
+                encoding='utf-8',
+                errors='replace',
                 check=True
             )
         except subprocess.CalledProcessError as e:
