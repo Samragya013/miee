@@ -78,7 +78,7 @@ def cli(ctx, config_file, global_output, verbose):
                help="Validate inputs and show plan without executing the pipeline")
 @click.option("--seed", default=42, type=int, help="Random seed for reproducibility. Default: 42")
 @click.option("--format", "-f", "formats", multiple=True, default=["json"],
-              type=click.Choice(["json", "markdown", "both"]),
+              type=click.Choice(["json", "md", "csv"]),
               help="Output format(s). Default: json")
 @click.option("--auth-token", default=None, type=str,
               help="GitHub personal access token for private repos. Falls back to GITHUB_TOKEN env var.")
@@ -225,20 +225,114 @@ def analyze(ctx, repo_path, metrics, detectors, output_dir, window_strategy,
         sys.exit(2)
 
     score_pkg = results["score_package"]
-    click.echo(f"Analysis complete.")
     integrity = score_pkg.integrity
     confidence = score_pkg.confidence
     integrity_overall = integrity.get("overall", 0.0) if isinstance(integrity, dict) else integrity.overall
     confidence_overall = confidence.get("overall", 0.0) if isinstance(confidence, dict) else confidence.overall
-    click.echo(f"  Integrity : {integrity_overall:.4f}")
-    click.echo(f"  Confidence: {confidence_overall:.4f}")
 
+    # Extract repository info
+    repo_ctx = results.get("repository_context")
+    remote_url = getattr(repo_ctx, "remote_url", None) or repo_path
+    total_commits = getattr(repo_ctx, "total_commits", "?")
+    contributor_count = getattr(repo_ctx, "contributor_count", "?")
+    first_commit = getattr(repo_ctx, "first_commit_date", None)
+    last_commit = getattr(repo_ctx, "last_commit_date", None)
+
+    # Extract detector results
+    detector_results = results.get("detector_results")
+    detector_outputs = {}
+    if detector_results:
+        detector_outputs = getattr(detector_results, "detector_outputs", {})
+        if not detector_outputs and hasattr(detector_results, "d_01"):
+            detector_outputs = {
+                "D-01": getattr(detector_results, "d_01", {}),
+                "D-02": getattr(detector_results, "d_02", {}),
+                "D-03": getattr(detector_results, "d_03", {}),
+            }
+
+    # Extract metrics info
+    metric_df = results.get("metric_dataframe")
+    metric_names = list(getattr(metric_df, "metrics", {}).keys()) if metric_df else list(metrics)
+    windows = results.get("windows", [])
+    window_count = len(windows)
+
+    # Extract explanation
+    explanation = results.get("explanation_report")
+    narratives = getattr(explanation, "narratives", []) if explanation else []
+    recommendations = getattr(explanation, "recommendations", []) if explanation else []
+
+    # --- Rich terminal summary ---
+    from . import __version__
+    click.echo("")
+    click.echo("=" * 50)
+    click.echo(f"MIIE v{__version__}")
+    click.echo("Measurement Integrity Analysis")
+    click.echo("=" * 50)
+    click.echo("")
+    click.echo("Repository:")
+    click.echo(f"  {remote_url}")
+    click.echo("")
+    click.echo("Status:")
+    click.echo(f"  OK  Repository Loaded")
+    click.echo(f"      {total_commits} commits | {contributor_count} contributors")
+    if first_commit and last_commit:
+        click.echo(f"      {first_commit.strftime('%Y-%m-%d')} to {last_commit.strftime('%Y-%m-%d')}")
+    click.echo("")
+    click.echo("Metrics Extracted:")
+    click.echo(f"  {len(metric_names)} metrics: {', '.join(metric_names)}")
+    click.echo("")
+    click.echo("Windows:")
+    click.echo(f"  {window_count} ({window_strategy}, size={window_size})")
+    click.echo("")
+    click.echo("-" * 50)
+    click.echo("Detector Results:")
+    for det_id in sorted(detector_outputs.keys()):
+        det_data = detector_outputs[det_id]
+        if isinstance(det_data, dict):
+            triggered = det_data.get("drift_detected") or det_data.get("breakdown_detected") or det_data.get("compression_detected", False)
+        else:
+            triggered = False
+        status = "FAIL" if triggered else "PASS"
+        click.echo(f"  {det_id}: {status}")
+    click.echo("-" * 50)
+    click.echo("")
+    click.echo(f"Integrity Score:  {integrity_overall:.2f}")
+    click.echo(f"Confidence Score: {confidence_overall:.2f}")
+    click.echo("")
+
+    # Assessment
+    if integrity_overall >= 0.9:
+        assessment = "Metric Integrity Appears Stable"
+    elif integrity_overall >= 0.7:
+        assessment = "Metric Integrity Shows Minor Anomalies"
+    else:
+        assessment = "Metric Integrity Requires Investigation"
+    click.echo("Assessment:")
+    click.echo(f"  {assessment}")
+    click.echo("")
+
+    # Narratives (key findings)
+    if narratives:
+        click.echo("Findings:")
+        for n in narratives[:5]:
+            click.echo(f"  - {n}")
+        click.echo("")
+
+    # Recommendations
+    if recommendations:
+        click.echo("Recommendations:")
+        for r in recommendations[:3]:
+            click.echo(f"  - {r}")
+        click.echo("")
+
+    # Reports
     report_out = results.get("report_output")
     if report_out and report_out.report_paths:
-        click.echo("  Reports:")
+        click.echo("Reports:")
         for fmt, path in report_out.report_paths.items():
-            click.echo(f"    {fmt}: {path}")
-    click.echo("Done.")
+            click.echo(f"  {fmt}: {path}")
+    click.echo("")
+    click.echo("=" * 50)
 
     # Exit 1 if integrity score < 1.0 (integrity failures detected)
     if integrity_overall < 1.0:
