@@ -147,99 +147,248 @@ def analyze(ctx, repo_path, metrics, detectors, output_dir, window_strategy,
         click.echo("=== Dry run complete (no work performed) ===")
         return
 
-    # --- Full pipeline execution ---
-    if verbose:
-        click.echo(f"Starting analysis of {repo_path} ...")
-    else:
-        click.echo(f"Starting analysis of {repo_path} ...")
+    # --- Full pipeline execution with progress ---
+    import time
+    from . import __version__
 
     # Resolve auth token: CLI arg > env var
     import os
     resolved_token = auth_token or os.environ.get("GITHUB_TOKEN")
 
-    from .orchestration.pipeline import AnalysisPipeline
+    # Detect if URL for clone messaging
+    from .utils.git import GitURLParser
+    is_url = GitURLParser.is_github_url(repo_path)
+    display_name = repo_path if is_url else str(Path(repo_path).resolve())
+
+    # --- Progress helper ---
+    total_stages = 7
+    _timings = {}
+
+    def _progress_start(stage_num, label):
+        click.echo(f"\n[{stage_num}/{total_stages}] {label}")
+
+    def _progress_complete(stage_num, label, start_time):
+        elapsed = time.perf_counter() - start_time
+        _timings[label] = elapsed
+        click.echo(f"      [DONE] ({elapsed:.1f}s)")
+
+    def _progress_action(msg):
+        click.echo(f"      {msg}")
+
+    # --- Banner ---
+    click.echo("")
+    click.echo("=" * 55)
+    click.echo(f"  MIIE v{__version__}")
+    click.echo("  Measurement Integrity Analysis")
+    click.echo("=" * 55)
+    click.echo("")
+    click.echo(f"  Repository:  {display_name}")
+
     from .processing.ingestion import RepositoryIngestionEngine
     from .processing.extraction import MetricExtractionEngine
     from .processing.segmentation import WindowSegmentationEngine
     from .processing.detection.dispatcher import DetectorDispatcherEngine
     from .processing.detection.registry import DetectorRegistry
+    from .processing.detection.distribution_drift_detector import DistributionDriftDetector
+    from .processing.detection.correlation_breakdown_detector import CorrelationBreakdownDetector
+    from .processing.detection.threshold_compression_detector import ThresholdCompressionDetector
     from .processing.scoring.engine import ScoringEngine
     from .processing.evidence import EvidenceEngine
     from .processing.explanation.engine import ExplanationEngine
     from .processing.reporting.engine import ReportGenerator
 
-    # Build detector registry with real detectors
-    registry = DetectorRegistry()
+    # Wrap entire pipeline in try/except for clean error handling (exit 2)
+    try:
+        _run_pipeline(
+            repo_path=repo_path, display_name=display_name, is_url=is_url,
+            resolved_token=resolved_token, metrics=metrics, since=since, until=until,
+            exclude_bots=exclude_bots, window_strategy=window_strategy,
+            window_size=window_size, detectors=detectors, thresholds=thresholds,
+            formats=formats, output_dir=output_dir, verbose=verbose,
+            _progress_start=_progress_start, _progress_complete=_progress_complete,
+            _progress_action=_progress_action, _timings=_timings,
+            total_stages=total_stages, __version__=__version__,
+        )
+    except Exception as exc:
+        click.echo(f"\n[SYSTEM-ERROR] {exc}", err=True)
+        try:
+            partial_path = Path(output_dir) / "partial_results.json"
+            partial_path.parent.mkdir(parents=True, exist_ok=True)
+            partial_path.write_text(_json.dumps(
+                {"error": str(exc), "partial": True}, default=str, indent=2
+            ))
+            click.echo(f"Partial results saved to {partial_path}", err=True)
+        except Exception:
+            pass
+        sys.exit(2)
+
+
+def _run_pipeline(
+    repo_path, display_name, is_url, resolved_token, metrics, since, until,
+    exclude_bots, window_strategy, window_size, detectors, thresholds,
+    formats, output_dir, verbose,
+    _progress_start, _progress_complete, _progress_action, _timings,
+    total_stages, __version__,
+):
+    """Execute all pipeline stages with progress feedback."""
+    import time
+    from .processing.ingestion import RepositoryIngestionEngine
+    from .processing.extraction import MetricExtractionEngine
+    from .processing.segmentation import WindowSegmentationEngine
+    from .processing.detection.dispatcher import DetectorDispatcherEngine
+    from .processing.detection.registry import DetectorRegistry
     from .processing.detection.distribution_drift_detector import DistributionDriftDetector
     from .processing.detection.correlation_breakdown_detector import CorrelationBreakdownDetector
     from .processing.detection.threshold_compression_detector import ThresholdCompressionDetector
+    from .processing.scoring.engine import ScoringEngine
+    from .processing.evidence import EvidenceEngine
+    from .processing.explanation.engine import ExplanationEngine
+    from .processing.reporting.engine import ReportGenerator
+
+    # --- Stage 1: Acquisition ---
+    t_total = time.perf_counter()
+    _progress_start(1, "Repository Acquisition")
+    t1 = time.perf_counter()
+    ingestion = RepositoryIngestionEngine(auth_token=resolved_token)
+    if is_url:
+        _progress_action("Cloning repository...")
+    else:
+        _progress_action("Loading local repository...")
+    repository_context = ingestion.ingest(
+        repo_path=repo_path,
+        shallow_depth=None,
+    )
+    if not ingestion.validate(repository_context):
+        raise ValueError("Repository context validation failed")
+    total_commits = getattr(repository_context, "total_commits", "?")
+    contributor_count = getattr(repository_context, "contributor_count", "?")
+    first_commit = getattr(repository_context, "first_commit_date", None)
+    last_commit = getattr(repository_context, "last_commit_date", None)
+    remote_url = getattr(repository_context, "remote_url", None) or display_name
+    _progress_action(f"{total_commits} commits, {contributor_count} contributors")
+    _progress_complete(1, "Acquisition", t1)
+
+    # --- Stage 2: Validation ---
+    _progress_start(2, "Repository Validation")
+    t2 = time.perf_counter()
+    _progress_action("Validating repository metadata...")
+    _progress_complete(2, "Validation", t2)
+
+    # --- Stage 3: Metric Extraction ---
+    _progress_start(3, "Metric Extraction")
+    t3 = time.perf_counter()
+    extraction = MetricExtractionEngine()
+    since_dt = datetime.fromisoformat(since) if since else None
+    until_dt = datetime.fromisoformat(until) if until else None
+    _progress_action(f"Extracting {', '.join(metrics)}...")
+    metric_dataframe = extraction.extract(
+        context=repository_context,
+        metric_list=list(metrics),
+        since=since_dt,
+        until=until_dt,
+        exclude_bots=exclude_bots,
+    )
+    metric_names = list(getattr(metric_dataframe, "metrics", {}).keys()) if metric_dataframe else list(metrics)
+    _progress_action(f"{len(metric_names)} metrics extracted")
+    _progress_complete(3, "Extraction", t3)
+
+    # --- Stage 4: Window Generation ---
+    _progress_start(4, "Window Generation")
+    t4 = time.perf_counter()
+    segmentation = WindowSegmentationEngine()
+    windows = segmentation.segment(
+        metric_dataframe=metric_dataframe,
+        strategy=window_strategy,
+        size=window_size,
+    )
+    window_count = len(windows)
+    _progress_action(f"{window_count} windows ({window_strategy}, size={window_size})")
+    _progress_complete(4, "Segmentation", t4)
+
+    # --- Stage 5: Detector Execution ---
+    _progress_start(5, "Detector Execution")
+    t5 = time.perf_counter()
+    registry = DetectorRegistry()
     registry.register(DistributionDriftDetector())
     registry.register(CorrelationBreakdownDetector())
     registry.register(ThresholdCompressionDetector())
-
-    pipeline = AnalysisPipeline(
-        ingestion_engine=RepositoryIngestionEngine(auth_token=resolved_token),
-        extraction_engine=MetricExtractionEngine(),
-        segmentation_engine=WindowSegmentationEngine(),
-        detection_engine=DetectorDispatcherEngine(registry),
-        scoring_engine=ScoringEngine(),
-        evidence_engine=EvidenceEngine(),
-        explanation_engine=ExplanationEngine(),
-        report_generator=ReportGenerator(),
+    dispatcher = DetectorDispatcherEngine(registry)
+    detector_config = None
+    if thresholds:
+        try:
+            detector_config = _json.loads(thresholds)
+        except _json.JSONDecodeError:
+            detector_config = None
+    _progress_action(f"Running {len(detectors)} detectors...")
+    detector_results = dispatcher.invoke(
+        metric_dataframe=metric_dataframe,
+        windows=windows,
+        detector_config=detector_config,
+        enabled_detectors=list(detectors),
     )
+    _progress_complete(5, "Detection", t5)
 
-    # Parse time args
-    since_dt = datetime.fromisoformat(since) if since else None
-    until_dt = datetime.fromisoformat(until) if until else None
+    # --- Stage 6: Evidence Generation ---
+    _progress_start(6, "Evidence Generation")
+    t6 = time.perf_counter()
+    scoring = ScoringEngine()
+    score_package = scoring.compute_integrity_score(
+        detector_results=detector_results,
+        metric_dataframe=metric_dataframe,
+        windows=windows,
+    )
+    evidence_engine = EvidenceEngine()
+    evidence_package = evidence_engine.generate(
+        repository_context=repository_context,
+        metric_dataframe=metric_dataframe,
+        windows=windows,
+        detector_results=detector_results,
+        score_package=score_package,
+        configuration={
+            "metric_list": list(metrics),
+            "since": since_dt,
+            "until": until_dt,
+            "exclude_bots": exclude_bots,
+            "segmentation_strategy": window_strategy,
+            "segmentation_size": window_size,
+        },
+    )
+    explanation_engine = ExplanationEngine()
+    explanation_report = explanation_engine.generate(
+        evidence_package=evidence_package,
+        score_package=score_package,
+    )
+    _progress_complete(6, "Evidence", t6)
 
-    # Track partial results for crash recovery (AFD §9.2)
-    partial_results = {}
-    try:
-        results = pipeline.run_analysis(
-            repo_path=repo_path,
-            metric_list=list(metrics),
-            output_formats=list(formats),
-            output_dir=Path(output_dir),
-            segmentation_strategy=window_strategy,
-            segmentation_size=window_size,
-            since=since_dt,
-            until=until_dt,
-            exclude_bots=exclude_bots,
-            enabled_detectors=list(detectors),
-            detector_config=detector_config,
-        )
-        partial_results = results
-    except Exception as exc:
-        # Save partial results before re-raising (AFD §9.2)
-        if partial_results:
-            try:
-                partial_path = Path(output_dir) / "partial_results.json"
-                partial_path.parent.mkdir(parents=True, exist_ok=True)
-                partial_path.write_text(_json.dumps(
-                    {"error": str(exc), "partial": True}, default=str, indent=2
-                ))
-                click.echo(f"[PARTIAL-SAVED] Partial results saved to {partial_path}", err=True)
-            except Exception:
-                pass
-        click.echo(f"[SYSTEM-ERROR] {exc}", err=True)
-        sys.exit(2)
+    # --- Stage 7: Final Assessment ---
+    _progress_start(7, "Final Assessment")
+    t7 = time.perf_counter()
+    report_generator = ReportGenerator()
+    analysis_results = {
+        "repository_context": repository_context,
+        "metric_dataframe": metric_dataframe,
+        "windows": windows,
+        "detector_results": detector_results,
+        "score_package": score_package,
+        "evidence_package": evidence_package,
+        "explanation_report": explanation_report,
+    }
+    report_output = report_generator.generate(
+        analysis_result=analysis_results,
+        output_formats=list(formats),
+        output_dir=Path(output_dir),
+    )
+    _progress_complete(7, "Reporting", t7)
 
-    score_pkg = results["score_package"]
-    integrity = score_pkg.integrity
-    confidence = score_pkg.confidence
+    t_total_elapsed = time.perf_counter() - t_total
+
+    # --- Extract scores ---
+    integrity = score_package.integrity
+    confidence = score_package.confidence
     integrity_overall = integrity.get("overall", 0.0) if isinstance(integrity, dict) else integrity.overall
     confidence_overall = confidence.get("overall", 0.0) if isinstance(confidence, dict) else confidence.overall
 
-    # Extract repository info
-    repo_ctx = results.get("repository_context")
-    remote_url = getattr(repo_ctx, "remote_url", None) or repo_path
-    total_commits = getattr(repo_ctx, "total_commits", "?")
-    contributor_count = getattr(repo_ctx, "contributor_count", "?")
-    first_commit = getattr(repo_ctx, "first_commit_date", None)
-    last_commit = getattr(repo_ctx, "last_commit_date", None)
-
-    # Extract detector results
-    detector_results = results.get("detector_results")
+    # --- Extract detector results ---
     detector_outputs = {}
     if detector_results:
         detector_outputs = getattr(detector_results, "detector_outputs", {})
@@ -250,89 +399,155 @@ def analyze(ctx, repo_path, metrics, detectors, output_dir, window_strategy,
                 "D-03": getattr(detector_results, "d_03", {}),
             }
 
-    # Extract metrics info
-    metric_df = results.get("metric_dataframe")
-    metric_names = list(getattr(metric_df, "metrics", {}).keys()) if metric_df else list(metrics)
-    windows = results.get("windows", [])
-    window_count = len(windows)
+    # --- Extract explanation ---
+    narratives = getattr(explanation_report, "narratives", []) if explanation_report else []
+    recommendations = getattr(explanation_report, "recommendations", []) if explanation_report else []
 
-    # Extract explanation
-    explanation = results.get("explanation_report")
-    narratives = getattr(explanation, "narratives", []) if explanation else []
-    recommendations = getattr(explanation, "recommendations", []) if explanation else []
+    # ============================================================
+    # FINAL TERMINAL REPORT
+    # ============================================================
+    click.echo("")
+    click.echo("=" * 55)
+    click.echo(f"  MIIE v{__version__}")
+    click.echo("  Measurement Integrity Analysis")
+    click.echo("=" * 55)
+    click.echo("")
+    click.echo(f"  Repository:  {remote_url}")
+    click.echo("")
 
-    # --- Rich terminal summary ---
-    from . import __version__
-    click.echo("")
-    click.echo("=" * 50)
-    click.echo(f"MIIE v{__version__}")
-    click.echo("Measurement Integrity Analysis")
-    click.echo("=" * 50)
-    click.echo("")
-    click.echo("Repository:")
-    click.echo(f"  {remote_url}")
-    click.echo("")
-    click.echo("Status:")
-    click.echo(f"  OK  Repository Loaded")
-    click.echo(f"      {total_commits} commits | {contributor_count} contributors")
+    # --- Analysis Summary ---
+    click.echo("  Analysis Summary")
+    click.echo("  " + "-" * 40)
+    click.echo(f"  Repository history analyzed successfully.")
+    click.echo(f"  {total_commits} commits from {contributor_count} contributors")
     if first_commit and last_commit:
-        click.echo(f"      {first_commit.strftime('%Y-%m-%d')} to {last_commit.strftime('%Y-%m-%d')}")
+        click.echo(f"  {first_commit.strftime('%Y-%m-%d')} to {last_commit.strftime('%Y-%m-%d')}")
     click.echo("")
-    click.echo("Metrics Extracted:")
-    click.echo(f"  {len(metric_names)} metrics: {', '.join(metric_names)}")
-    click.echo("")
-    click.echo("Windows:")
-    click.echo(f"  {window_count} ({window_strategy}, size={window_size})")
-    click.echo("")
-    click.echo("-" * 50)
-    click.echo("Detector Results:")
+
+    # --- Integrity Findings ---
+    click.echo("  Integrity Findings")
+    click.echo("  " + "-" * 40)
+
+    # Human-friendly detector descriptions (default mode)
+    _detector_human = {
+        "D-01": ("metric drift", "No significant metric drift detected"),
+        "D-02": ("metric relationships", "Historical metric relationships remain stable"),
+        "D-03": ("target-seeking", "No threshold compression patterns detected"),
+    }
+
+    _detector_triggered_human = {
+        "D-01": ("metric drift", "Significant metric drift detected"),
+        "D-02": ("metric relationships", "Historical metric relationships have shifted"),
+        "D-03": ("target-seeking", "Threshold compression patterns detected"),
+    }
+
     for det_id in sorted(detector_outputs.keys()):
         det_data = detector_outputs[det_id]
         if isinstance(det_data, dict):
             triggered = det_data.get("drift_detected") or det_data.get("breakdown_detected") or det_data.get("compression_detected", False)
         else:
             triggered = False
-        status = "FAIL" if triggered else "PASS"
-        click.echo(f"  {det_id}: {status}")
-    click.echo("-" * 50)
-    click.echo("")
-    click.echo(f"Integrity Score:  {integrity_overall:.2f}")
-    click.echo(f"Confidence Score: {confidence_overall:.2f}")
+
+        if verbose:
+            # Verbose: show detector ID + technical status
+            status = "FAIL" if triggered else "PASS"
+            click.echo(f"  [{det_id}] {status}")
+        else:
+            # Default: human-friendly
+            if triggered:
+                label, msg = _detector_triggered_human.get(det_id, (det_id, "Issue detected"))
+                click.echo(f"  [X]  {msg}")
+            else:
+                label, msg = _detector_human.get(det_id, (det_id, "Check passed"))
+                click.echo(f"  [OK]  {msg}")
+
     click.echo("")
 
-    # Assessment
+    # --- Assessment ---
+    click.echo("  Assessment")
+    click.echo("  " + "-" * 40)
+
     if integrity_overall >= 0.9:
-        assessment = "Metric Integrity Appears Stable"
+        integrity_label = "Very High"
     elif integrity_overall >= 0.7:
-        assessment = "Metric Integrity Shows Minor Anomalies"
+        integrity_label = "High"
+    elif integrity_overall >= 0.5:
+        integrity_label = "Moderate"
     else:
-        assessment = "Metric Integrity Requires Investigation"
-    click.echo("Assessment:")
-    click.echo(f"  {assessment}")
+        integrity_label = "Low"
+
+    if confidence_overall >= 0.9:
+        confidence_label = "Very High"
+    elif confidence_overall >= 0.7:
+        confidence_label = "High"
+    elif confidence_overall >= 0.5:
+        confidence_label = "Moderate"
+    else:
+        confidence_label = "Low"
+
+    click.echo(f"  Metric Integrity:  {integrity_label}")
+    click.echo(f"  Confidence:        {confidence_label}")
     click.echo("")
 
-    # Narratives (key findings)
-    if narratives:
-        click.echo("Findings:")
-        for n in narratives[:5]:
-            click.echo(f"  - {n}")
+    # --- Interpretation ---
+    click.echo("  Interpretation")
+    click.echo("  " + "-" * 40)
+    if integrity_overall >= 0.9:
+        interpretation = (
+            "This repository shows strong measurement integrity across the analyzed time period. "
+            "The metrics used for evaluation (commit frequency, contributor activity) behave consistently "
+            "with natural development patterns. No evidence of metric manipulation was detected."
+        )
+    elif integrity_overall >= 0.7:
+        interpretation = (
+            "This repository shows generally stable measurement integrity with minor anomalies. "
+            "Some metrics may show unusual patterns, but these are within expected variation ranges. "
+            "No action required unless trends continue."
+        )
+    else:
+        interpretation = (
+            "This repository shows significant anomalies in metric patterns. "
+            "The detected patterns suggest potential metric manipulation or unusual development activity. "
+            "Manual investigation is recommended."
+        )
+    click.echo(f"  {interpretation}")
+    click.echo("")
+
+    # --- Recommended Action ---
+    click.echo("  Recommended Action")
+    click.echo("  " + "-" * 40)
+    if integrity_overall >= 0.9:
+        action = "No action required. Repository metrics appear authentic."
+    elif integrity_overall >= 0.7:
+        action = "Monitor trends. Consider reviewing flagged metrics for context."
+    else:
+        action = "Investigate flagged metrics. Review contributor activity patterns."
+    click.echo(f"  {action}")
+    click.echo("")
+
+    # --- Timing (verbose only) ---
+    if verbose:
+        click.echo("  Stage Timing")
+        click.echo("  " + "-" * 40)
+        for label, elapsed in _timings.items():
+            click.echo(f"    {label}: {elapsed:.2f}s")
+        click.echo(f"    Total: {t_total_elapsed:.2f}s")
         click.echo("")
 
-    # Recommendations
-    if recommendations:
-        click.echo("Recommendations:")
-        for r in recommendations[:3]:
-            click.echo(f"  - {r}")
-        click.echo("")
-
-    # Reports
-    report_out = results.get("report_output")
+    # --- Reports ---
+    report_out = report_output
     if report_out and report_out.report_paths:
-        click.echo("Reports:")
+        click.echo("  Reports Saved:")
+        click.echo("  " + "-" * 40)
         for fmt, path in report_out.report_paths.items():
-            click.echo(f"  {fmt}: {path}")
+            click.echo(f"    {fmt}: {path}")
     click.echo("")
-    click.echo("=" * 50)
+
+    # --- Footer ---
+    click.echo("=" * 55)
+    click.echo("  Analysis Complete")
+    click.echo("=" * 55)
+    click.echo("")
 
     # Exit 1 if integrity score < 1.0 (integrity failures detected)
     if integrity_overall < 1.0:
