@@ -251,8 +251,8 @@ class WindowDefinition:
 
     def __post_init__(self):
         """Validate WindowDefinition constraints."""
-        if not self.window_id or not re.match(r'^w[0-9]{2}$', self.window_id):
-            raise ValueError(f"window_id must match pattern ^w[0-9]{{2}}$, got {self.window_id}")
+        if not self.window_id or not re.match(r'^w[0-9]+$', self.window_id):
+            raise ValueError(f"window_id must match pattern ^w[0-9]+$, got {self.window_id}")
         if self.start_date >= self.end_date:
             raise ValueError(f"start_date must be before end_date, got start_date={self.start_date}, end_date={self.end_date}")
         if self.commits < 1:
