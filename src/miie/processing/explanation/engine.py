@@ -58,21 +58,22 @@ class ExplanationEngine(IExplanationEngine):
             narratives.append(f"Confidence score is low ({confidence_overall:.2f}), indicating limited data quality, sample size, or temporal coverage.")
 
         # Add factor-specific explanations
+        # TFS §7.5 factors: sample_size, variance, missing_data, window_balance, detector_success
         sample_size = confidence_factors.get("sample_size", 0.0)
-        data_quality = confidence_factors.get("data_quality", 0.0)
-        temporal_coverage = confidence_factors.get("temporal_coverage", 0.0)
+        missing_data = confidence_factors.get("missing_data", 0.0)
+        window_balance = confidence_factors.get("window_balance", 0.0)
 
         if sample_size < 0.5:
             narratives.append(f"Sample size factor is low ({sample_size:.2f}), indicating limited number of analysis windows.")
             recommendations.append("Consider increasing analysis window count or adjusting window segmentation parameters.")
 
-        if data_quality < 0.5:
-            narratives.append(f"Data quality factor is low ({data_quality:.2f}), indicating missing or invalid data in metric-window pairs.")
+        if missing_data < 0.5:
+            narratives.append(f"Missing data factor is low ({missing_data:.2f}), indicating missing or invalid data in metric-window pairs.")
             recommendations.append("Investigate data ingestion and extraction processes to improve data completeness.")
 
-        if temporal_coverage < 0.5:
-            narratives.append(f"Temporal coverage factor is low ({temporal_coverage:.2f}), indicating limited temporal spread of analysis windows.")
-            recommendations.append("Consider expanding the time range of analysis or adjusting window size for better temporal coverage.")
+        if window_balance < 0.5:
+            narratives.append(f"Window balance factor is low ({window_balance:.2f}), indicating uneven window sizes.")
+            recommendations.append("Consider adjusting window size for more balanced analysis windows.")
 
         # Add evidence-based insights if available
         if hasattr(evidence_package, 'windows') and evidence_package.windows:

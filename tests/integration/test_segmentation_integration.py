@@ -125,8 +125,9 @@ class TestSegmentationIntegration:
 
             # Assert
             assert isinstance(windows, list)
-            # MockSegmentationEngine returns a single window for non-custom strategies
-            assert len(windows) == 1
+            # MockSegmentationEngine returns 2 windows for non-custom strategies
+            # (minimum for drift detection per AFD §Step 8)
+            assert len(windows) == 2
             window = windows[0]
             assert hasattr(window, 'window_id')
             assert hasattr(window, 'start_date')

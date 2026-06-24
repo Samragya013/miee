@@ -142,6 +142,23 @@ class AnalysisPipeline:
             size=segmentation_size
         )
 
+        # AFD §Step 8: Minimum window gate
+        # "total windows ≥ 2 (required for drift detection). If <2 valid windows: abort."
+        if len(windows) < 2:
+            return {
+                "repository_context": repository_context,
+                "metric_dataframe": metric_dataframe,
+                "windows": windows,
+                "detector_results": None,
+                "score_package": None,
+                "evidence_package": None,
+                "explanation_report": None,
+                "report_output": None,
+                "error": f"Insufficient windows: {len(windows)} (need ≥2). "
+                        "Adjust window_size or time range.",
+                "exit_code": 3
+            }
+
         # Step 4: Detection
         detector_results = self.detection_engine.invoke(
             metric_dataframe=metric_dataframe,

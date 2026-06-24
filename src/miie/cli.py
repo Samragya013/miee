@@ -331,6 +331,20 @@ def _run_pipeline(
     _progress_action(f"{window_count} windows ({window_strategy}, size={window_size})")
     _progress_complete(4, "Segmentation", t4)
 
+    # AFD §Step 8: Minimum window gate
+    # "total windows ≥ 2 (required for drift detection). If <2 valid windows: abort."
+    if window_count < 2:
+        _progress_complete(4, "Segmentation", t4)
+        error_msg = (
+            f"Insufficient windows: {window_count} (need ≥2). "
+            "Adjust --window-size or time range."
+        )
+        if "json" in formats:
+            click.echo(_json.dumps({"error": error_msg, "exit_code": 3}, indent=2))
+        else:
+            click.echo(f"[X] {error_msg}", err=True)
+        raise SystemExit(3)
+
     # --- Stage 5: Detector Execution ---
     _progress_start(5, "Detector Execution")
     t5 = time.perf_counter()

@@ -216,11 +216,19 @@ class MockSegmentationEngine:
                 )
             return windows
         else:
-            # Return a single fixed window for non-custom strategies or when no custom boundaries
+            # Return 2 fixed windows for non-custom strategies (minimum for drift detection)
             return [
                 WindowDefinition(
                     window_id="w00",
                     start_date=datetime(2023, 1, 1, tzinfo=timezone.utc).date(),
+                    end_date=datetime(2023, 6, 30, tzinfo=timezone.utc).date(),
+                    commits=1,
+                    strategy=strategy,
+                    size_config={"size": size},
+                ),
+                WindowDefinition(
+                    window_id="w01",
+                    start_date=datetime(2023, 7, 1, tzinfo=timezone.utc).date(),
                     end_date=datetime(2023, 12, 31, tzinfo=timezone.utc).date(),
                     commits=1,
                     strategy=strategy,
