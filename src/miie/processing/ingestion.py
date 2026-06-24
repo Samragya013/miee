@@ -6,6 +6,7 @@ from pathlib import Path
 import subprocess
 import datetime
 import os
+from miie.utils.git import GitURLParser, GitCloner
 
 
 def validate_repository(repo_path: Union[str, Path]) -> None:
@@ -14,12 +15,23 @@ def validate_repository(repo_path: Union[str, Path]) -> None:
 
     Args:
         repo_path: Path to the repository as a string or Path object.
+                  Can also be a GitHub URL.
 
     Raises:
         IngestionError: If the path does not exist, is not a directory,
                         does not contain a .git subdirectory, or if a
                         traversal attempt is detected.
     """
+    # Convert to string for URL detection
+    path_str = str(repo_path)
+
+    # Check if it's a GitHub URL
+    if GitURLParser.is_github_url(path_str):
+        # For URLs, we'll validate by attempting to clone
+        # We can't validate without cloning, so we'll let the clone operation handle validation
+        return
+
+    # For local paths, perform traditional validation
     # Convert to Path if string
     if isinstance(repo_path, str):
         repo_path = Path(repo_path)
@@ -73,6 +85,14 @@ def cache_path_for_repository(repo_id: str) -> Path:
 
 
 class RepositoryIngestionEngine(IIngestionEngine):
+    def __init__(self, auth_token: Optional[str] = None):
+        """Initialize ingestion engine.
+
+        Args:
+            auth_token: GitHub personal access token for private repos.
+        """
+        self.auth_token = auth_token
+
     def ingest(
         self,
         repo_path: str,
@@ -84,7 +104,8 @@ class RepositoryIngestionEngine(IIngestionEngine):
         Ingest repository metadata and return a RepositoryContext object.
 
         Args:
-            repo_path: Path to the repository as a string.
+            repo_path: Path to the repository as a string. Can be a local path
+                      or a GitHub URL (e.g., https://github.com/owner/repo).
             cache_dir: Optional directory for caching (not used in this implementation).
             keep_cache: Whether to keep cache (not used).
             shallow_depth: Optional depth for shallow clone (not used).
@@ -95,24 +116,40 @@ class RepositoryIngestionEngine(IIngestionEngine):
         Raises:
             IngestionError: If any step fails.
         """
-        # Validate the repository
-        validate_repository(repo_path)
-        path_obj = Path(repo_path) if isinstance(repo_path, str) else repo_path
+        # Handle GitHub URLs
+        if GitURLParser.is_github_url(repo_path):
+            # Clone the repository
+            cloned_path = self._clone_from_url(repo_path, shallow_depth)
+            # Extract metadata from cloned repo
+            repo_id = self._get_repo_id(cloned_path)
+            repository_name = self._get_repository_name(cloned_path)
+            total_commits = self._get_commit_count(cloned_path)
+            first_commit_date = self._get_first_commit_date(cloned_path)
+            last_commit_date = self._get_last_commit_date(cloned_path)
+            contributor_count = self._get_contributor_count(cloned_path)
+            is_shallow = self._is_shallow_clone(cloned_path)
+            is_fork = self._is_fork_repository(cloned_path)
+            language_distribution = self._get_language_distribution(cloned_path)
+            is_remote = True
+            remote_url = repo_path
+            path_obj = cloned_path
+        else:
+            # Validate the repository
+            validate_repository(repo_path)
+            path_obj = Path(repo_path) if isinstance(repo_path, str) else repo_path
 
-        # Extract metadata
-        repo_id = self._get_repo_id(path_obj)
-        repository_name = self._get_repository_name(path_obj)
-        total_commits = self._get_commit_count(path_obj)
-        first_commit_date = self._get_first_commit_date(path_obj)
-        last_commit_date = self._get_last_commit_date(path_obj)
-        contributor_count = self._get_contributor_count(path_obj)
-        is_shallow = self._is_shallow_clone(path_obj)
-        is_fork = self._is_fork_repository(path_obj)
-        language_distribution = self._get_language_distribution(path_obj)  # Returns None for now
-
-        # Determine if remote (we don't have remote info, so assume False for local)
-        is_remote = False
-        remote_url = None
+            # Extract metadata
+            repo_id = self._get_repo_id(path_obj)
+            repository_name = self._get_repository_name(path_obj)
+            total_commits = self._get_commit_count(path_obj)
+            first_commit_date = self._get_first_commit_date(path_obj)
+            last_commit_date = self._get_last_commit_date(path_obj)
+            contributor_count = self._get_contributor_count(path_obj)
+            is_shallow = self._is_shallow_clone(path_obj)
+            is_fork = self._is_fork_repository(path_obj)
+            language_distribution = self._get_language_distribution(path_obj)
+            is_remote = False
+            remote_url = None
 
         # Construct and return RepositoryContext
         try:
@@ -131,6 +168,40 @@ class RepositoryIngestionEngine(IIngestionEngine):
             )
         except ValueError as e:
             raise IngestionError(f"Invalid repository context: {e}")
+
+    def _clone_from_url(
+        self,
+        url: str,
+        shallow_depth: Optional[int] = None
+    ) -> Path:
+        """
+        Clone a GitHub repository from a URL.
+
+        Args:
+            url: GitHub repository URL.
+            shallow_depth: Optional depth for shallow clone.
+
+        Returns:
+            Path to cloned repository.
+
+        Raises:
+            IngestionError: If git clone fails.
+        """
+        # Create a temporary directory for cloning
+        import tempfile
+        temp_dir = Path(tempfile.mkdtemp(prefix="miie_clone_"))
+
+        # Clone the repository
+        try:
+            cloner = GitCloner(auth_token=self.auth_token, shallow_depth=shallow_depth)
+            cloned_path = cloner.clone(url, temp_dir, cleanup_after=True)
+            return cloned_path
+        except Exception as e:
+            # Clean up temp dir if it exists
+            if temp_dir.exists():
+                import shutil
+                shutil.rmtree(temp_dir)
+            raise IngestionError(f"Failed to clone repository from {url}: {e}")
 
     def validate(self, context: RepositoryContext) -> bool:
         """

@@ -51,40 +51,44 @@ def cli(ctx, config_file, global_output, verbose):
 # miie analyze
 # ---------------------------------------------------------------------------
 @cli.command()
-@click.argument("repo_path", type=click.Path(exists=True))
+@click.argument("repo_path", type=str)
 @click.option("--metrics", "-m", multiple=True, default=["M-02", "M-06"],
-              help="Metric IDs to extract (repeatable). Default: M-02 M-06")
+               help="Metric IDs to extract (repeatable). Default: M-02 M-06")
 @click.option("--detectors", "-d", multiple=True, default=["D-01", "D-02", "D-03"],
-              help="Detector IDs to enable (repeatable). Default: D-01 D-02 D-03")
-@click.option("--output-dir", type=click.Path(), default="./output",
-              help="Output directory for reports. Default: ./output")
-@click.option("--format", "-f", "formats", multiple=True, default=["json", "md"],
-              help="Report formats (repeatable). Default: json md")
-@click.option("--window-strategy", default="time",
-              type=click.Choice(["time", "commit", "release", "custom"]),
-              help="Window segmentation strategy. Default: time")
-@click.option("--window-size", default=7, type=int,
-              help="Window size in days/commits. Default: 7")
+               help="Detector IDs to enable (repeatable). Default: D-01 D-02 D-03")
+@click.option("--output-dir", "-o", default="./output", help="Output directory for reports. Default: ./output")
+@click.option("--window-strategy", "-w", default="time",
+               type=click.Choice(["time", "commit", "release", "custom"]),
+               help="Window segmentation strategy. Default: time")
+@click.option("--window-size", "-s", default=7, type=int,
+               help="Window size in days/commits. Default: 7")
 @click.option("--since", default=None, help="Extract metrics since (ISO 8601)")
 @click.option("--until", default=None, help="Extract metrics until (ISO 8601)")
 @click.option("--exclude-bots", is_flag=True, help="Exclude bot-generated commits")
 @click.option("--thresholds", default=None, type=str,
-              help="Custom detector thresholds as JSON string, e.g. '{\"D-01\": {\"alpha\": 0.05}}'")
+               help="Custom detector thresholds as JSON string, e.g. '{\"D-01\": {\"alpha\": 0.05}}'")
 @click.option("--dry-run", is_flag=True,
-              help="Validate inputs and show plan without executing the pipeline")
+               help="Validate inputs and show plan without executing the pipeline")
 @click.option("--seed", default=42, type=int, help="Random seed for reproducibility. Default: 42")
+@click.option("--format", "-f", "formats", multiple=True, default=["json"],
+              type=click.Choice(["json", "markdown", "both"]),
+              help="Output format(s). Default: json")
+@click.option("--auth-token", default=None, type=str,
+              help="GitHub personal access token for private repos. Falls back to GITHUB_TOKEN env var.")
 @click.pass_context
-def analyze(ctx, repo_path, metrics, detectors, output_dir, formats, window_strategy,
-            window_size, since, until, exclude_bots, thresholds, dry_run, seed):
+def analyze(ctx, repo_path, metrics, detectors, output_dir, window_strategy,
+             window_size, since, until, exclude_bots, thresholds, dry_run, seed, formats, auth_token):
     """Run the full analysis pipeline on a repository.
 
     Example:
         miie analyze ./my-repo --dry-run
         miie analyze ./my-repo -m M-02 -m M-06 -d D-01 -d D-02
-        miie analyze ./my-repo --thresholds '{"D-01": {"alpha": 0.05}}'
+        miie analyze ./my-repo --thresholds '{\"D-01\": {\"alpha\": 0.05}}'
+        miie analyze https://github.com/pallets/flask --dry-run
     """
     from .contracts.validators import validate_cli_analyze_inputs, ValidationError
     from .schemas.serialization import json_dumps
+    from .utils.git import GitURLParser
 
     # Parse thresholds JSON
     detector_config = None
@@ -142,6 +146,10 @@ def analyze(ctx, repo_path, metrics, detectors, output_dir, formats, window_stra
     else:
         click.echo(f"Starting analysis of {repo_path} ...")
 
+    # Resolve auth token: CLI arg > env var
+    import os
+    resolved_token = auth_token or os.environ.get("GITHUB_TOKEN")
+
     from .orchestration.pipeline import AnalysisPipeline
     from .processing.ingestion import RepositoryIngestionEngine
     from .processing.extraction import MetricExtractionEngine
@@ -163,7 +171,7 @@ def analyze(ctx, repo_path, metrics, detectors, output_dir, formats, window_stra
     registry.register(ThresholdCompressionDetector())
 
     pipeline = AnalysisPipeline(
-        ingestion_engine=RepositoryIngestionEngine(),
+        ingestion_engine=RepositoryIngestionEngine(auth_token=resolved_token),
         extraction_engine=MetricExtractionEngine(),
         segmentation_engine=WindowSegmentationEngine(),
         detection_engine=DetectorDispatcherEngine(registry),
@@ -234,22 +242,34 @@ def analyze(ctx, repo_path, metrics, detectors, output_dir, formats, window_stra
 # miie ingest
 # ---------------------------------------------------------------------------
 @cli.command()
-@click.argument("repo_path", type=click.Path(exists=True))
+@click.argument("repo_path", type=str)
 @click.option("--shallow", type=int, default=None, help="Shallow clone depth")
+@click.option("--auth-token", default=None, type=str,
+              help="GitHub personal access token for private repos. Falls back to GITHUB_TOKEN env var.")
 @click.pass_context
-def ingest(ctx, repo_path, shallow):
+def ingest(ctx, repo_path, shallow, auth_token):
     """Validate and ingest a repository (checks Git validity)."""
     from .contracts.validators import validate_cli_ingest_inputs, ValidationError
+    from .utils.git import GitURLParser
 
+    # Check if repo_path is a GitHub URL
+    if GitURLParser.is_github_url(repo_path):
+        click.echo(f"[INFO] GitHub URL detected: {repo_path}")
+        click.echo(f"[INFO] Cloning repository...")
+    
     try:
         validate_cli_ingest_inputs(repo_path, shallow=shallow)
     except ValidationError as exc:
         click.echo(f"[INVALID-INPUT] {exc}", err=True)
         sys.exit(3)
 
+    # Resolve auth token: CLI arg > env var
+    import os
+    resolved_token = auth_token or os.environ.get("GITHUB_TOKEN")
+
     from .processing.ingestion import RepositoryIngestionEngine
 
-    engine = RepositoryIngestionEngine()
+    engine = RepositoryIngestionEngine(auth_token=resolved_token)
     try:
         ctx_result = engine.ingest(repo_path=repo_path, shallow_depth=shallow)
         click.echo(f"Ingestion successful.")
@@ -266,15 +286,28 @@ def ingest(ctx, repo_path, shallow):
 # miie detect
 # ---------------------------------------------------------------------------
 @cli.command()
-@click.argument("repo_path", type=click.Path(exists=True))
+@click.argument("repo_path", type=str)
 @click.option("--metrics", "-m", multiple=True, default=["M-02", "M-06"],
-              help="Metric IDs to extract (repeatable).")
+               help="Metric IDs to extract (repeatable).")
 @click.option("--detectors", "-d", multiple=True, default=["D-01", "D-02", "D-03"],
-              help="Detector IDs to enable (repeatable).")
+               help="Detector IDs to enable (repeatable).")
 @click.option("--seed", default=42, type=int, help="Random seed.")
+@click.option("--auth-token", default=None, type=str,
+              help="GitHub personal access token for private repos. Falls back to GITHUB_TOKEN env var.")
 @click.pass_context
-def detect(ctx, repo_path, metrics, detectors, seed):
+def detect(ctx, repo_path, metrics, detectors, seed, auth_token):
     """Run detection on a repository (ingestion + extraction + detection only)."""
+    from .utils.git import GitURLParser
+
+    # Check if repo_path is a GitHub URL
+    if GitURLParser.is_github_url(repo_path):
+        click.echo(f"[INFO] GitHub URL detected: {repo_path}")
+        click.echo(f"[INFO] Cloning repository...")
+
+    # Resolve auth token: CLI arg > env var
+    import os
+    resolved_token = auth_token or os.environ.get("GITHUB_TOKEN")
+
     from .processing.ingestion import RepositoryIngestionEngine
     from .processing.extraction import MetricExtractionEngine
     from .processing.segmentation import WindowSegmentationEngine
@@ -291,7 +324,7 @@ def detect(ctx, repo_path, metrics, detectors, seed):
 
     click.echo(f"Running detection on {repo_path} ...")
     try:
-        ctx_ingested = RepositoryIngestionEngine().ingest(repo_path)
+        ctx_ingested = RepositoryIngestionEngine(auth_token=resolved_token).ingest(repo_path)
         mdf = MetricExtractionEngine().extract(ctx_ingested, list(metrics))
         wins = WindowSegmentationEngine().segment(mdf, strategy="time", size=7)
         results = DetectorDispatcherEngine(registry).invoke(mdf, wins)

@@ -671,13 +671,40 @@ def validate_cli_ingest_inputs(repo_path: str, shallow: Optional[int] = None) ->
 
 
 def validate_cli_analyze_inputs(repo_path: str, since: Optional[str] = None,
-                               until: Optional[str] = None, metrics: Optional[List[str]] = None,
-                               window_strategy: Optional[str] = None, window_size: Optional[int] = None,
-                               output_dir: Optional[Path] = None, detectors: Optional[List[str]] = None,
-                               format: Optional[List[str]] = None, exclude_bots: bool = False) -> None:
+                                until: Optional[str] = None, metrics: Optional[List[str]] = None,
+                                window_strategy: Optional[str] = None, window_size: Optional[int] = None,
+                                output_dir: Optional[Path] = None, detectors: Optional[List[str]] = None,
+                                format: Optional[List[str]] = None, exclude_bots: bool = False) -> None:
     """Validate inputs for miie analyze CLI command."""
-    if not repo_path or not isinstance(repo_path, str):
-        raise ValidationError("repo_path must be a non-empty string")
+    # Check if repo_path is a GitHub URL
+    if repo_path.startswith(('https://github.com/', 'http://github.com/', 'git@github.com:', 'ssh://git@github.com/')):
+        # URL validation: check basic structure
+        from urllib.parse import urlparse
+        parsed = urlparse(repo_path)
+        if parsed.netloc not in ('github.com', 'www.github.com'):
+            raise ValidationError(f"Invalid GitHub URL: {repo_path}. Must be a GitHub repository URL.")
+        
+        path = parsed.path.strip('/')
+        if not path:
+            raise ValidationError(f"Invalid GitHub URL path: {path}")
+        
+        # Remove .git suffix if present
+        if path.endswith('.git'):
+            path = path[:-4]
+        
+        parts = path.split('/')
+        if len(parts) != 2:
+            raise ValidationError(f"Invalid GitHub URL path: {path}. Expected format: owner/repo")
+        
+        owner, repo = parts
+        if not owner or not repo:
+            raise ValidationError(f"Invalid owner or repo in URL: {repo_path}")
+        
+        # URL is valid, continue with other validations
+    else:
+        # Local path validation
+        if not repo_path or not isinstance(repo_path, str):
+            raise ValidationError("repo_path must be a non-empty string")
 
     # Validate time strings
     if since is not None:
