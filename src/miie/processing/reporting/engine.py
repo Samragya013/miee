@@ -149,6 +149,33 @@ class ReportGenerator(IReportGenerator):
             checksums=all_checksums
         )
 
+    def _serialize_for_json(self, obj):
+        """Recursively serialize Python objects to JSON-compatible dicts."""
+        from dataclasses import is_dataclass, fields
+        from datetime import datetime, date
+        from pathlib import Path, PurePath
+
+        if is_dataclass(obj) and not isinstance(obj, type):
+            result = {}
+            for f in fields(obj):
+                val = getattr(obj, f.name)
+                result[f.name] = self._serialize_for_json(val)
+            return result
+        elif isinstance(obj, dict):
+            return {k: self._serialize_for_json(v) for k, v in obj.items()}
+        elif isinstance(obj, (list, tuple)):
+            return [self._serialize_for_json(item) for item in obj]
+        elif isinstance(obj, datetime):
+            return obj.isoformat()
+        elif isinstance(obj, date):
+            return obj.isoformat()
+        elif isinstance(obj, (Path, PurePath)):
+            return str(obj)
+        elif isinstance(obj, (int, float, str, bool, type(None))):
+            return obj
+        else:
+            return str(obj)
+
     def _generate_json_report(self, analysis_result: Dict[str, Any], file_path: Path) -> None:
         """Generate JSON format report."""
         # Add metadata to the analysis result
@@ -163,7 +190,8 @@ class ReportGenerator(IReportGenerator):
 
         # Write JSON file
         with open(file_path, 'w') as f:
-            f.write(json_dumps(report_data, indent=2, default=str))
+            serialized = self._serialize_for_json(report_data)
+            f.write(json_dumps(serialized, indent=2))
 
     def _generate_markdown_report(self, analysis_result: Dict[str, Any], file_path: Path) -> None:
         """Generate Markdown format report."""
@@ -320,7 +348,9 @@ class ReportGenerator(IReportGenerator):
                 if is_json:
                     # For JSON, we need to serialize the content if it's a dict
                     if isinstance(content, dict):
-                        tf.write(json_dumps(content, indent=2, default=str))
+                        # Serialize dataclass objects to dicts before JSON encoding
+                        serialized = self._serialize_for_json(content)
+                        tf.write(json_dumps(serialized, indent=2))
                     else:
                         tf.write(content)
                 else:

@@ -82,16 +82,22 @@ def cli(ctx, config_file, global_output, verbose):
               help="Output format(s). Default: json")
 @click.option("--auth-token", default=None, type=str,
               help="GitHub personal access token for private repos. Falls back to GITHUB_TOKEN env var.")
+@click.option("--forensic", is_flag=True, default=False,
+              help="Include full evidence package in output (advanced users).")
+@click.option("--verbose", "-V", is_flag=True, default=False,
+              help="Show detector IDs and timing details.")
 @click.pass_context
 def analyze(ctx, repo_path, metrics, detectors, output_dir, window_strategy,
-             window_size, since, until, exclude_bots, thresholds, dry_run, seed, formats, auth_token):
+             window_size, since, until, exclude_bots, thresholds, dry_run, seed, formats, auth_token, forensic, verbose):
     """Run the full analysis pipeline on a repository.
 
     Example:
         miie analyze ./my-repo --dry-run
         miie analyze ./my-repo -m M-02 -m M-06 -d D-01 -d D-02
-        miie analyze ./my-repo --thresholds '{\"D-01\": {\"alpha\": 0.05}}'
+        miie analyze ./my-repo --thresholds '{"D-01": {"alpha": 0.05}}'
         miie analyze https://github.com/pallets/flask --dry-run
+        miie analyze ./my-repo --verbose
+        miie analyze ./my-repo --forensic --format json --format md
     """
     from .contracts.validators import validate_cli_analyze_inputs, ValidationError
     from .schemas.serialization import json_dumps
@@ -124,7 +130,8 @@ def analyze(ctx, repo_path, metrics, detectors, output_dir, window_strategy,
         click.echo(f"[INVALID-INPUT] {exc}", err=True)
         sys.exit(3)
 
-    verbose = ctx.obj.get("verbose", False)
+    # Command-level --verbose overrides parent group --verbose
+    verbose = verbose or ctx.obj.get("verbose", False)
 
     # --- Dry-run mode ---
     if dry_run:
@@ -204,7 +211,7 @@ def analyze(ctx, repo_path, metrics, detectors, output_dir, window_strategy,
             resolved_token=resolved_token, metrics=metrics, since=since, until=until,
             exclude_bots=exclude_bots, window_strategy=window_strategy,
             window_size=window_size, detectors=detectors, thresholds=thresholds,
-            formats=formats, output_dir=output_dir, verbose=verbose,
+            formats=formats, output_dir=output_dir, verbose=verbose, forensic=forensic,
             _progress_start=_progress_start, _progress_complete=_progress_complete,
             _progress_action=_progress_action, _timings=_timings,
             total_stages=total_stages, __version__=__version__,
@@ -223,10 +230,28 @@ def analyze(ctx, repo_path, metrics, detectors, output_dir, window_strategy,
         sys.exit(2)
 
 
+def _filter_sensitive_fields(obj):
+    """Remove internal IDs and paths from JSON output for default mode.
+
+    Removes: repo_id, run_id, local_path, temp_path
+    Preserves: all scientific results, scores, detector outputs, explanations
+    """
+    _SENSITIVE_KEYS = {"repo_id", "run_id", "local_path", "temp_path"}
+    if isinstance(obj, dict):
+        keys_to_remove = [k for k in obj if k in _SENSITIVE_KEYS]
+        for k in keys_to_remove:
+            del obj[k]
+        for v in obj.values():
+            _filter_sensitive_fields(v)
+    elif isinstance(obj, list):
+        for item in obj:
+            _filter_sensitive_fields(item)
+
+
 def _run_pipeline(
     repo_path, display_name, is_url, resolved_token, metrics, since, until,
     exclude_bots, window_strategy, window_size, detectors, thresholds,
-    formats, output_dir, verbose,
+    formats, output_dir, verbose, forensic,
     _progress_start, _progress_complete, _progress_action, _timings,
     total_stages, __version__,
 ):
@@ -373,6 +398,15 @@ def _run_pipeline(
         "evidence_package": evidence_package,
         "explanation_report": explanation_report,
     }
+
+    # --- Privacy filtering (default mode hides internal IDs) ---
+    if not forensic:
+        from .schemas.serialization import json_dumps
+        # Serialize, filter, re-parse to remove sensitive fields
+        serialized = report_generator._serialize_for_json(analysis_results)
+        _filter_sensitive_fields(serialized)
+        analysis_results = serialized
+
     report_output = report_generator.generate(
         analysis_result=analysis_results,
         output_formats=list(formats),
@@ -404,78 +438,28 @@ def _run_pipeline(
     recommendations = getattr(explanation_report, "recommendations", []) if explanation_report else []
 
     # ============================================================
-    # FINAL TERMINAL REPORT
+    # FINAL TERMINAL REPORT (3-tier output)
     # ============================================================
-    click.echo("")
-    click.echo("=" * 55)
-    click.echo(f"  MIIE v{__version__}")
-    click.echo("  Measurement Integrity Analysis")
-    click.echo("=" * 55)
-    click.echo("")
-    click.echo(f"  Repository:  {remote_url}")
-    click.echo("")
 
-    # --- Analysis Summary ---
-    click.echo("  Analysis Summary")
-    click.echo("  " + "-" * 40)
-    click.echo(f"  Repository history analyzed successfully.")
-    click.echo(f"  {total_commits} commits from {contributor_count} contributors")
-    if first_commit and last_commit:
-        click.echo(f"  {first_commit.strftime('%Y-%m-%d')} to {last_commit.strftime('%Y-%m-%d')}")
-    click.echo("")
-
-    # --- Integrity Findings ---
-    click.echo("  Integrity Findings")
-    click.echo("  " + "-" * 40)
-
-    # Human-friendly detector descriptions (default mode)
-    _detector_human = {
-        "D-01": ("metric drift", "No significant metric drift detected"),
-        "D-02": ("metric relationships", "Historical metric relationships remain stable"),
-        "D-03": ("target-seeking", "No threshold compression patterns detected"),
-    }
-
-    _detector_triggered_human = {
-        "D-01": ("metric drift", "Significant metric drift detected"),
-        "D-02": ("metric relationships", "Historical metric relationships have shifted"),
-        "D-03": ("target-seeking", "Threshold compression patterns detected"),
-    }
-
-    for det_id in sorted(detector_outputs.keys()):
-        det_data = detector_outputs[det_id]
-        if isinstance(det_data, dict):
-            triggered = det_data.get("drift_detected") or det_data.get("breakdown_detected") or det_data.get("compression_detected", False)
-        else:
-            triggered = False
-
-        if verbose:
-            # Verbose: show detector ID + technical status
-            status = "FAIL" if triggered else "PASS"
-            click.echo(f"  [{det_id}] {status}")
-        else:
-            # Default: human-friendly
-            if triggered:
-                label, msg = _detector_triggered_human.get(det_id, (det_id, "Issue detected"))
-                click.echo(f"  [X]  {msg}")
-            else:
-                label, msg = _detector_human.get(det_id, (det_id, "Check passed"))
-                click.echo(f"  [OK]  {msg}")
-
-    click.echo("")
-
-    # --- Assessment ---
-    click.echo("  Assessment")
-    click.echo("  " + "-" * 40)
-
-    if integrity_overall >= 0.9:
-        integrity_label = "Very High"
-    elif integrity_overall >= 0.7:
-        integrity_label = "High"
-    elif integrity_overall >= 0.5:
-        integrity_label = "Moderate"
+    # --- Risk Classification (Phase 8) ---
+    triggered_count = sum(
+        1 for det_id, det_data in detector_outputs.items()
+        if isinstance(det_data, dict) and (
+            det_data.get("drift_detected") or
+            det_data.get("breakdown_detected") or
+            det_data.get("compression_detected", False)
+        )
+    )
+    if triggered_count == 0:
+        risk_level = "Very Low"
+    elif triggered_count == 1:
+        risk_level = "Low"
+    elif triggered_count == 2:
+        risk_level = "Moderate"
     else:
-        integrity_label = "Low"
+        risk_level = "High"
 
+    # --- Confidence Label ---
     if confidence_overall >= 0.9:
         confidence_label = "Very High"
     elif confidence_overall >= 0.7:
@@ -485,53 +469,197 @@ def _run_pipeline(
     else:
         confidence_label = "Low"
 
-    click.echo(f"  Metric Integrity:  {integrity_label}")
-    click.echo(f"  Confidence:        {confidence_label}")
-    click.echo("")
-
-    # --- Interpretation ---
-    click.echo("  Interpretation")
-    click.echo("  " + "-" * 40)
+    # --- Integrity Label ---
     if integrity_overall >= 0.9:
-        interpretation = (
-            "This repository shows strong measurement integrity across the analyzed time period. "
-            "The metrics used for evaluation (commit frequency, contributor activity) behave consistently "
-            "with natural development patterns. No evidence of metric manipulation was detected."
-        )
+        integrity_label = "Very High"
     elif integrity_overall >= 0.7:
-        interpretation = (
-            "This repository shows generally stable measurement integrity with minor anomalies. "
-            "Some metrics may show unusual patterns, but these are within expected variation ranges. "
-            "No action required unless trends continue."
+        integrity_label = "High"
+    elif integrity_overall >= 0.5:
+        integrity_label = "Moderate"
+    else:
+        integrity_label = "Low"
+
+    # --- Confidence Explanation (Phase 7) ---
+    confidence_factors = {}
+    if isinstance(confidence, dict):
+        confidence_factors = confidence.get("factors", {})
+    elif hasattr(confidence, 'factors'):
+        confidence_factors = confidence.factors if isinstance(confidence.factors, dict) else {}
+
+    sample_size_f = confidence_factors.get("sample_size", 1.0)
+    variance_f = confidence_factors.get("variance", 1.0)
+    missing_data_f = confidence_factors.get("missing_data", 1.0)
+    window_balance_f = confidence_factors.get("window_balance", 1.0)
+    detector_success_f = confidence_factors.get("detector_success", 1.0)
+
+    confidence_reasons = []
+    if sample_size_f < 0.5:
+        confidence_reasons.append(
+            f"Only {len(windows)} analysis window(s) could be constructed "
+            f"(sample factor: {sample_size_f:.2f})"
+        )
+    if variance_f < 0.8:
+        confidence_reasons.append("High variance in metric values across windows")
+    if missing_data_f < 0.8:
+        confidence_reasons.append("Some metric-window data pairs are missing")
+    if window_balance_f < 0.8:
+        confidence_reasons.append("Analysis windows are unevenly sized")
+    if detector_success_f < 0.8:
+        confidence_reasons.append("Some detectors failed to produce results")
+
+    if not confidence_reasons:
+        if confidence_overall >= 0.9:
+            confidence_reasons.append("Sufficient data and detector coverage for high confidence")
+        elif confidence_overall >= 0.5:
+            confidence_reasons.append("Adequate data, though more analysis windows would improve confidence")
+        else:
+            confidence_reasons.append("Limited analysis windows reduce confidence in results")
+
+    # --- One-Sentence Summary (Phase 9) ---
+    if triggered_count == 0 and integrity_overall >= 0.9:
+        summary_sentence = (
+            "No evidence was found that repository metrics have become "
+            "distorted, unstable, or misleading."
+        )
+    elif triggered_count == 0 and integrity_overall >= 0.7:
+        summary_sentence = (
+            "Repository metrics appear generally stable with minor variations "
+            "that are within expected ranges."
+        )
+    elif triggered_count == 1:
+        summary_sentence = (
+            "One metric anomaly was detected, but overall measurement "
+            "integrity remains acceptable."
         )
     else:
-        interpretation = (
-            "This repository shows significant anomalies in metric patterns. "
-            "The detected patterns suggest potential metric manipulation or unusual development activity. "
-            "Manual investigation is recommended."
+        summary_sentence = (
+            "Multiple metric anomalies were detected. Manual investigation "
+            "of repository measurement integrity is recommended."
         )
-    click.echo(f"  {interpretation}")
+
+    # --- Banner ---
+    click.echo("")
+    click.echo("=" * 55)
+    click.echo(f"  MIIE v{__version__}")
+    click.echo("  Measurement Integrity Analysis")
+    click.echo("=" * 55)
+    click.echo("")
+    click.echo(f"  Repository:  {remote_url}")
+    click.echo("")
+
+    # --- Analysis Coverage (Phase 3) ---
+    click.echo("  Analysis Coverage")
+    click.echo("  " + "-" * 40)
+    click.echo(f"  {total_commits} commits from {contributor_count} contributors")
+    if first_commit and last_commit:
+        click.echo(f"  {first_commit.strftime('%Y-%m-%d')} to {last_commit.strftime('%Y-%m-%d')}")
+    click.echo(f"  {len(windows)} analysis window(s) ({window_strategy}, size={window_size})")
+    click.echo(f"  {len(detectors)} detector(s) executed")
+    click.echo("")
+
+    # --- Integrity Findings ---
+    click.echo("  Integrity Findings")
+    click.echo("  " + "-" * 40)
+
+    _detector_human = {
+        "D-01": "No significant metric drift detected",
+        "D-02": "Historical metric relationships remain stable",
+        "D-03": "No threshold compression patterns detected",
+    }
+    _detector_triggered_human = {
+        "D-01": "Significant metric drift detected",
+        "D-02": "Historical metric relationships have shifted",
+        "D-03": "Threshold compression patterns detected",
+    }
+
+    for det_id in sorted(detector_outputs.keys()):
+        det_data = detector_outputs[det_id]
+        if isinstance(det_data, dict):
+            triggered = det_data.get("drift_detected") or det_data.get("breakdown_detected") or det_data.get("compression_detected", False)
+        else:
+            triggered = False
+
+        if verbose or forensic:
+            status = "FAIL" if triggered else "PASS"
+            click.echo(f"  [{det_id}] {status}")
+        else:
+            if triggered:
+                click.echo(f"  [X]  {_detector_triggered_human.get(det_id, 'Issue detected')}")
+            else:
+                click.echo(f"  [OK]  {_detector_human.get(det_id, 'Check passed')}")
+
+    click.echo("")
+
+    # --- Confidence Explanation (Phase 7) ---
+    click.echo("  Confidence")
+    click.echo("  " + "-" * 40)
+    click.echo(f"  Level:  {confidence_label}")
+    click.echo(f"  Reason: {'; '.join(confidence_reasons)}")
+    click.echo("")
+
+    # --- Risk Assessment (Phase 8) ---
+    click.echo("  Risk Assessment")
+    click.echo("  " + "-" * 40)
+    click.echo(f"  Risk Level:  {risk_level}")
+    if triggered_count > 0:
+        click.echo(f"  Findings:    {triggered_count} anomaly(ies) detected")
+    else:
+        click.echo(f"  Findings:    No anomalies detected")
+    click.echo("")
+
+    # --- Overall Verdict ---
+    click.echo("  Overall Verdict")
+    click.echo("  " + "-" * 40)
+    click.echo(f"  Metric Integrity:  {integrity_label}")
+    click.echo(f"  Confidence:        {confidence_label}")
+    click.echo(f"  Risk:              {risk_level}")
+    click.echo("")
+
+    # --- One-Sentence Summary (Phase 9) ---
+    click.echo("  Summary")
+    click.echo("  " + "-" * 40)
+    click.echo(f"  {summary_sentence}")
     click.echo("")
 
     # --- Recommended Action ---
     click.echo("  Recommended Action")
     click.echo("  " + "-" * 40)
-    if integrity_overall >= 0.9:
-        action = "No action required. Repository metrics appear authentic."
-    elif integrity_overall >= 0.7:
-        action = "Monitor trends. Consider reviewing flagged metrics for context."
+    if triggered_count == 0 and integrity_overall >= 0.9:
+        action = "No action required. Repository metrics appear trustworthy."
+    elif triggered_count == 0:
+        action = "No immediate action. Consider analyzing a longer time range for higher confidence."
+    elif triggered_count == 1:
+        action = "Review the flagged metric for context. Monitor for continued anomalies."
     else:
-        action = "Investigate flagged metrics. Review contributor activity patterns."
+        action = "Investigate flagged metrics. Review contributor activity and development patterns."
     click.echo(f"  {action}")
     click.echo("")
 
     # --- Timing (verbose only) ---
-    if verbose:
+    if verbose or forensic:
         click.echo("  Stage Timing")
         click.echo("  " + "-" * 40)
         for label, elapsed in _timings.items():
             click.echo(f"    {label}: {elapsed:.2f}s")
         click.echo(f"    Total: {t_total_elapsed:.2f}s")
+        click.echo("")
+
+    # --- Forensic details (forensic only) ---
+    if forensic:
+        click.echo("  Forensic Details")
+        click.echo("  " + "-" * 40)
+        click.echo(f"  Window Count:    {len(windows)}")
+        for w in windows:
+            wid = getattr(w, 'window_id', '?')
+            sd = getattr(w, 'start_date', '?')
+            ed = getattr(w, 'end_date', '?')
+            clicks_count = getattr(w, 'commits', '?')
+            click.echo(f"    {wid}: {sd} to {ed} ({clicks_count} commits)")
+        click.echo(f"  Metrics:         {', '.join(metrics)}")
+        click.echo(f"  Detectors:       {', '.join(detectors)}")
+        click.echo(f"  Window Strategy: {window_strategy}")
+        click.echo(f"  Window Size:     {window_size}")
+        click.echo(f"  Seed:            42")
         click.echo("")
 
     # --- Reports ---

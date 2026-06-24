@@ -93,8 +93,9 @@ class TestHumanFriendlyOutput:
     def test_interpretation_present(self, runner, repo_with_commits):
         result = runner.invoke(cli, ["analyze", str(repo_with_commits), "--format", "json"])
         output = result.output
-        assert "Interpretation" in output
-        assert "natural development patterns" in output or "anomalies" in output
+        # Phase 8: "Interpretation" replaced with "Summary" + "Confidence" + "Risk Assessment"
+        assert "Summary" in output
+        assert "metric" in output.lower() or "anomal" in output.lower()
 
     def test_recommended_action_present(self, runner, repo_with_commits):
         result = runner.invoke(cli, ["analyze", str(repo_with_commits), "--format", "json"])
@@ -137,8 +138,9 @@ class TestReportStructure:
     def test_analysis_summary_section(self, runner, repo_with_commits):
         result = runner.invoke(cli, ["analyze", str(repo_with_commits), "--format", "json"])
         output = result.output
-        assert "Analysis Summary" in output
-        assert "Repository history analyzed successfully" in output
+        # Phase 8: "Analysis Summary" replaced with "Analysis Coverage" + "Summary"
+        assert "Analysis Coverage" in output
+        assert "commits" in output.lower()
 
     def test_integrity_findings_section(self, runner, repo_with_commits):
         result = runner.invoke(cli, ["analyze", str(repo_with_commits), "--format", "json"])
