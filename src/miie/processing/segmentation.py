@@ -19,6 +19,7 @@ class WindowSegmentationEngine:
         strategy: str,
         size: int,
         custom_boundaries: Optional[List[Tuple[datetime, datetime]]] = None,
+        repository_context=None,
     ) -> List[WindowDefinition]:
         """Segment metric data into analysis windows.
 
@@ -27,6 +28,7 @@ class WindowSegmentationEngine:
             strategy: Segmentation strategy ("time", "commit", "release", "custom")
             size: Window size (number of time units, commits, or releases)
             custom_boundaries: Custom window boundaries for "custom" strategy
+            repository_context: Repository context with first/last commit dates (optional)
 
         Returns:
             List[WindowDefinition]: List of window definitions
@@ -114,22 +116,59 @@ class WindowSegmentationEngine:
                 )
             )
         elif strategy == "commit":
-            # For commit strategy, we don't have commit dates, so we use a fixed date range
-            # We'll use one day window for simplicity, but we can adjust if needed.
-            # We use the run date as the start and the next day as the end to ensure start_date < end_date.
-            start_date = run_date
-            end_date = start_date + timedelta(days=1)
-            window_id = "w00"
-            windows.append(
-                WindowDefinition(
-                    window_id=window_id,
-                    start_date=start_date,
-                    end_date=end_date,
-                    commits=total_commits,
-                    strategy=strategy,
-                    size_config={"size": size},
+            # For commit strategy, divide the date range proportionally by commit count.
+            # Each window covers 'size' commits worth of time.
+            first_date = None
+            last_date = None
+
+            # Get first/last commit dates from repository_context if available
+            if repository_context is not None:
+                if hasattr(repository_context, 'first_commit_date') and repository_context.first_commit_date:
+                    first_date = repository_context.first_commit_date
+                if hasattr(repository_context, 'last_commit_date') and repository_context.last_commit_date:
+                    last_date = repository_context.last_commit_date
+
+            if first_date and last_date and total_commits > 0 and size > 0:
+                # Calculate how many days per window based on commit density
+                total_days = max(1, (last_date - first_date).days)
+                commits_per_day = total_commits / total_days
+                days_per_window = max(1, int(size / commits_per_day)) if commits_per_day > 0 else total_days
+
+                window_start = first_date
+                window_idx = 0
+                while window_start < last_date:
+                    window_end = min(window_start + timedelta(days=days_per_window), last_date)
+                    # Skip degenerate windows where start == end
+                    if window_start.date() >= window_end.date():
+                        break
+                    # Estimate commits in this window based on proportional time span
+                    window_fraction = (window_end - window_start).days / total_days
+                    window_commits = max(1, int(total_commits * window_fraction))
+                    window_id = f"w{window_idx:02d}"
+                    windows.append(
+                        WindowDefinition(
+                            window_id=window_id,
+                            start_date=window_start.date(),
+                            end_date=window_end.date(),
+                            commits=window_commits,
+                            strategy=strategy,
+                            size_config={"size": size},
+                        )
+                    )
+                    window_start = window_end
+                    window_idx += 1
+            else:
+                # Fallback: single window with all commits
+                windows.append(
+                    WindowDefinition(
+                        window_id="w00",
+                        start_date=run_date,
+                        end_date=run_date + timedelta(days=1),
+                        commits=total_commits,
+                        strategy=strategy,
+                        size_config={"size": size},
+                    )
                 )
-            )
         else:
             # For release strategy (and any other), we fall back to a single window with a one-day range
             start_date = run_date

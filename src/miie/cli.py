@@ -325,6 +325,7 @@ def _run_pipeline(
         metric_dataframe=metric_dataframe,
         strategy=window_strategy,
         size=window_size,
+        repository_context=repository_context,
     )
     window_count = len(windows)
     _progress_action(f"{window_count} windows ({window_strategy}, size={window_size})")
