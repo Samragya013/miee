@@ -345,6 +345,18 @@ def _run_pipeline(
             click.echo(f"[X] {error_msg}", err=True)
         raise SystemExit(3)
 
+    # Step 4b: Re-extract per-window data for accurate confidence calculation
+    # The initial extraction produces aggregated data; we need per-window values
+    # for the confidence sample_size factor (f₁ = min(1, mean_n/50))
+    metric_dataframe = extraction.extract(
+        context=repository_context,
+        metric_list=list(metrics),
+        since=since_dt,
+        until=until_dt,
+        exclude_bots=exclude_bots,
+        windows=windows,
+    )
+
     # --- Stage 5: Detector Execution ---
     _progress_start(5, "Detector Execution")
     t5 = time.perf_counter()

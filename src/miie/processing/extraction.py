@@ -63,7 +63,8 @@ class MetricExtractionEngine(IExtractionEngine):
         metric_list: List[str],
         since: Optional[datetime.datetime] = None,
         until: Optional[datetime.datetime] = None,
-        exclude_bots: bool = False
+        exclude_bots: bool = False,
+        windows: Optional[List[Any]] = None
     ) -> MetricDataFrame:
         """
         Extract metrics from repository.
@@ -74,6 +75,7 @@ class MetricExtractionEngine(IExtractionEngine):
             since: Extract metrics since this timestamp (inclusive)
             until: Extract metrics until this timestamp (inclusive)
             exclude_bots: Whether to exclude bot-generated commits
+            windows: Optional list of WindowDefinition objects for per-window extraction
 
         Returns:
             MetricDataFrame: Container for extracted metrics
@@ -96,9 +98,14 @@ class MetricExtractionEngine(IExtractionEngine):
             if metric_id == "M-01":
                 metrics[metric_id] = self._extract_code_coverage(context)
             elif metric_id == "M-02":
-                metrics[metric_id] = self._extract_commit_frequency(
-                    context, since, until, exclude_bots
-                )
+                if windows:
+                    metrics[metric_id] = self._extract_commit_frequency_windowed(
+                        context, windows, exclude_bots
+                    )
+                else:
+                    metrics[metric_id] = self._extract_commit_frequency(
+                        context, since, until, exclude_bots
+                    )
             elif metric_id == "M-03":
                 metrics[metric_id] = self._extract_review_participation()
             elif metric_id == "M-04":
@@ -106,9 +113,14 @@ class MetricExtractionEngine(IExtractionEngine):
             elif metric_id == "M-05":
                 metrics[metric_id] = self._extract_issue_resolution_time()
             elif metric_id == "M-06":
-                metrics[metric_id] = self._extract_code_churn(
-                    context, since, until, exclude_bots
-                )
+                if windows:
+                    metrics[metric_id] = self._extract_code_churn_windowed(
+                        context, windows, exclude_bots
+                    )
+                else:
+                    metrics[metric_id] = self._extract_code_churn(
+                        context, since, until, exclude_bots
+                    )
             elif metric_id == "M-07":
                 metrics[metric_id] = self._extract_cyclomatic_complexity(context)
             else:
@@ -152,6 +164,144 @@ class MetricExtractionEngine(IExtractionEngine):
 
         except Exception as e:
             # Per missing data policy, unavailable metrics return None, not zero or fake values
+            return None
+
+    def _extract_commit_frequency_windowed(
+        self,
+        context: RepositoryContext,
+        windows: List[Any],
+        exclude_bots: bool
+    ) -> Optional[dict]:
+        """
+        Extract Commit Frequency (M-02) per window from Git history.
+
+        Uses a single git log call to get all commits, then bins them by window.
+        Much faster than calling git per window.
+
+        Args:
+            context: Repository context
+            windows: List of WindowDefinition objects with window_id, start_date, end_date
+            exclude_bots: Whether to exclude bot-generated commits
+
+        Returns:
+            Dict mapping window IDs to lists of commit counts, or None if unavailable
+        """
+        try:
+            # Single git log call to get all commit dates
+            cmd = ['git', 'log', '--format=%aI', '--no-merges']
+            result = subprocess.run(
+                cmd,
+                cwd=context.local_path,
+                capture_output=True,
+                text=True,
+                encoding='utf-8',
+                errors='replace',
+                check=True
+            )
+
+            # Parse commit dates
+            commit_dates = []
+            for line in result.stdout.strip().split('\n'):
+                if line.strip():
+                    try:
+                        # Parse ISO format date
+                        dt = datetime.datetime.fromisoformat(line.strip())
+                        commit_dates.append(dt.date())
+                    except ValueError:
+                        continue
+
+            # Bin commits into windows
+            result_dict = {}
+            for window in windows:
+                window_id = window.window_id
+                count = 0
+                for cd in commit_dates:
+                    if window.start_date <= cd < window.end_date:
+                        count += 1
+                result_dict[window_id] = [float(count)]
+
+            return result_dict
+        except Exception:
+            return None
+
+    def _extract_code_churn_windowed(
+        self,
+        context: RepositoryContext,
+        windows: List[Any],
+        exclude_bots: bool
+    ) -> Optional[dict]:
+        """
+        Extract Code Churn (M-06) per window from Git history.
+
+        Uses a single git log call to get all commits with stats, then bins by window.
+        Much faster than calling git per window.
+
+        Args:
+            context: Repository context
+            windows: List of WindowDefinition objects with window_id, start_date, end_date
+            exclude_bots: Whether to exclude bot-generated commits
+
+        Returns:
+            Dict mapping window IDs to lists of churn values, or None if unavailable
+        """
+        try:
+            # Single git log call to get all commit dates and stats
+            cmd = ['git', 'log', '--format=%aI', '--shortstat', '--no-merges']
+            result = subprocess.run(
+                cmd,
+                cwd=context.local_path,
+                capture_output=True,
+                text=True,
+                encoding='utf-8',
+                errors='replace',
+                check=True
+            )
+
+            # Parse commit dates and churn values
+            commits = []
+            lines = result.stdout.strip().split('\n')
+            i = 0
+            while i < len(lines):
+                line = lines[i].strip()
+                if line and 'insertion' in line.lower() or 'deletion' in line.lower():
+                    # This is a stats line, parse it
+                    insertions = 0
+                    deletions = 0
+                    parts = line.split(',')
+                    for part in parts:
+                        part = part.strip()
+                        if 'insertion' in part:
+                            try:
+                                insertions = int(part.split()[0])
+                            except (ValueError, IndexError):
+                                pass
+                        elif 'deletion' in part:
+                            try:
+                                deletions = int(part.split()[0])
+                            except (ValueError, IndexError):
+                                pass
+                    # Get the date from the previous line
+                    if i > 0:
+                        date_str = lines[i-1].strip()
+                        if date_str:
+                            try:
+                                dt = datetime.datetime.fromisoformat(date_str)
+                                commits.append((dt.date(), float(insertions + deletions)))
+                            except ValueError:
+                                pass
+                i += 1
+
+            # Bin churn values into windows
+            result_dict = {}
+            for window in windows:
+                window_id = window.window_id
+                churn_values = [churn for cd, churn in commits
+                               if window.start_date <= cd < window.end_date]
+                total_churn = sum(churn_values) if churn_values else 0.0
+                result_dict[window_id] = [total_churn]
+
+            return result_dict
+        except Exception:
             return None
 
     def _extract_code_churn(

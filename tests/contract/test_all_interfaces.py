@@ -203,7 +203,7 @@ class TestMockImplementations:
 
     def test_extraction_engine(self):
         class Impl:
-            def extract(self, context, metric_list, since=None, until=None, exclude_bots=False):
+            def extract(self, context, metric_list, since=None, until=None, exclude_bots=False, windows=None):
                 pass
         assert isinstance(Impl(), IExtractionEngine)
 

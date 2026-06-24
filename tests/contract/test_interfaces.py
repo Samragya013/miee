@@ -163,7 +163,7 @@ def test_can_create_mock_implementations():
 
     # Test IExtractionEngine
     class MockExtractionEngine:
-        def extract(self, context, metric_list, since=None, until=None, exclude_bots=False):
+        def extract(self, context, metric_list, since=None, until=None, exclude_bots=False, windows=None):
             pass
 
     # Test ISegmentationEngine

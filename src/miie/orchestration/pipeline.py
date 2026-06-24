@@ -159,6 +159,18 @@ class AnalysisPipeline:
                 "exit_code": 3
             }
 
+        # Step 3b: Re-extract per-window data for accurate confidence calculation
+        # The initial extraction produces aggregated data; we need per-window values
+        # for the confidence sample_size factor (f₁ = min(1, mean_n/50))
+        metric_dataframe = self.extraction_engine.extract(
+            context=repository_context,
+            metric_list=metric_list,
+            since=since,
+            until=until,
+            exclude_bots=exclude_bots,
+            windows=windows
+        )
+
         # Step 4: Detection
         detector_results = self.detection_engine.invoke(
             metric_dataframe=metric_dataframe,

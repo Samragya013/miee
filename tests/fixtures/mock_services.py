@@ -79,7 +79,8 @@ class MockExtractionEngine(IExtractionEngine):
         metric_list: List[str],
         since: Optional[datetime] = None,
         until: Optional[datetime] = None,
-        exclude_bots: bool = False
+        exclude_bots: bool = False,
+        windows=None
     ) -> MetricDataFrame:
         self.extract_called = True
 
