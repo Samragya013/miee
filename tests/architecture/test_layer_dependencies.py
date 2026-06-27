@@ -1,8 +1,8 @@
 """Tests for validating MIIE architectural layer dependencies."""
 
 import ast
-import os
 from pathlib import Path
+
 import pytest
 
 # Root directory of the project
@@ -14,27 +14,99 @@ ALLOWED_DEPENDENCIES = {
     "interface": {"orchestration", "common"},
     "orchestration": {"processing", "storage", "common"},
     "processing": {"storage", "detection", "schemas", "contracts", "common"},
-    "benchmark": {"processing", "storage", "detection", "schemas", "contracts", "common"},
+    "benchmark": {
+        "processing",
+        "storage",
+        "detection",
+        "schemas",
+        "contracts",
+        "common",
+    },
     "storage": {"common"},
     "detection": {"schemas", "contracts", "common"},
     "contracts": {"schemas", "common"},
     "schemas": {"common"},
     "reporting": {"schemas", "contracts", "common"},
-    "common": set()  # Common should have no dependencies
+    "common": set(),  # Common should have no dependencies
 }
 
 FORBIDDEN_DEPENDENCIES = {
-    "interface": {"interface", "processing", "benchmark", "storage", "detection", "contracts", "schemas", "reporting"},
+    "interface": {
+        "interface",
+        "processing",
+        "benchmark",
+        "storage",
+        "detection",
+        "contracts",
+        "schemas",
+        "reporting",
+    },
     "orchestration": {"interface", "orchestration", "interface"},
     "processing": {"interface", "orchestration", "processing", "benchmark"},
     "benchmark": {"interface", "orchestration", "benchmark"},
-    "storage": {"interface", "orchestration", "processing", "benchmark", "storage", "detection", "contracts", "schemas", "reporting"},
-    "detection": {"interface", "orchestration", "processing", "benchmark", "storage", "detection"},
-    "contracts": {"interface", "orchestration", "processing", "benchmark", "storage", "detection", "contracts", "reporting"},
-    "schemas": {"interface", "orchestration", "processing", "benchmark", "storage", "detection", "contracts", "schemas", "reporting"},
-    "reporting": {"interface", "orchestration", "processing", "benchmark", "storage", "detection", "reporting"},
-    "common": {"interface", "orchestration", "processing", "benchmark", "storage", "detection", "contracts", "schemas", "reporting", "common"}
+    "storage": {
+        "interface",
+        "orchestration",
+        "processing",
+        "benchmark",
+        "storage",
+        "detection",
+        "contracts",
+        "schemas",
+        "reporting",
+    },
+    "detection": {
+        "interface",
+        "orchestration",
+        "processing",
+        "benchmark",
+        "storage",
+        "detection",
+    },
+    "contracts": {
+        "interface",
+        "orchestration",
+        "processing",
+        "benchmark",
+        "storage",
+        "detection",
+        "contracts",
+        "reporting",
+    },
+    "schemas": {
+        "interface",
+        "orchestration",
+        "processing",
+        "benchmark",
+        "storage",
+        "detection",
+        "contracts",
+        "schemas",
+        "reporting",
+    },
+    "reporting": {
+        "interface",
+        "orchestration",
+        "processing",
+        "benchmark",
+        "storage",
+        "detection",
+        "reporting",
+    },
+    "common": {
+        "interface",
+        "orchestration",
+        "processing",
+        "benchmark",
+        "storage",
+        "detection",
+        "contracts",
+        "schemas",
+        "reporting",
+        "common",
+    },
 }
+
 
 def get_imports_from_file(file_path):
     """Extract all module imports from a Python file."""
@@ -48,14 +120,15 @@ def get_imports_from_file(file_path):
         if isinstance(node, ast.Import):
             for alias in node.names:
                 # Get top-level package name
-                top_level = alias.name.split('.')[0]
+                top_level = alias.name.split(".")[0]
                 imports.add(top_level)
         elif isinstance(node, ast.ImportFrom):
             if node.module:  # None for relative imports like `from . import x`
                 # Get top-level package name
-                top_level = node.module.split('.')[0]
+                top_level = node.module.split(".")[0]
                 imports.add(top_level)
     return imports
+
 
 def get_package_for_module(module_path):
     """Determine which package a module belongs to based on its path."""
@@ -71,6 +144,7 @@ def get_package_for_module(module_path):
     except ValueError:
         # Path is not under SRC_DIR
         return None
+
 
 def test_layer_dependencies():
     """Test that modules only import from allowed layers."""
@@ -94,7 +168,40 @@ def test_layer_dependencies():
         # Check each import against allowed dependencies
         for imported_module in imports:
             # Skip standard library and external imports
-            if imported_module in {"os", "sys", "json", "csv", "click", "yaml", "numpy", "pandas", "scipy", "jinja2", "pathlib", "typing", "dataclasses", "abc", "enum", "random", "math", "statistics", "datetime", "re", "collections", "itertools", "functools", "hashlib", "hmac", "subprocess", "textwrap", "uuid", "shutil", "tempfile", "glob", "fnmatch"}:
+            if imported_module in {
+                "os",
+                "sys",
+                "json",
+                "csv",
+                "click",
+                "yaml",
+                "numpy",
+                "pandas",
+                "scipy",
+                "jinja2",
+                "pathlib",
+                "typing",
+                "dataclasses",
+                "abc",
+                "enum",
+                "random",
+                "math",
+                "statistics",
+                "datetime",
+                "re",
+                "collections",
+                "itertools",
+                "functools",
+                "hashlib",
+                "hmac",
+                "subprocess",
+                "textwrap",
+                "uuid",
+                "shutil",
+                "tempfile",
+                "glob",
+                "fnmatch",
+            }:
                 continue
 
             # Check if it's one of our expected packages
@@ -107,6 +214,7 @@ def test_layer_dependencies():
                     )
 
     assert not violations, f"Dependency violations found:\n" + "\n".join(violations)
+
 
 def test_no_circular_imports():
     """Test that there are no circular dependencies between packages."""
@@ -174,6 +282,7 @@ def test_no_circular_imports():
                 cycles.append(" -> ".join(reversed(cycle_path)))
 
     assert not cycles, f"Circular dependencies found:\n" + "\n".join(cycles)
+
 
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])

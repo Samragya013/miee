@@ -2,22 +2,25 @@
 
 Implements the IReportGenerator interface for generating analysis reports in various formats.
 """
-from typing import Dict, Any, List, Optional
-from pathlib import Path
+
+import hashlib
 import json
 import os
-import hashlib
 import tempfile
-import sys
 from datetime import datetime, timezone
+from pathlib import Path
+from typing import Any, Dict, List, Optional
+
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 
-from miie.schemas.models import ReportOutput
 from miie.contracts.interfaces import IReportGenerator
+from miie.schemas.models import ReportOutput
 from miie.schemas.serialization import json_dumps
 from miie.utils.hashing import (
-    compute_config_hash, compute_file_hash, compute_dependency_hash,
-    get_git_commit, get_platform_info, get_python_version,
+    compute_dependency_hash,
+    get_git_commit,
+    get_platform_info,
+    get_python_version,
 )
 
 
@@ -30,14 +33,19 @@ class ReportGenerator(IReportGenerator):
         template_dir = Path(__file__).parent.parent.parent / "reporting" / "templates"
         self.jinja_env = Environment(
             loader=FileSystemLoader(template_dir),
-            autoescape=select_autoescape(['html', 'xml']),
+            autoescape=select_autoescape(["html", "xml"]),
             trim_blocks=True,
-            lstrip_blocks=True
+            lstrip_blocks=True,
         )
 
-    def generate(self, analysis_result: Dict[str, Any],
-                 output_formats: List[str], output_dir: Path,
-                 config_hash: str = "unknown", seed: int = 42) -> ReportOutput:
+    def generate(
+        self,
+        analysis_result: Dict[str, Any],
+        output_formats: List[str],
+        output_dir: Path,
+        config_hash: str = "unknown",
+        seed: int = 42,
+    ) -> ReportOutput:
         """Generate analysis report in specified formats per ACS INT-08.
 
         Args:
@@ -73,9 +81,9 @@ class ReportGenerator(IReportGenerator):
                     "metadata": {
                         "generated_at": datetime.now().isoformat(),
                         "report_version": "1.0.0",
-                        "generator": "MIIE Report Generator"
+                        "generator": "MIIE Report Generator",
                     },
-                    "analysis_result": analysis_result
+                    "analysis_result": analysis_result,
                 }
                 self._atomic_write(file_path, report_data, is_json=True)
                 report_paths["json"] = file_path
@@ -89,6 +97,7 @@ class ReportGenerator(IReportGenerator):
                 # Generate CSV content
                 import csv
                 import io
+
                 output = io.StringIO()
                 writer = csv.writer(output)
                 writer.writerow(["Metric", "Value"])
@@ -100,6 +109,7 @@ class ReportGenerator(IReportGenerator):
                 file_path = output_dir / f"analysis_report_{timestamp}.txt"
                 # Generate text content
                 import io
+
                 output = io.StringIO()
                 output.write("MIIE Analysis Report\n")
                 output.write("=" * 50 + "\n")
@@ -117,9 +127,9 @@ class ReportGenerator(IReportGenerator):
                     "metadata": {
                         "generated_at": datetime.now().isoformat(),
                         "report_version": "1.0.0",
-                        "generator": "MIIE Report Generator"
+                        "generator": "MIIE Report Generator",
                     },
-                    "analysis_result": analysis_result
+                    "analysis_result": analysis_result,
                 }
                 self._atomic_write(file_path, report_data, is_json=True)
                 report_paths[fmt] = file_path
@@ -132,8 +142,13 @@ class ReportGenerator(IReportGenerator):
 
         # Generate manifest.json LAST (per ACS INT-08 validation rule #5)
         manifest_path = output_dir / "manifest.json"
-        self._generate_manifest(report_paths, manifest_path, config_hash=config_hash,
-                                seed=seed, artifact_checksums=artifact_checksums)
+        self._generate_manifest(
+            report_paths,
+            manifest_path,
+            config_hash=config_hash,
+            seed=seed,
+            artifact_checksums=artifact_checksums,
+        )
 
         # Calculate checksums for manifest itself
         manifest_checksum = self._calculate_file_checksum(manifest_path) if manifest_path.exists() else ""
@@ -146,13 +161,13 @@ class ReportGenerator(IReportGenerator):
         return ReportOutput(
             report_paths=report_paths,
             manifest_path=manifest_path,
-            checksums=all_checksums
+            checksums=all_checksums,
         )
 
     def _serialize_for_json(self, obj):
         """Recursively serialize Python objects to JSON-compatible dicts."""
-        from dataclasses import is_dataclass, fields
-        from datetime import datetime, date
+        from dataclasses import fields, is_dataclass
+        from datetime import date, datetime
         from pathlib import Path, PurePath
 
         if is_dataclass(obj) and not isinstance(obj, type):
@@ -183,19 +198,19 @@ class ReportGenerator(IReportGenerator):
             "metadata": {
                 "generated_at": datetime.now().isoformat(),
                 "report_version": "1.0.0",
-                "generator": "MIIE Report Generator"
+                "generator": "MIIE Report Generator",
             },
-            "analysis_result": analysis_result
+            "analysis_result": analysis_result,
         }
 
         # Write JSON file
-        with open(file_path, 'w') as f:
+        with open(file_path, "w") as f:
             serialized = self._serialize_for_json(report_data)
             f.write(json_dumps(serialized, indent=2))
 
     def _generate_markdown_report(self, analysis_result: Dict[str, Any], file_path: Path) -> None:
         """Generate Markdown format report."""
-        with open(file_path, 'w') as f:
+        with open(file_path, "w") as f:
             f.write(f"# MIIE Analysis Report\n\n")
             f.write(f"**Generated at:** {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n\n")
 
@@ -207,14 +222,14 @@ class ReportGenerator(IReportGenerator):
         """Generate CSV format report (simplified)."""
         import csv
 
-        with open(file_path, 'w', newline='') as f:
+        with open(file_path, "w", newline="") as f:
             writer = csv.writer(f)
             writer.writerow(["Metric", "Value"])
             self._flatten_dict_to_csv(writer, analysis_result)
 
     def _generate_text_report(self, analysis_result: Dict[str, Any], file_path: Path) -> None:
         """Generate plain text format report."""
-        with open(file_path, 'w') as f:
+        with open(file_path, "w") as f:
             f.write("MIIE Analysis Report\n")
             f.write("=" * 50 + "\n")
             f.write(f"Generated at: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n\n")
@@ -288,8 +303,12 @@ class ReportGenerator(IReportGenerator):
                 hash_sha256.update(chunk)
         return hash_sha256.hexdigest()
 
-    def _validate_acs_int_08(self, analysis_result: Dict[str, Any],
-                           output_formats: List[str], output_dir: Path) -> None:
+    def _validate_acs_int_08(
+        self,
+        analysis_result: Dict[str, Any],
+        output_formats: List[str],
+        output_dir: Path,
+    ) -> None:
         """Validate ACS INT-08 requirements for report generation.
 
         Args:
@@ -338,11 +357,11 @@ class ReportGenerator(IReportGenerator):
         temp_file = None
         try:
             with tempfile.NamedTemporaryFile(
-                mode='w',
+                mode="w",
                 dir=file_path.parent,
                 delete=False,
-                suffix='.tmp',
-                prefix=file_path.name
+                suffix=".tmp",
+                prefix=file_path.name,
             ) as tf:
                 temp_file = Path(tf.name)
                 if is_json:
@@ -397,11 +416,14 @@ class ReportGenerator(IReportGenerator):
         template = self.jinja_env.get_template(f"{template_name}.j2")
         return template.render(**context)
 
-    def _generate_manifest(self, file_paths: Dict[str, Path],
-                           manifest_path: Path,
-                           config_hash: str = "unknown",
-                           seed: int = 42,
-                           artifact_checksums: Optional[Dict[str, str]] = None) -> Path:
+    def _generate_manifest(
+        self,
+        file_paths: Dict[str, Path],
+        manifest_path: Path,
+        config_hash: str = "unknown",
+        seed: int = 42,
+        artifact_checksums: Optional[Dict[str, str]] = None,
+    ) -> Path:
         """Generate manifest.json with full provenance per BSD §20.
 
         Args:
@@ -429,7 +451,7 @@ class ReportGenerator(IReportGenerator):
             "dependency_hash": compute_dependency_hash(),
             "config_hash": config_hash,
             "seed": seed,
-            "timestamp": datetime.now(tz=timezone.utc).replace(microsecond=0).isoformat().replace('+00:00', 'Z'),
+            "timestamp": datetime.now(tz=timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z"),
             "platform": get_platform_info(),
             "artifact_checksums": artifact_checksums,
         }
@@ -437,11 +459,17 @@ class ReportGenerator(IReportGenerator):
         # Write manifest using atomic write
         self._atomic_write(manifest_path, manifest_data, is_json=True)
         return manifest_path
+
+
 class MockReportGenerator:
     """Mock report generator that returns deterministic report output."""
 
-    def generate(self, analysis_result: Dict[str, Any],
-                 output_formats: List[str], output_dir: Path) -> ReportOutput:
+    def generate(
+        self,
+        analysis_result: Dict[str, Any],
+        output_formats: List[str],
+        output_dir: Path,
+    ) -> ReportOutput:
         """Return fixed ReportOutput for testing."""
         # Ensure output directory exists
         output_dir.mkdir(parents=True, exist_ok=True)
@@ -480,9 +508,9 @@ class MockReportGenerator:
             "manifest_version": "1.0.0",
             "generated_at": "2023-06-15T12:00:00",
             "file_count": len(report_paths),
-            "checksums": {fmt: "mock_checksum_" + fmt for fmt in report_paths.keys()}
+            "checksums": {fmt: "mock_checksum_" + fmt for fmt in report_paths.keys()},
         }
-        with open(manifest_path, 'w') as f:
+        with open(manifest_path, "w") as f:
             f.write(json_dumps(manifest_data, indent=2))
 
         # Calculate mock checksums
@@ -492,7 +520,7 @@ class MockReportGenerator:
         return ReportOutput(
             report_paths=report_paths,
             manifest_path=manifest_path,
-            checksums=mock_checksums
+            checksums=mock_checksums,
         )
 
     def _generate_json_report(self, analysis_result: Dict[str, Any], file_path: Path) -> None:
@@ -501,17 +529,17 @@ class MockReportGenerator:
             "metadata": {
                 "generated_at": "2023-06-15T12:00:00",
                 "report_version": "1.0.0",
-                "generator": "MIIE Mock Report Generator"
+                "generator": "MIIE Mock Report Generator",
             },
-            "analysis_result": analysis_result
+            "analysis_result": analysis_result,
         }
 
-        with open(file_path, 'w') as f:
+        with open(file_path, "w") as f:
             json.dump(report_data, f, indent=2, default=str)
 
     def _generate_markdown_report(self, analysis_result: Dict[str, Any], file_path: Path) -> None:
         """Generate Markdown format report (mock)."""
-        with open(file_path, 'w') as f:
+        with open(file_path, "w") as f:
             f.write(f"# MIIE Analysis Report\n\n")
             f.write(f"**Generated at:** 2023-06-15 12:00:00\n\n")
             f.write("## Analysis Results\n\n")
@@ -521,14 +549,14 @@ class MockReportGenerator:
         """Generate CSV format report (mock)."""
         import csv
 
-        with open(file_path, 'w', newline='') as f:
+        with open(file_path, "w", newline="") as f:
             writer = csv.writer(f)
             writer.writerow(["Metric", "Value"])
             writer.writerow(["mock_metric", "1.0"])
 
     def _generate_text_report(self, analysis_result: Dict[str, Any], file_path: Path) -> None:
         """Generate plain text format report (mock)."""
-        with open(file_path, 'w') as f:
+        with open(file_path, "w") as f:
             f.write("MIIE Analysis Report\n")
             f.write("=" * 50 + "\n")
             f.write("Generated at: 2023-06-15 12:00:00\n\n")

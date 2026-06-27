@@ -3,22 +3,32 @@ Integration Tests for MIIE v1.0 Pipeline: Ingestion to Extraction
 Tests the connection between RepositoryIngestionEngine and MetricExtractionEngine.
 """
 
-import pytest
 import subprocess
-from pathlib import Path
 from datetime import datetime, timedelta, timezone
+from pathlib import Path
 
-from miie.processing.ingestion import RepositoryIngestionEngine
+import pytest
+
 from miie.processing.extraction import MetricExtractionEngine
-from miie.contracts.errors import IngestionError, ExtractionError
-from miie.schemas.models import RepositoryContext, MetricDataFrame
+from miie.processing.ingestion import RepositoryIngestionEngine
+from miie.schemas.models import MetricDataFrame, RepositoryContext
 
 
 def init_git_repo(repo_path: Path) -> None:
     """Initialize a git repository with basic configuration."""
-    subprocess.run(['git', 'init'], cwd=repo_path, check=True, capture_output=True)
-    subprocess.run(['git', 'config', 'user.name', 'Test User'], cwd=repo_path, check=True, capture_output=True)
-    subprocess.run(['git', 'config', 'user.email', 'test@example.com'], cwd=repo_path, check=True, capture_output=True)
+    subprocess.run(["git", "init"], cwd=repo_path, check=True, capture_output=True)
+    subprocess.run(
+        ["git", "config", "user.name", "Test User"],
+        cwd=repo_path,
+        check=True,
+        capture_output=True,
+    )
+    subprocess.run(
+        ["git", "config", "user.email", "test@example.com"],
+        cwd=repo_path,
+        check=True,
+        capture_output=True,
+    )
 
 
 def make_commit(repo_path: Path, commit_message: str) -> None:
@@ -27,8 +37,13 @@ def make_commit(repo_path: Path, commit_message: str) -> None:
     dummy_file = repo_path / "dummy.txt"
     # Write different content each time to ensure there's something to commit
     dummy_file.write_text(f"dummy content at {commit_message}")
-    subprocess.run(['git', 'add', 'dummy.txt'], cwd=repo_path, check=True, capture_output=True)
-    subprocess.run(['git', 'commit', '-m', commit_message], cwd=repo_path, check=True, capture_output=True)
+    subprocess.run(["git", "add", "dummy.txt"], cwd=repo_path, check=True, capture_output=True)
+    subprocess.run(
+        ["git", "commit", "-m", commit_message],
+        cwd=repo_path,
+        check=True,
+        capture_output=True,
+    )
 
 
 def create_repo_with_history(repo_path: Path, num_commits: int = 15, num_contributors: int = 2) -> None:
@@ -49,16 +64,16 @@ def create_repo_with_history(repo_path: Path, num_commits: int = 15, num_contrib
     for contributor in range(num_contributors):
         # Set contributor identity
         subprocess.run(
-            ['git', 'config', 'user.name', f'Contributor {contributor+1}'],
+            ["git", "config", "user.name", f"Contributor {contributor+1}"],
             cwd=repo_path,
             check=True,
-            capture_output=True
+            capture_output=True,
         )
         subprocess.run(
-            ['git', 'config', 'user.email', f'contributor{contributor+1}@example.com'],
+            ["git", "config", "user.email", f"contributor{contributor+1}@example.com"],
             cwd=repo_path,
             check=True,
-            capture_output=True
+            capture_output=True,
         )
 
         # Calculate commits for this contributor
@@ -204,8 +219,10 @@ class TestIngestionToExtractionIntegration:
         extraction_engine = MetricExtractionEngine()
 
         # Create a RepositoryContext pointing to a non-existent repository
-        from miie.schemas.models import RepositoryContext
         from datetime import datetime, timezone
+
+        from miie.schemas.models import RepositoryContext
+
         context = RepositoryContext(
             repo_id="test",
             local_path=Path("/tmp/nonexistent"),
@@ -215,7 +232,7 @@ class TestIngestionToExtractionIntegration:
             last_commit_date=datetime.now(timezone.utc),
             contributor_count=1,
             is_shallow=False,
-            is_fork=False
+            is_fork=False,
         )
 
         # Extract metrics - should succeed but return None for unavailable repo per missing data policy

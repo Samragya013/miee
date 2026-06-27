@@ -4,32 +4,31 @@ Tests the complete pipeline from detection through scoring to evidence generatio
 """
 
 import datetime
-from typing import List, Dict, Any, Tuple
 from pathlib import Path
 
 import pytest
 
-from miie.processing.evidence import MockEvidenceEngine
-from miie.processing.scoring import MockScoringEngine
+from miie.processing.detection.dispatcher import DetectorDispatcherEngine
 from miie.processing.detection.mock_detectors import (
-    MockDistributionDriftDetector,
     MockCorrelationBreakdownDetector,
-    MockThresholdCompressionDetector
+    MockDistributionDriftDetector,
+    MockThresholdCompressionDetector,
 )
 from miie.processing.detection.registry import DetectorRegistry
-from miie.processing.detection.dispatcher import DetectorDispatcherEngine
 from miie.processing.detection.runner import DetectorRunner
+from miie.processing.evidence import MockEvidenceEngine
 from miie.processing.extraction import MetricExtractionEngine
+from miie.processing.scoring import MockScoringEngine
 from miie.schemas.models import (
-    MetricDataFrame,
-    WindowDefinition,
-    DetectorResults,
-    ScorePackage,
-    IntegrityScore,
     ConfidenceScore,
+    DetectorResults,
     EvidencePackage,
+    IntegrityScore,
+    MetricDataFrame,
+    Provenance,
     RepositoryContext,
-    Provenance
+    ScorePackage,
+    WindowDefinition,
 )
 
 
@@ -68,8 +67,8 @@ class TestEvidenceIntegration:
             timestamp=datetime.datetime(2026, 6, 17, tzinfo=datetime.timezone.utc),
             metrics={
                 "M-02": {"default": [8.0, 9.0, 7.0, 6.0, 10.0]},  # Commit Frequency
-                "M-06": {"default": [3.0, 4.0, 2.0, 5.0, 3.0]}   # Code Churn
-            }
+                "M-06": {"default": [3.0, 4.0, 2.0, 5.0, 3.0]},  # Code Churn
+            },
         )
 
         # Verify extraction output
@@ -83,22 +82,19 @@ class TestEvidenceIntegration:
                 start_date=datetime.date(2026, 6, 1),
                 end_date=datetime.date(2026, 6, 5),
                 commits=3,
-                strategy="fixed_size"
+                strategy="fixed_size",
             ),
             WindowDefinition(
                 window_id="w02",
                 start_date=datetime.date(2026, 6, 6),
                 end_date=datetime.date(2026, 6, 10),
                 commits=2,
-                strategy="fixed_size"
-            )
+                strategy="fixed_size",
+            ),
         ]
 
         # Process through detector framework (dispatcher)
-        detection_results = self.dispatcher.invoke(
-            metric_dataframe=extracted_metrics,
-            windows=windows
-        )
+        detection_results = self.dispatcher.invoke(metric_dataframe=extracted_metrics, windows=windows)
 
         # Verify detection results
         assert isinstance(detection_results.detector_outputs, dict)
@@ -111,7 +107,7 @@ class TestEvidenceIntegration:
         score_package = self.scoring_engine.compute_integrity_score(
             detector_results=detection_results,
             metric_dataframe=extracted_metrics,
-            windows=windows
+            windows=windows,
         )
 
         # Verify scoring results
@@ -127,7 +123,7 @@ class TestEvidenceIntegration:
             local_path=Path("/tmp/test-repo"),
             is_remote=False,
             total_commits=50,
-            contributor_count=3
+            contributor_count=3,
         )
 
         # Process through evidence engine
@@ -137,7 +133,7 @@ class TestEvidenceIntegration:
             windows=windows,
             detector_results=detection_results,
             score_package=score_package,
-            configuration={"seed": 42}
+            configuration={"seed": 42},
         )
 
         # Verify evidence results
@@ -167,9 +163,7 @@ class TestEvidenceIntegration:
             repo_id="test-repo",
             run_id="test-run-empty-detection",
             timestamp=datetime.datetime(2026, 6, 17, tzinfo=datetime.timezone.utc),
-            metrics={
-                "M-02": {"default": [5.0, 6.0, 4.0]}
-            }
+            metrics={"M-02": {"default": [5.0, 6.0, 4.0]}},
         )
 
         # Create empty windows
@@ -180,19 +174,11 @@ class TestEvidenceIntegration:
 
         # Create score package (would normally come from scoring engine)
         score_package = ScorePackage(
-            integrity=IntegrityScore(
-                overall=0.5,
-                per_metric={"M-02": 0.5},
-                formula_version="1.0.0"
-            ),
-            confidence=ConfidenceScore(
-                overall=0.5,
-                factors={"sample_size": 0.5},
-                band="medium"
-            ),
+            integrity=IntegrityScore(overall=0.5, per_metric={"M-02": 0.5}, formula_version="1.0.0"),
+            confidence=ConfidenceScore(overall=0.5, factors={"sample_size": 0.5}, band="medium"),
             timestamp=datetime.datetime(2026, 6, 17, tzinfo=datetime.timezone.utc),
             config_hash="test-hash",
-            formula_version="TFS_v1.0"
+            formula_version="TFS_v1.0",
         )
 
         # Create repository context
@@ -201,7 +187,7 @@ class TestEvidenceIntegration:
             local_path=Path("/tmp/test-repo"),
             is_remote=False,
             total_commits=10,
-            contributor_count=1
+            contributor_count=1,
         )
 
         # Generate evidence with empty detection results
@@ -211,7 +197,7 @@ class TestEvidenceIntegration:
             windows=windows,
             detector_results=empty_detector_results,
             score_package=score_package,
-            configuration={"seed": 99}
+            configuration={"seed": 99},
         )
 
         # Should still produce valid evidence package
@@ -226,21 +212,21 @@ class TestEvidenceIntegration:
         # Create identical metric dataframes
         metrics_data = {
             "M-02": {"default": [10.0, 11.0, 9.0]},
-            "M-06": {"default": [5.0, 6.0, 4.0]}
+            "M-06": {"default": [5.0, 6.0, 4.0]},
         }
 
         metric_df1 = MetricDataFrame(
             repo_id="det-repo",
             run_id="run-001",
             timestamp=datetime.datetime(2026, 1, 1, 12, 0, 0, tzinfo=datetime.timezone.utc),
-            metrics=metrics_data.copy()
+            metrics=metrics_data.copy(),
         )
 
         metric_df2 = MetricDataFrame(
             repo_id="det-repo",
             run_id="run-002",  # Different run ID
             timestamp=datetime.datetime(2026, 1, 1, 12, 0, 1, tzinfo=datetime.timezone.utc),  # Different timestamp
-            metrics=metrics_data.copy()
+            metrics=metrics_data.copy(),
         )
 
         # Create identical windows
@@ -250,7 +236,7 @@ class TestEvidenceIntegration:
                 start_date=datetime.date(2026, 1, 1),
                 end_date=datetime.date(2026, 1, 10),
                 commits=5,
-                strategy="fixed_size"
+                strategy="fixed_size",
             )
         ]
 
@@ -260,25 +246,27 @@ class TestEvidenceIntegration:
 
         # Wrap runner results in DetectorResults (runner returns List[DetectorResult])
         detection_results1 = DetectorResults(
-            detector_outputs={list(r.detector_outputs.keys())[0]: list(r.detector_outputs.values())[0]
-                              for r in runner_results1}
+            detector_outputs={
+                list(r.detector_outputs.keys())[0]: list(r.detector_outputs.values())[0] for r in runner_results1
+            }
         )
         detection_results2 = DetectorResults(
-            detector_outputs={list(r.detector_outputs.keys())[0]: list(r.detector_outputs.values())[0]
-                              for r in runner_results2}
+            detector_outputs={
+                list(r.detector_outputs.keys())[0]: list(r.detector_outputs.values())[0] for r in runner_results2
+            }
         )
 
         # Create score packages (using mock scoring for deterministic results)
         score_package1 = self.scoring_engine.compute_integrity_score(
             detector_results=detection_results1,
             metric_dataframe=metric_df1,
-            windows=windows
+            windows=windows,
         )
 
         score_package2 = self.scoring_engine.compute_integrity_score(
             detector_results=detection_results2,
             metric_dataframe=metric_df2,
-            windows=windows
+            windows=windows,
         )
 
         # Create repository context
@@ -287,7 +275,7 @@ class TestEvidenceIntegration:
             local_path=Path("/tmp/test-repo"),
             is_remote=False,
             total_commits=20,
-            contributor_count=2
+            contributor_count=2,
         )
 
         # Generate evidence for both
@@ -297,7 +285,7 @@ class TestEvidenceIntegration:
             windows=windows,
             detector_results=detection_results1,
             score_package=score_package1,
-            configuration={"seed": 777}
+            configuration={"seed": 777},
         )
 
         evidence_package2 = self.evidence_engine.generate(
@@ -306,11 +294,13 @@ class TestEvidenceIntegration:
             windows=windows,
             detector_results=detection_results2,
             score_package=score_package2,
-            configuration={"seed": 777}
+            configuration={"seed": 777},
         )
 
         # Evidence should be structurally identical (same detector IDs and output structure)
-        assert len(evidence_package1.detector_outputs.detector_outputs) == len(evidence_package2.detector_outputs.detector_outputs)
+        assert len(evidence_package1.detector_outputs.detector_outputs) == len(
+            evidence_package2.detector_outputs.detector_outputs
+        )
         assert len(evidence_package1.metrics) == len(evidence_package2.metrics)
         assert len(evidence_package1.windows) == len(evidence_package2.windows)
 
@@ -327,8 +317,8 @@ class TestEvidenceIntegration:
             timestamp=datetime.datetime(2026, 6, 17, tzinfo=datetime.timezone.utc),
             metrics={
                 "M-01": {"default": [100.0, 110.0, 90.0]},  # Lines of Code
-                "M-03": {"default": [50.0, 45.0, 55.0]}     # Issue Count
-            }
+                "M-03": {"default": [50.0, 45.0, 55.0]},  # Issue Count
+            },
         )
 
         windows = [
@@ -337,21 +327,18 @@ class TestEvidenceIntegration:
                 start_date=datetime.date(2026, 6, 1),
                 end_date=datetime.date(2026, 6, 15),
                 commits=10,
-                strategy="fixed_size"
+                strategy="fixed_size",
             )
         ]
 
         # Get detection results
-        detection_results = self.dispatcher.invoke(
-            metric_dataframe=extracted_metrics,
-            windows=windows
-        )
+        detection_results = self.dispatcher.invoke(metric_dataframe=extracted_metrics, windows=windows)
 
         # Get score package
         score_package = self.scoring_engine.compute_integrity_score(
             detector_results=detection_results,
             metric_dataframe=extracted_metrics,
-            windows=windows
+            windows=windows,
         )
 
         # Create repository context
@@ -360,7 +347,7 @@ class TestEvidenceIntegration:
             local_path=Path("/tmp/validation-repo"),
             is_remote=False,
             total_commits=100,
-            contributor_count=5
+            contributor_count=5,
         )
 
         # Generate evidence
@@ -370,7 +357,7 @@ class TestEvidenceIntegration:
             windows=windows,
             detector_results=detection_results,
             score_package=score_package,
-            configuration={"seed": 12345}
+            configuration={"seed": 12345},
         )
 
         # The evidence package should be valid (no exceptions thrown during construction)
@@ -396,6 +383,7 @@ class TestEvidenceIntegration:
 
     def test_evidence_engine_handles_missing_attributes_gracefully(self):
         """Test that evidence engine handles objects with missing attributes gracefully."""
+
         # Create metric dataframe without metrics attribute (edge case)
         class IncompleteMetricDataFrame:
             def __init__(self):
@@ -411,19 +399,11 @@ class TestEvidenceIntegration:
 
         # Create minimal score package
         minimal_score_package = ScorePackage(
-            integrity=IntegrityScore(
-                overall=0.5,
-                per_metric={},
-                formula_version="1.0.0"
-            ),
-            confidence=ConfidenceScore(
-                overall=0.5,
-                factors={},
-                band="medium"
-            ),
+            integrity=IntegrityScore(overall=0.5, per_metric={}, formula_version="1.0.0"),
+            confidence=ConfidenceScore(overall=0.5, factors={}, band="medium"),
             timestamp=datetime.datetime(2026, 6, 17, tzinfo=datetime.timezone.utc),
             config_hash="test",
-            formula_version="TFS_v1.0"
+            formula_version="TFS_v1.0",
         )
 
         # Create repository context
@@ -432,7 +412,7 @@ class TestEvidenceIntegration:
             local_path=Path("/tmp/test-repo"),
             is_remote=False,
             total_commits=10,
-            contributor_count=1
+            contributor_count=1,
         )
 
         # Create empty windows
@@ -445,7 +425,7 @@ class TestEvidenceIntegration:
             windows=empty_windows,
             detector_results=minimal_detector_results,
             score_package=minimal_score_package,
-            configuration={"seed": 999}
+            configuration={"seed": 999},
         )
 
         # Should still produce valid evidence package

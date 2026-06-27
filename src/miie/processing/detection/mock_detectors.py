@@ -4,7 +4,8 @@ Returns schema-valid DetectorResult objects with deterministic values.
 No real detection mathematics implemented.
 """
 
-from typing import Dict, List, Optional, Any
+from typing import Any, Dict, List, Optional
+
 from miie.processing.detection.base import BaseDetector
 from miie.processing.detection.dispatcher import DetectorDispatcherEngine
 from miie.processing.detection.registry import DetectorRegistry
@@ -17,35 +18,35 @@ class MockDistributionDriftDetector(BaseDetector):
     Returns deterministic placeholder values.
     No actual distribution drift mathematics implemented.
     """
-    
+
     def __init__(self):
         super().__init__(
             detector_id="D-01",
             detector_name="Distribution Drift Detector",
-            supported_metrics=["M-02", "M-06"]  # Commit Frequency and Code Churn
+            supported_metrics=["M-02", "M-06"],  # Commit Frequency and Code Churn
         )
-    
+
     def validate_input(self, metric_dataframe: MetricDataFrame) -> bool:
         """
         Validate that required metrics (M-02, M-06) are present.
-        
+
         Args:
             metric_dataframe: Input metrics to validate
-            
+
         Returns:
             bool: True if M-02 and M-06 metrics are present
         """
         required_metrics = {"M-02", "M-06"}
         available_metrics = set(metric_dataframe.metrics.keys())
         return required_metrics.issubset(available_metrics)
-    
+
     def execute(self, metric_dataframe: MetricDataFrame) -> DetectorResult:
         """
         Execute mock distribution drift detection.
-        
+
         Args:
             metric_dataframe: Input metrics for detection
-            
+
         Returns:
             DetectorResult: Schema-valid detector result with placeholder values
         """
@@ -57,7 +58,7 @@ class MockDistributionDriftDetector(BaseDetector):
                     "drift_detected": False,
                     "drift_magnitude": 0.0,
                     "window_size": 10,
-                    "timestamp": metric_dataframe.timestamp.isoformat()
+                    "timestamp": metric_dataframe.timestamp.isoformat(),
                 }
             }
         )
@@ -69,35 +70,35 @@ class MockCorrelationBreakdownDetector(BaseDetector):
     Returns deterministic placeholder values.
     No actual correlation mathematics implemented.
     """
-    
+
     def __init__(self):
         super().__init__(
             detector_id="D-02",
             detector_name="Correlation Breakdown Detector",
-            supported_metrics=["M-02", "M-06"]  # Commit Frequency and Code Churn
+            supported_metrics=["M-02", "M-06"],  # Commit Frequency and Code Churn
         )
-    
+
     def validate_input(self, metric_dataframe: MetricDataFrame) -> bool:
         """
         Validate that required metrics (M-02, M-06) are present.
-        
+
         Args:
             metric_dataframe: Input metrics to validate
-            
+
         Returns:
             bool: True if M-02 and M-06 metrics are present
         """
         required_metrics = {"M-02", "M-06"}
         available_metrics = set(metric_dataframe.metrics.keys())
         return required_metrics.issubset(available_metrics)
-    
+
     def execute(self, metric_dataframe: MetricDataFrame) -> DetectorResult:
         """
         Execute mock correlation breakdown detection.
-        
+
         Args:
             metric_dataframe: Input metrics for detection
-            
+
         Returns:
             DetectorResult: Schema-valid detector result with placeholder values
         """
@@ -110,7 +111,7 @@ class MockCorrelationBreakdownDetector(BaseDetector):
                     "correlation_change": 0.0,
                     "baseline_correlation": 0.0,
                     "current_correlation": 0.0,
-                    "timestamp": metric_dataframe.timestamp.isoformat()
+                    "timestamp": metric_dataframe.timestamp.isoformat(),
                 }
             }
         )
@@ -122,35 +123,35 @@ class MockThresholdCompressionDetector(BaseDetector):
     Returns deterministic placeholder values.
     No actual threshold mathematics implemented.
     """
-    
+
     def __init__(self):
         super().__init__(
             detector_id="D-03",
             detector_name="Threshold Compression Detector",
-            supported_metrics=["M-02", "M-06"]  # Commit Frequency and Code Churn
+            supported_metrics=["M-02", "M-06"],  # Commit Frequency and Code Churn
         )
-    
+
     def validate_input(self, metric_dataframe: MetricDataFrame) -> bool:
         """
         Validate that required metrics (M-02, M-06) are present.
-        
+
         Args:
             metric_dataframe: Input metrics to validate
-            
+
         Returns:
             bool: True if M-02 and M-06 metrics are present
         """
         required_metrics = {"M-02", "M-06"}
         available_metrics = set(metric_dataframe.metrics.keys())
         return required_metrics.issubset(available_metrics)
-    
+
     def execute(self, metric_dataframe: MetricDataFrame) -> DetectorResult:
         """
         Execute mock threshold compression detection.
-        
+
         Args:
             metric_dataframe: Input metrics for detection
-            
+
         Returns:
             DetectorResult: Schema-valid detector result with placeholder values
         """
@@ -163,7 +164,7 @@ class MockThresholdCompressionDetector(BaseDetector):
                     "compression_ratio": 1.0,
                     "original_threshold": 0.5,
                     "current_threshold": 0.5,
-                    "timestamp": metric_dataframe.timestamp.isoformat()
+                    "timestamp": metric_dataframe.timestamp.isoformat(),
                 }
             }
         )
@@ -197,6 +198,6 @@ class MockDetectorEngine(DetectorDispatcherEngine):
             detector_outputs={
                 "D-01": {"drift_detected": False, "drift_magnitude": 0.0},
                 "D-02": {"correlation_breakdown": False, "correlation_change": 0.0},
-                "D-03": {"threshold_compressed": False, "compression_ratio": 1.0}
+                "D-03": {"threshold_compressed": False, "compression_ratio": 1.0},
             }
         )

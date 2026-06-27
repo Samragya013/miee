@@ -3,7 +3,6 @@ Tests for MetricDataFrame schema validation.
 """
 
 import datetime
-from pathlib import Path
 
 import pytest
 
@@ -20,13 +19,13 @@ def test_metric_dataframe_creation():
         metrics={
             "M-01": {  # Code Coverage
                 "w01": [80.0, 82.5, 85.0],
-                "w02": [87.0, 88.0, 90.0]
+                "w02": [87.0, 88.0, 90.0],
             },
             "M-02": {  # Commit Frequency
                 "w01": [10.0, 12.0, 15.0],
-                "w02": None  # Missing data
-            }
-        }
+                "w02": None,  # Missing data
+            },
+        },
     )
 
     assert mdf.repo_id == "repo_001"
@@ -43,9 +42,7 @@ def test_metric_dataframe_invalid_metric():
             repo_id="repo_001",
             run_id="run_001",
             timestamp=datetime.datetime(2020, 6, 15, tzinfo=datetime.timezone.utc),
-            metrics={
-                "M-08": [100.0]  # Invalid metric ID
-            }
+            metrics={"M-08": [100.0]},  # Invalid metric ID
         )
 
 
@@ -59,7 +56,7 @@ def test_metric_dataframe_valid_metrics():
         repo_id="repo_001",
         run_id="run_001",
         timestamp=datetime.datetime(2020, 6, 15, tzinfo=datetime.timezone.utc),
-        metrics=metrics_dict
+        metrics=metrics_dict,
     )
 
     assert len(mdf.metrics) == 7
@@ -74,9 +71,9 @@ def test_metric_dataframe_serialization():
         metrics={
             "M-01": {
                 "w01": [80.0, 82.5, None],  # None represents missing data
-                "w02": [87.0, 88.0, 90.0]
+                "w02": [87.0, 88.0, 90.0],
             }
-        }
+        },
     )
 
     # Convert to dict for JSON serialization
@@ -84,7 +81,7 @@ def test_metric_dataframe_serialization():
         "repo_id": mdf.repo_id,
         "run_id": mdf.run_id,
         "timestamp": mdf.timestamp.isoformat(),
-        "metrics": mdf.metrics
+        "metrics": mdf.metrics,
     }
 
     # Serialize
@@ -107,9 +104,9 @@ def test_metric_dataframe_missing_data_handling():
         metrics={
             "M-02": {  # Commit Frequency
                 "w01": [10.0, 12.0, None],  # Missing data represented as None
-                "w02": None  # Entire window missing
+                "w02": None,  # Entire window missing
             }
-        }
+        },
     )
 
     assert mdf.metrics["M-02"]["w01"] == [10.0, 12.0, None]

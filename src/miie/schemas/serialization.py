@@ -9,7 +9,6 @@ Implements BSD-Engineering Sections 1.4, 1.6, 1.7, and 4:
 """
 
 import json
-import sys
 from typing import Any, Union
 
 
@@ -32,11 +31,11 @@ def json_dumps(obj: Any, *, sort_keys: bool = True, indent: int = None, default=
         ensure_ascii=False,
     )
     if default is not None:
-        kwargs['default'] = default
+        kwargs["default"] = default
     if indent is not None:
-        kwargs['indent'] = indent
+        kwargs["indent"] = indent
         return json.dumps(**kwargs)
-    kwargs['separators'] = (',', ':')  # Eliminate whitespace for determinism
+    kwargs["separators"] = (",", ":")  # Eliminate whitespace for determinism
     return json.dumps(**kwargs)
 
 
@@ -51,14 +50,11 @@ def json_loads(s: Union[str, bytes]) -> Any:
         Deserialized Python object
     """
     if isinstance(s, bytes):
-        s = s.decode('utf-8')
+        s = s.decode("utf-8")
     return json.loads(s)
 
 
-def deterministic_dict(
-    data: dict,
-    sort_keys: bool = True
-) -> dict:
+def deterministic_dict(data: dict, sort_keys: bool = True) -> dict:
     """
     Create a dictionary with deterministic key ordering.
 
@@ -80,9 +76,7 @@ def deterministic_dict(
             result[key] = deterministic_dict(value, sort_keys=sort_keys)
         elif isinstance(value, list):
             result[key] = [
-                deterministic_dict(item, sort_keys=sort_keys)
-                if isinstance(item, dict) else item
-                for item in value
+                (deterministic_dict(item, sort_keys=sort_keys) if isinstance(item, dict) else item) for item in value
             ]
         else:
             result[key] = value

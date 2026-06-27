@@ -1,18 +1,29 @@
 """Integration test demonstrating Day 10 dry-run pipeline execution."""
-from miie.processing.scoring.engine import ScoringEngine
-from miie.processing.explanation.engine import ExplanationEngine
+
+import datetime
+import tempfile
+from pathlib import Path
+
 from miie.processing.benchmark.engine import BenchmarkEngine
 from miie.processing.evaluation.engine import EvaluationEngine
+from miie.processing.explanation.engine import ExplanationEngine
 from miie.processing.reporting.engine import ReportGenerator
-from miie.processing.scoring.mock_scoring import MockScoringEngine
+from miie.processing.scoring.engine import ScoringEngine
 from miie.schemas.models import (
-    RepositoryContext, MetricDataFrame, WindowDefinition, DetectorResults,
-    ScorePackage, EvidencePackage, ExplanationReport, BenchmarkRun,
-    EvaluationResult, ReportOutput, Provenance, IntegrityScore, ConfidenceScore
+    BenchmarkRun,
+    ConfidenceScore,
+    DetectorResults,
+    EvaluationResult,
+    EvidencePackage,
+    ExplanationReport,
+    IntegrityScore,
+    MetricDataFrame,
+    Provenance,
+    ReportOutput,
+    RepositoryContext,
+    ScorePackage,
+    WindowDefinition,
 )
-from pathlib import Path
-import tempfile
-import datetime
 
 
 def create_mock_repository_context():
@@ -27,7 +38,7 @@ def create_mock_repository_context():
         contributor_count=5,
         is_shallow=False,
         is_fork=False,
-        language_distribution={"Python": 80, "JavaScript": 20}
+        language_distribution={"Python": 80, "JavaScript": 20},
     )
 
 
@@ -39,8 +50,8 @@ def create_mock_metric_dataframe():
         timestamp=datetime.datetime.now(datetime.timezone.utc),
         metrics={
             "M-02": {"w01": [10.0, 12.0, 11.0], "w02": [9.0, 13.0, 10.0]},
-            "M-06": {"w01": [5.0, 6.0, 5.5], "w02": [4.0, 7.0, 5.0]}
-        }
+            "M-06": {"w01": [5.0, 6.0, 5.5], "w02": [4.0, 7.0, 5.0]},
+        },
     )
 
 
@@ -52,15 +63,15 @@ def create_mock_window_definitions():
             start_date=datetime.datetime(2025, 1, 1),
             end_date=datetime.datetime(2025, 1, 31),
             commits=10,
-            strategy="fixed_size"
+            strategy="fixed_size",
         ),
         WindowDefinition(
             window_id="w02",
             start_date=datetime.datetime(2025, 2, 1),
             end_date=datetime.datetime(2025, 2, 28),
             commits=10,
-            strategy="fixed_size"
-        )
+            strategy="fixed_size",
+        ),
     ]
 
 
@@ -70,7 +81,7 @@ def create_mock_detector_results():
         detector_outputs={
             "D-01": {"some_metric": 0.5, "trend": "increasing"},
             "D-02": {"another_metric": 0.3, "pattern": "cyclic"},
-            "D-03": {"third_metric": 0.7, "status": "stable"}
+            "D-03": {"third_metric": 0.7, "status": "stable"},
         }
     )
 
@@ -85,7 +96,7 @@ def create_mock_evidence_package(repository_context, metric_dataframe, windows, 
             seed=42,
             platform="test-platform",
             python_version="3.9.0",
-            dependency_hash="test-dep-hash"
+            dependency_hash="test-dep-hash",
         ),
         windows=windows,
         metrics=metric_dataframe.metrics,
@@ -95,8 +106,8 @@ def create_mock_evidence_package(repository_context, metric_dataframe, windows, 
             confidence=ConfidenceScore(overall=0.80, factors={}, band="medium"),
             timestamp=datetime.datetime.now(tz=datetime.timezone.utc),
             config_hash="test-config-hash",
-            formula_version="1.0.0"
-        )
+            formula_version="1.0.0",
+        ),
     )
 
 
@@ -114,41 +125,36 @@ def test_day10_dry_run_pipeline_integration():
     score_package = scoring_engine.compute_integrity_score(
         detector_results=detector_results,
         metric_dataframe=metric_dataframe,
-        windows=windows
+        windows=windows,
     )
 
     # Validate scoring output
     assert isinstance(score_package, ScorePackage)
-    assert hasattr(score_package, 'integrity')
-    assert hasattr(score_package, 'confidence')
+    assert hasattr(score_package, "integrity")
+    assert hasattr(score_package, "confidence")
     assert isinstance(score_package.integrity, dict)
     assert isinstance(score_package.confidence, dict)
     assert "overall" in score_package.integrity
     assert "overall" in score_package.confidence
 
     # Step 3: Evidence Package Creation (simulating evidence generation)
-    evidence_package = create_mock_evidence_package(
-        repository_context, metric_dataframe, windows, detector_results
-    )
+    evidence_package = create_mock_evidence_package(repository_context, metric_dataframe, windows, detector_results)
 
     # Validate evidence package
     assert isinstance(evidence_package, EvidencePackage)
-    assert hasattr(evidence_package, 'provenance')
-    assert hasattr(evidence_package, 'windows')
-    assert hasattr(evidence_package, 'metrics')
-    assert hasattr(evidence_package, 'detector_outputs')
+    assert hasattr(evidence_package, "provenance")
+    assert hasattr(evidence_package, "windows")
+    assert hasattr(evidence_package, "metrics")
+    assert hasattr(evidence_package, "detector_outputs")
 
     # Step 4: Explanation Engine (Day 10 component)
     explanation_engine = ExplanationEngine()
-    explanation_report = explanation_engine.generate(
-        evidence_package=evidence_package,
-        score_package=score_package
-    )
+    explanation_report = explanation_engine.generate(evidence_package=evidence_package, score_package=score_package)
 
     # Validate explanation output
     assert isinstance(explanation_report, ExplanationReport)
-    assert hasattr(explanation_report, 'narratives')
-    assert hasattr(explanation_report, 'recommendations')
+    assert hasattr(explanation_report, "narratives")
+    assert hasattr(explanation_report, "recommendations")
     assert isinstance(explanation_report.narratives, list)
     assert isinstance(explanation_report.recommendations, list)
     assert len(explanation_report.narratives) > 0
@@ -160,13 +166,13 @@ def test_day10_dry_run_pipeline_integration():
         suite_id="test-suite-001",
         detector_ids=["D-01", "D-02", "D-03"],
         config={"test": True, "pipeline_stage": "validation"},
-        seed=42
+        seed=42,
     )
 
     # Validate benchmark output
     assert isinstance(benchmark_run, BenchmarkRun)
-    assert hasattr(benchmark_run, 'predictions')
-    assert hasattr(benchmark_run, 'metadata')
+    assert hasattr(benchmark_run, "predictions")
+    assert hasattr(benchmark_run, "metadata")
     assert isinstance(benchmark_run.predictions, dict)
     assert isinstance(benchmark_run.metadata, dict)
     assert len(benchmark_run.predictions) > 0
@@ -175,17 +181,14 @@ def test_day10_dry_run_pipeline_integration():
     evaluation_engine = EvaluationEngine()
     # Create minimal ground truth for evaluation
     ground_truth = {"test": "validation_data"}
-    evaluation_result = evaluation_engine.evaluate(
-        benchmark_run=benchmark_run,
-        ground_truth=ground_truth
-    )
+    evaluation_result = evaluation_engine.evaluate(benchmark_run=benchmark_run, ground_truth=ground_truth)
 
     # Validate evaluation output
     assert isinstance(evaluation_result, EvaluationResult)
-    assert hasattr(evaluation_result, 'accuracy')
-    assert hasattr(evaluation_result, 'precision')
-    assert hasattr(evaluation_result, 'recall')
-    assert hasattr(evaluation_result, 'f1_score')
+    assert hasattr(evaluation_result, "accuracy")
+    assert hasattr(evaluation_result, "precision")
+    assert hasattr(evaluation_result, "recall")
+    assert hasattr(evaluation_result, "f1_score")
     assert isinstance(evaluation_result.accuracy, float)
     assert isinstance(evaluation_result.precision, float)
     assert isinstance(evaluation_result.recall, float)
@@ -203,26 +206,26 @@ def test_day10_dry_run_pipeline_integration():
         "repository_context": {
             "repo_id": repository_context.repo_id,
             "total_commits": repository_context.total_commits,
-            "contributor_count": repository_context.contributor_count
+            "contributor_count": repository_context.contributor_count,
         },
         "scores": {
             "integrity_overall": score_package.integrity["overall"],
-            "confidence_overall": score_package.confidence["overall"]
+            "confidence_overall": score_package.confidence["overall"],
         },
         "explanation": {
             "narrative_count": len(explanation_report.narratives),
-            "recommendation_count": len(explanation_report.recommendations)
+            "recommendation_count": len(explanation_report.recommendations),
         },
         "benchmark": {
             "detectors_evaluated": len(["D-01", "D-02", "D-03"]),
-            "suite_id": "test-suite-001"
+            "suite_id": "test-suite-001",
         },
         "evaluation": {
             "accuracy": evaluation_result.accuracy,
             "precision": evaluation_result.precision,
             "recall": evaluation_result.recall,
-            "f1_score": evaluation_result.f1_score
-        }
+            "f1_score": evaluation_result.f1_score,
+        },
     }
 
     # Generate reports in multiple formats
@@ -232,12 +235,12 @@ def test_day10_dry_run_pipeline_integration():
         report_output = report_generator.generate(
             analysis_result=analysis_results,
             output_formats=output_formats,
-            output_dir=output_dir
+            output_dir=output_dir,
         )
 
         # Validate report output
         assert isinstance(report_output, ReportOutput)
-        assert hasattr(report_output, 'report_paths')
+        assert hasattr(report_output, "report_paths")
         assert isinstance(report_output.report_paths, dict)
         assert "json" in report_output.report_paths
         assert "markdown" in report_output.report_paths
@@ -248,7 +251,8 @@ def test_day10_dry_run_pipeline_integration():
         assert json_report_path.suffix == ".json"
 
         import json
-        with open(json_report_path, 'r') as f:
+
+        with open(json_report_path, "r") as f:
             report_data = json.load(f)
             assert "metadata" in report_data
             assert "analysis_result" in report_data
@@ -259,7 +263,7 @@ def test_day10_dry_run_pipeline_integration():
         assert md_report_path.exists()
         assert md_report_path.suffix == ".md"
 
-        with open(md_report_path, 'r') as f:
+        with open(md_report_path, "r") as f:
             md_content = f.read()
             assert "# MIIE Analysis Report" in md_content
             assert "test-repo" in md_content
@@ -289,7 +293,10 @@ def test_day10_components_can_be_instantiated_together():
 
     # Verify they all implement their respective interfaces
     from miie.contracts.interfaces import (
-        IExplanationEngine, IBenchmarkEngine, IEvaluationEngine, IReportGenerator
+        IBenchmarkEngine,
+        IEvaluationEngine,
+        IExplanationEngine,
+        IReportGenerator,
     )
 
     assert isinstance(explanation_engine, IExplanationEngine)

@@ -1,19 +1,20 @@
 """Performance tests for profiling end-to-end execution time."""
+
 import time
-import pytest
 from unittest.mock import Mock
 
+import pytest
+
+from miie.benchmark.evaluation import EvaluationEngine as MockEvaluationEngine
+from miie.benchmark.runner import MockBenchmarkRunner
 from miie.orchestration.pipeline import AnalysisPipeline
-from tests.fixtures.mock_services import MockIngestionEngine
-from tests.fixtures.mock_services import MockExtractionEngine
-from miie.processing.segmentation import MockSegmentationEngine
 from miie.processing.detection.mock_detectors import MockDetectorEngine
-from miie.processing.scoring.mock_scoring import MockScoringEngine
 from miie.processing.evidence import MockEvidenceEngine
 from miie.processing.explanation.mock_explanation import MockExplanationEngine
 from miie.processing.reporting.engine import MockReportGenerator
-from miie.benchmark.runner import MockBenchmarkRunner
-from miie.benchmark.evaluation import EvaluationEngine as MockEvaluationEngine
+from miie.processing.scoring.mock_scoring import MockScoringEngine
+from miie.processing.segmentation import MockSegmentationEngine
+from tests.fixtures.mock_services import MockExtractionEngine, MockIngestionEngine
 
 
 class TestPerformanceProfiling:
@@ -42,16 +43,18 @@ class TestPerformanceProfiling:
             explanation_engine=self.explanation_engine,
             report_generator=self.report_generator,
             benchmark_engine=self.benchmark_engine,
-            evaluation_engine=self.evaluation_engine
+            evaluation_engine=self.evaluation_engine,
         )
 
     def test_end_to_end_execution_time(self):
         """Profile end-to-end execution time for a single analysis run."""
         from pathlib import Path
+
         output_dir = Path("test_performance_output")
 
         # Clean up any existing output directory
         import shutil
+
         if output_dir.exists():
             shutil.rmtree(output_dir)
 
@@ -85,6 +88,7 @@ class TestPerformanceProfiling:
     def test_multiple_sequential_runs(self):
         """Profile performance of multiple sequential analysis runs."""
         from pathlib import Path
+
         execution_times = []
 
         for i in range(3):  # Run 3 times
@@ -92,6 +96,7 @@ class TestPerformanceProfiling:
 
             # Clean up any existing output directory
             import shutil
+
             if output_dir.exists():
                 shutil.rmtree(output_dir)
 
@@ -134,7 +139,7 @@ class TestPerformanceProfiling:
             suite_id="B-01",
             detector_ids=["D-01", "D-02", "D-03"],
             config={"test": True},
-            seed=42
+            seed=42,
         )
         benchmark_time = time.time() - start_time
 
@@ -144,29 +149,22 @@ class TestPerformanceProfiling:
 
         # Test evaluation engine performance
         from miie.schemas.models import BenchmarkRun
+
         mock_benchmark_run = Mock(spec=BenchmarkRun)
         mock_benchmark_run.predictions = {
             "D-01": {
                 "accuracy": 0.85,
                 "precision": 0.80,
                 "recall": 0.75,
-                "f1_score": 0.77
+                "f1_score": 0.77,
             },
-            "suite_summary": {
-                "suite_id": "B-01",
-                "detectors_benchmarked": 1
-            }
+            "suite_summary": {"suite_id": "B-01", "detectors_benchmarked": 1},
         }
 
-        ground_truth = {
-            "labels": [1, 0, 1, 1, 0, 0, 1, 0, 1, 0]
-        }
+        ground_truth = {"labels": [1, 0, 1, 1, 0, 0, 1, 0, 1, 0]}
 
         start_time = time.time()
-        eval_result = self.evaluation_engine.evaluate(
-            mock_benchmark_run,
-            ground_truth
-        )
+        eval_result = self.evaluation_engine.evaluate(mock_benchmark_run, ground_truth)
         eval_time = time.time() - start_time
 
         assert eval_result is not None

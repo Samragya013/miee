@@ -6,12 +6,12 @@ this for filesystem-backed or database-backed storage.
 
 from __future__ import annotations
 
-import time
 import threading
+import time
 import traceback
 import uuid
 from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, Optional
 
 from .models import AnalyzeRequest, BenchmarkRequest
 
@@ -88,19 +88,26 @@ def _run_analyze_job(job_id: str, request: AnalyzeRequest) -> None:
     try:
         store.update_status(job_id, "running", progress=0.1, stage="ingestion")
 
-        from ..processing.ingestion import RepositoryIngestionEngine
-        from ..processing.extraction import MetricExtractionEngine
-        from ..processing.segmentation import WindowSegmentationEngine
         from ..processing.detection.dispatcher import DetectorDispatcherEngine
         from ..processing.detection.registry import DetectorRegistry
-        from ..processing.scoring.engine import ScoringEngine
         from ..processing.evidence import EvidenceEngine
         from ..processing.explanation.engine import ExplanationEngine
+        from ..processing.extraction import MetricExtractionEngine
+        from ..processing.ingestion import RepositoryIngestionEngine
+        from ..processing.scoring.engine import ScoringEngine
+        from ..processing.segmentation import WindowSegmentationEngine
 
         registry = DetectorRegistry()
-        from ..processing.detection.distribution_drift_detector import DistributionDriftDetector
-        from ..processing.detection.correlation_breakdown_detector import CorrelationBreakdownDetector
-        from ..processing.detection.threshold_compression_detector import ThresholdCompressionDetector
+        from ..processing.detection.correlation_breakdown_detector import (
+            CorrelationBreakdownDetector,
+        )
+        from ..processing.detection.distribution_drift_detector import (
+            DistributionDriftDetector,
+        )
+        from ..processing.detection.threshold_compression_detector import (
+            ThresholdCompressionDetector,
+        )
+
         registry.register(DistributionDriftDetector())
         registry.register(CorrelationBreakdownDetector())
         registry.register(ThresholdCompressionDetector())
@@ -119,23 +126,25 @@ def _run_analyze_job(job_id: str, request: AnalyzeRequest) -> None:
         store.update_status(job_id, "running", progress=0.35, stage="extraction")
         since_dt = datetime.fromisoformat(request.since) if request.since else None
         until_dt = datetime.fromisoformat(request.until) if request.until else None
-        mdf = extraction.extract(ctx, request.metrics, since=since_dt, until=until_dt,
-                                 exclude_bots=request.exclude_bots)
+        mdf = extraction.extract(
+            ctx,
+            request.metrics,
+            since=since_dt,
+            until=until_dt,
+            exclude_bots=request.exclude_bots,
+        )
 
         store.update_status(job_id, "running", progress=0.5, stage="segmentation")
-        wins = segmentation.segment(mdf, strategy=request.window_strategy,
-                                    size=request.window_size)
+        wins = segmentation.segment(mdf, strategy=request.window_strategy, size=request.window_size)
 
         store.update_status(job_id, "running", progress=0.65, stage="detection")
         det_results = detection.invoke(mdf, wins, enabled_detectors=request.detectors)
 
         store.update_status(job_id, "running", progress=0.75, stage="scoring")
-        score_pkg = scoring.compute_integrity_score(det_results, mdf, wins,
-                                                    detector_weights=request.detector_weights)
+        score_pkg = scoring.compute_integrity_score(det_results, mdf, wins, detector_weights=request.detector_weights)
 
         store.update_status(job_id, "running", progress=0.85, stage="evidence")
-        ev_pkg = evidence.generate(ctx, mdf, wins, det_results, score_pkg,
-                                   {"seed": request.seed})
+        ev_pkg = evidence.generate(ctx, mdf, wins, det_results, score_pkg, {"seed": request.seed})
 
         store.update_status(job_id, "running", progress=0.95, stage="explanation")
         expl = explanation.generate(ev_pkg, score_pkg)
@@ -151,12 +160,15 @@ def _run_analyze_job(job_id: str, request: AnalyzeRequest) -> None:
         store.set_result(job_id, result)
 
     except Exception:
-        store.set_error(job_id, {
-            "type": "https://miie.dev/errors/analysis-failed",
-            "title": "Analysis Failed",
-            "status": 500,
-            "detail": traceback.format_exc(),
-        })
+        store.set_error(
+            job_id,
+            {
+                "type": "https://miie.dev/errors/analysis-failed",
+                "title": "Analysis Failed",
+                "status": 500,
+                "detail": traceback.format_exc(),
+            },
+        )
 
 
 def _run_benchmark_job(job_id: str, request: BenchmarkRequest) -> None:
@@ -176,18 +188,21 @@ def _run_benchmark_job(job_id: str, request: BenchmarkRequest) -> None:
         )
 
         result = {
-            "suite_id": result_obj.suite_id if hasattr(result_obj, "suite_id") else request.suite,
+            "suite_id": (result_obj.suite_id if hasattr(result_obj, "suite_id") else request.suite),
             "metadata": result_obj.metadata if hasattr(result_obj, "metadata") else {},
         }
         store.set_result(job_id, result)
 
     except Exception:
-        store.set_error(job_id, {
-            "type": "https://miie.dev/errors/benchmark-failed",
-            "title": "Benchmark Failed",
-            "status": 500,
-            "detail": traceback.format_exc(),
-        })
+        store.set_error(
+            job_id,
+            {
+                "type": "https://miie.dev/errors/benchmark-failed",
+                "title": "Benchmark Failed",
+                "status": 500,
+                "detail": traceback.format_exc(),
+            },
+        )
 
 
 # ---------------------------------------------------------------------------

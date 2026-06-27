@@ -4,11 +4,12 @@ Unit tests for window segmentation engine.
 
 import datetime
 from datetime import timezone
+
 import pytest
 
-from miie.processing.segmentation import WindowSegmentationEngine, MockSegmentationEngine
-from miie.schemas.models import WindowDefinition, MetricDataFrame
 from miie.contracts.errors import ValidationError
+from miie.processing.segmentation import WindowSegmentationEngine
+from miie.schemas.models import MetricDataFrame, WindowDefinition
 
 
 def create_mock_metric_dataframe(repo_id="repo_001", run_id="run_001", timestamp=None, m02_data=None):
@@ -20,12 +21,7 @@ def create_mock_metric_dataframe(repo_id="repo_001", run_id="run_001", timestamp
     if m02_data is not None:
         metrics["M-02"] = m02_data
 
-    return MetricDataFrame(
-        repo_id=repo_id,
-        run_id=run_id,
-        timestamp=timestamp,
-        metrics=metrics
-    )
+    return MetricDataFrame(repo_id=repo_id, run_id=run_id, timestamp=timestamp, metrics=metrics)
 
 
 def test_time_window_basic():
@@ -33,11 +29,7 @@ def test_time_window_basic():
     engine = WindowSegmentationEngine()
     mdf = create_mock_metric_dataframe(m02_data={"w01": [10.0, 12.0, 15.0]})
 
-    windows = engine.segment(
-        metric_dataframe=mdf,
-        strategy="time",
-        size=7  # 7 days per window
-    )
+    windows = engine.segment(metric_dataframe=mdf, strategy="time", size=7)  # 7 days per window
 
     # Currently returns a single window for the entire data
     assert len(windows) == 1
@@ -56,11 +48,7 @@ def test_commit_window_basic():
     engine = WindowSegmentationEngine()
     mdf = create_mock_metric_dataframe(m02_data={"w01": [5.0, 10.0, 3.0]})
 
-    windows = engine.segment(
-        metric_dataframe=mdf,
-        strategy="commit",
-        size=10  # 10 commits per window
-    )
+    windows = engine.segment(metric_dataframe=mdf, strategy="commit", size=10)  # 10 commits per window
 
     assert len(windows) == 1
     window = windows[0]
@@ -86,7 +74,7 @@ def test_custom_boundaries_validation():
         metric_dataframe=mdf,
         strategy="custom",
         size=5,  # size is ignored for custom? but we pass it
-        custom_boundaries=custom_boundaries
+        custom_boundaries=custom_boundaries,
     )
 
     assert len(windows) == 2
@@ -112,14 +100,10 @@ def test_empty_data_handling():
         repo_id="repo_001",
         run_id="run_001",
         timestamp=datetime.datetime(2023, 6, 15, tzinfo=timezone.utc),
-        metrics={}  # empty metrics
+        metrics={},  # empty metrics
     )
 
-    windows = engine.segment(
-        metric_dataframe=mdf,
-        strategy="time",
-        size=7
-    )
+    windows = engine.segment(metric_dataframe=mdf, strategy="time", size=7)
 
     # Currently, the engine returns a single window even with empty data?
     # Let's check the implementation: it sets total_commits to 1 if zero.
@@ -152,7 +136,7 @@ def test_window_ordering():
         metric_dataframe=mdf,
         strategy="custom",
         size=3,
-        custom_boundaries=custom_boundaries
+        custom_boundaries=custom_boundaries,
     )
 
     assert len(windows) == 3
@@ -175,16 +159,8 @@ def test_window_id_determinism():
     mdf = create_mock_metric_dataframe(m02_data={"w01": [4.0, 5.0, 6.0]})
 
     # Run segmentation multiple times with same inputs
-    windows1 = engine.segment(
-        metric_dataframe=mdf,
-        strategy="time",
-        size=7
-    )
-    windows2 = engine.segment(
-        metric_dataframe=mdf,
-        strategy="time",
-        size=7
-    )
+    windows1 = engine.segment(metric_dataframe=mdf, strategy="time", size=7)
+    windows2 = engine.segment(metric_dataframe=mdf, strategy="time", size=7)
 
     # IDs should be the same
     assert len(windows1) == len(windows2)
@@ -213,7 +189,7 @@ def test_boundary_overlap_detection():
             metric_dataframe=mdf,
             strategy="custom",
             size=5,
-            custom_boundaries=custom_boundaries
+            custom_boundaries=custom_boundaries,
         )
 
 
@@ -223,15 +199,15 @@ def test_commit_count_calculation():
     # Create M-02 data with multiple windows and some None values
     m02_data = {
         "w01": [10.0, None, 20.0],  # sum = 30.0 (None treated as 0?)
-        "w02": [5.0, 15.0, 25.0],   # sum = 45.0
-        "w03": None                 # entire window None -> sum = 0
+        "w02": [5.0, 15.0, 25.0],  # sum = 45.0
+        "w03": None,  # entire window None -> sum = 0
     }
     mdf = create_mock_metric_dataframe(m02_data=m02_data)
 
     windows = engine.segment(
         metric_dataframe=mdf,
         strategy="commit",
-        size=100  # large size to get one window
+        size=100,  # large size to get one window
     )
 
     # Currently, the engine sums all values in all windows for M-02

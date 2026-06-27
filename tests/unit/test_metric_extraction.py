@@ -2,20 +2,32 @@
 Unit tests for the MetricExtractionEngine implementation.
 """
 
-import pytest
 import datetime
-from pathlib import Path
 import subprocess
-from miie.processing.extraction import MetricExtractionEngine
+from pathlib import Path
+
+import pytest
+
 from miie.contracts.errors import ExtractionError
-from miie.schemas.models import RepositoryContext, MetricDataFrame
+from miie.processing.extraction import MetricExtractionEngine
+from miie.schemas.models import MetricDataFrame
 
 
 def init_git_repo(repo_path: Path) -> None:
     """Initialize a git repository with basic configuration."""
-    subprocess.run(['git', 'init'], cwd=repo_path, check=True, capture_output=True)
-    subprocess.run(['git', 'config', 'user.name', 'Test User'], cwd=repo_path, check=True, capture_output=True)
-    subprocess.run(['git', 'config', 'user.email', 'test@example.com'], cwd=repo_path, check=True, capture_output=True)
+    subprocess.run(["git", "init"], cwd=repo_path, check=True, capture_output=True)
+    subprocess.run(
+        ["git", "config", "user.name", "Test User"],
+        cwd=repo_path,
+        check=True,
+        capture_output=True,
+    )
+    subprocess.run(
+        ["git", "config", "user.email", "test@example.com"],
+        cwd=repo_path,
+        check=True,
+        capture_output=True,
+    )
 
 
 def make_commit(repo_path: Path, commit_message: str) -> None:
@@ -24,8 +36,13 @@ def make_commit(repo_path: Path, commit_message: str) -> None:
     dummy_file = repo_path / "dummy.txt"
     # Write different content each time to ensure there's something to commit
     dummy_file.write_text(f"dummy content at {commit_message}")
-    subprocess.run(['git', 'add', 'dummy.txt'], cwd=repo_path, check=True, capture_output=True)
-    subprocess.run(['git', 'commit', '-m', commit_message], cwd=repo_path, check=True, capture_output=True)
+    subprocess.run(["git", "add", "dummy.txt"], cwd=repo_path, check=True, capture_output=True)
+    subprocess.run(
+        ["git", "commit", "-m", commit_message],
+        cwd=repo_path,
+        check=True,
+        capture_output=True,
+    )
 
 
 def create_repo_with_history(repo_path: Path, num_commits: int = 15) -> None:
@@ -57,6 +74,7 @@ def test_extract_with_valid_repo_and_metrics(tmp_path):
 
     # First, ingest the repository to get RepositoryContext
     from miie.processing.ingestion import RepositoryIngestionEngine
+
     ingestion_engine = RepositoryIngestionEngine()
     context = ingestion_engine.ingest(str(repo_path))
 
@@ -93,7 +111,7 @@ def test_extract_with_valid_repo_and_metrics(tmp_path):
     assert len(result.metrics["M-02"]["w00"]) == 1
     assert len(result.metrics["M-06"]["w00"]) == 1
     assert result.metrics["M-02"]["w00"][0] == 15.0  # 15 commits
-    assert result.metrics["M-06"]["w00"][0] >= 0.0   # Churn should be non-negative
+    assert result.metrics["M-06"]["w00"][0] >= 0.0  # Churn should be non-negative
 
 
 def test_extract_with_unavailable_metrics(tmp_path):
@@ -105,6 +123,7 @@ def test_extract_with_unavailable_metrics(tmp_path):
 
     # Ingest the repository
     from miie.processing.ingestion import RepositoryIngestionEngine
+
     ingestion_engine = RepositoryIngestionEngine()
     context = ingestion_engine.ingest(str(repo_path))
 
@@ -131,8 +150,10 @@ def test_extract_with_invalid_metric_ids():
     engine = MetricExtractionEngine()
 
     # Create a minimal valid RepositoryContext for testing
-    from miie.schemas.models import RepositoryContext
     import datetime
+
+    from miie.schemas.models import RepositoryContext
+
     context = RepositoryContext(
         repo_id="test",
         local_path=Path("/tmp"),
@@ -142,7 +163,7 @@ def test_extract_with_invalid_metric_ids():
         last_commit_date=datetime.datetime.now(datetime.timezone.utc),
         contributor_count=1,
         is_shallow=False,
-        is_fork=False
+        is_fork=False,
     )
 
     # Test invalid metric ID
@@ -169,6 +190,7 @@ def test_extract_with_since_until_parameters(tmp_path):
 
     # Ingest the repository
     from miie.processing.ingestion import RepositoryIngestionEngine
+
     ingestion_engine = RepositoryIngestionEngine()
     context = ingestion_engine.ingest(str(repo_path))
 
@@ -202,6 +224,7 @@ def test_extract_with_exclude_bots_parameter(tmp_path):
 
     # Ingest the repository
     from miie.processing.ingestion import RepositoryIngestionEngine
+
     ingestion_engine = RepositoryIngestionEngine()
     context = ingestion_engine.ingest(str(repo_path))
 
@@ -223,8 +246,10 @@ def test_extract_empty_metric_list():
     engine = MetricExtractionEngine()
 
     # Create a minimal valid RepositoryContext for testing
-    from miie.schemas.models import RepositoryContext
     import datetime
+
+    from miie.schemas.models import RepositoryContext
+
     context = RepositoryContext(
         repo_id="test",
         local_path=Path("/tmp"),
@@ -234,7 +259,7 @@ def test_extract_empty_metric_list():
         last_commit_date=datetime.datetime.now(datetime.timezone.utc),
         contributor_count=1,
         is_shallow=False,
-        is_fork=False
+        is_fork=False,
     )
 
     # Extract with empty list
@@ -258,8 +283,10 @@ def test_extract_none_metric_list():
     engine = MetricExtractionEngine()
 
     # Create a minimal valid RepositoryContext for testing
-    from miie.schemas.models import RepositoryContext
     import datetime
+
+    from miie.schemas.models import RepositoryContext
+
     context = RepositoryContext(
         repo_id="test",
         local_path=Path("/tmp"),
@@ -269,7 +296,7 @@ def test_extract_none_metric_list():
         last_commit_date=datetime.datetime.now(datetime.timezone.utc),
         contributor_count=1,
         is_shallow=False,
-        is_fork=False
+        is_fork=False,
     )
 
     with pytest.raises(TypeError):

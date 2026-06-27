@@ -1,6 +1,6 @@
 """Tests for benchmark candidate manifest."""
+
 import json
-import os
 from pathlib import Path
 
 
@@ -13,7 +13,7 @@ def test_candidate_manifest_exists():
 def test_candidate_manifest_is_valid_json():
     """Test that the candidate manifest contains valid JSON."""
     manifest_path = Path("benchmarks/metadata/candidate_manifest.json")
-    with open(manifest_path, 'r') as f:
+    with open(manifest_path, "r") as f:
         data = json.load(f)
 
     # Check required top-level keys
@@ -45,7 +45,7 @@ def test_candidate_directories_exist():
     assert base_path.exists(), "Candidates directory should exist"
 
     manifest_path = Path("benchmarks/metadata/candidate_manifest.json")
-    with open(manifest_path, 'r') as f:
+    with open(manifest_path, "r") as f:
         data = json.load(f)
 
     existing_dirs = [d.name for d in base_path.iterdir() if d.is_dir()]

@@ -3,23 +3,21 @@ Unit tests for EvidenceEngine.
 """
 
 import datetime
-from typing import List, Dict, Any
 from pathlib import Path
 
 import pytest
 
 from miie.processing.evidence import EvidenceEngine, MockEvidenceEngine
 from miie.schemas.models import (
-    RepositoryContext,
-    MetricDataFrame,
-    WindowDefinition,
-    DetectorResults,
-    ScorePackage,
-    EvidencePackage,
-    Provenance,
-    IntegrityScore,
     ConfidenceScore,
-    WarningItem
+    DetectorResults,
+    EvidencePackage,
+    IntegrityScore,
+    MetricDataFrame,
+    Provenance,
+    RepositoryContext,
+    ScorePackage,
+    WindowDefinition,
 )
 
 
@@ -37,7 +35,7 @@ class TestEvidenceEngine:
             local_path=Path("/tmp/test-repo"),
             is_remote=False,
             total_commits=100,
-            contributor_count=5
+            contributor_count=5,
         )
 
         self.metric_dataframe = MetricDataFrame(
@@ -46,8 +44,8 @@ class TestEvidenceEngine:
             timestamp=datetime.datetime(2026, 6, 17, tzinfo=datetime.timezone.utc),
             metrics={
                 "M-02": {"default": [10.0, 12.0, 11.0, 9.0, 13.0]},  # Commit Frequency
-                "M-06": {"default": [5.0, 8.0, 6.0, 4.0, 7.0]}      # Code Churn
-            }
+                "M-06": {"default": [5.0, 8.0, 6.0, 4.0, 7.0]},  # Code Churn
+            },
         )
 
         self.windows = [
@@ -57,7 +55,7 @@ class TestEvidenceEngine:
                 end_date=datetime.date(2026, 6, 10),
                 commits=5,
                 strategy="time",
-                size_config={"size": 10}
+                size_config={"size": 10},
             ),
             WindowDefinition(
                 window_id="w02",
@@ -65,26 +63,23 @@ class TestEvidenceEngine:
                 end_date=datetime.date(2026, 6, 20),
                 commits=8,
                 strategy="time",
-                size_config={"size": 10}
-            )
+                size_config={"size": 10},
+            ),
         ]
 
         self.detector_results = DetectorResults(
             detector_outputs={
                 "D-01": {"drift_detected": True, "drift_magnitude": 0.5},
                 "D-02": {"correlation_breakdown": True, "correlation_change": 0.3},
-                "D-03": {"threshold_compressed": False, "compression_ratio": 1.0}
+                "D-03": {"threshold_compressed": False, "compression_ratio": 1.0},
             }
         )
 
         self.score_package = ScorePackage(
             integrity=IntegrityScore(
                 overall=0.75,
-                per_metric={
-                    "M-02": 0.80,
-                    "M-06": 0.70
-                },
-                formula_version="TFS_v1.0"
+                per_metric={"M-02": 0.80, "M-06": 0.70},
+                formula_version="TFS_v1.0",
             ),
             confidence=ConfidenceScore(
                 overall=0.85,
@@ -93,13 +88,13 @@ class TestEvidenceEngine:
                     "variance": 0.8,
                     "missing_data": 0.7,
                     "window_balance": 0.9,
-                    "detector_success": 0.95
+                    "detector_success": 0.95,
                 },
-                band="high"
+                band="high",
             ),
             timestamp=datetime.datetime(2026, 6, 17, tzinfo=datetime.timezone.utc),
             config_hash="test-config-hash",
-            formula_version="TFS_v1.0"
+            formula_version="TFS_v1.0",
         )
 
         self.configuration = {
@@ -107,7 +102,7 @@ class TestEvidenceEngine:
             "config_hash": "test-config-hash",
             "platform": "test",
             "python_version": "3.9.0",
-            "dependency_hash": "test-dep-hash"
+            "dependency_hash": "test-dep-hash",
         }
 
     def test_evidence_engine_generate_returns_evidence_package(self):
@@ -118,7 +113,7 @@ class TestEvidenceEngine:
             windows=self.windows,
             detector_results=self.detector_results,
             score_package=self.score_package,
-            configuration=self.configuration
+            configuration=self.configuration,
         )
 
         assert isinstance(evidence_package, EvidencePackage)
@@ -137,7 +132,7 @@ class TestEvidenceEngine:
             windows=self.windows,
             detector_results=self.detector_results,
             score_package=self.score_package,
-            configuration=self.configuration
+            configuration=self.configuration,
         )
 
         evidence_package2 = self.mock_evidence_engine.generate(
@@ -146,7 +141,7 @@ class TestEvidenceEngine:
             windows=self.windows,
             detector_results=self.detector_results,
             score_package=self.score_package,
-            configuration=self.configuration
+            configuration=self.configuration,
         )
 
         # Should be identical due to deterministic mock
@@ -162,7 +157,7 @@ class TestEvidenceEngine:
             windows=self.windows,
             detector_results=self.detector_results,
             score_package=self.score_package,
-            configuration=self.configuration
+            configuration=self.configuration,
         )
 
         # Check that detector results IDs are captured
@@ -188,7 +183,7 @@ class TestEvidenceEngine:
             repo_id="test-repo",
             run_id="test-run-empty",
             timestamp=datetime.datetime(2026, 6, 17, tzinfo=datetime.timezone.utc),
-            metrics={}
+            metrics={},
         )
 
         empty_detector_results = DetectorResults(detector_outputs={})
@@ -199,7 +194,7 @@ class TestEvidenceEngine:
             windows=[],  # Empty windows
             detector_results=empty_detector_results,
             score_package=self.score_package,
-            configuration=self.configuration
+            configuration=self.configuration,
         )
 
         assert isinstance(evidence_package, EvidencePackage)
@@ -215,12 +210,17 @@ class TestEvidenceEngine:
             windows=self.windows,
             detector_results=self.detector_results,
             score_package=self.score_package,
-            configuration=self.configuration
+            configuration=self.configuration,
         )
 
         required_provenance = {
-            "miie_version", "config_hash", "timestamp", "seed",
-            "platform", "python_version", "dependency_hash"
+            "miie_version",
+            "config_hash",
+            "timestamp",
+            "seed",
+            "platform",
+            "python_version",
+            "dependency_hash",
         }
 
         prov = evidence_package.provenance
@@ -240,7 +240,7 @@ class TestEvidenceEngine:
             windows=self.windows,
             detector_results=self.detector_results,
             score_package=self.score_package,
-            configuration=self.configuration
+            configuration=self.configuration,
         )
 
         assert evidence_package.provenance.seed == self.configuration["seed"]
@@ -253,7 +253,7 @@ class TestEvidenceEngine:
             windows=self.windows,
             detector_results=self.detector_results,
             score_package=self.score_package,
-            configuration=self.configuration
+            configuration=self.configuration,
         )
 
         assert isinstance(evidence_package.warnings, list)
@@ -273,7 +273,7 @@ class TestEvidenceEngine:
             windows=self.windows,
             detector_results=self.detector_results,
             score_package=self.score_package,
-            configuration=config1
+            configuration=config1,
         )
 
         evidence_package2 = self.evidence_engine.generate(
@@ -282,7 +282,7 @@ class TestEvidenceEngine:
             windows=self.windows,
             detector_results=self.detector_results,
             score_package=self.score_package,
-            configuration=config2
+            configuration=config2,
         )
 
         # Different seeds should produce different evidence packages
@@ -304,7 +304,7 @@ class TestEvidenceEngine:
             windows=self.windows,
             detector_results=self.detector_results,
             score_package=self.score_package,
-            configuration=config1
+            configuration=config1,
         )
 
         evidence_package2 = self.mock_evidence_engine.generate(
@@ -313,7 +313,7 @@ class TestEvidenceEngine:
             windows=self.windows,
             detector_results=self.detector_results,
             score_package=self.score_package,
-            configuration=config2
+            configuration=config2,
         )
 
         # Same seed should produce identical evidence packages

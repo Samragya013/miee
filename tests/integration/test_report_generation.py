@@ -1,7 +1,9 @@
 """Integration tests for ReportGenerator implementation."""
+
 import json
 import tempfile
 from pathlib import Path
+
 from miie.processing.reporting.engine import ReportGenerator
 from miie.schemas.models import ReportOutput
 
@@ -18,33 +20,37 @@ def test_report_generator_integration_basic():
         "repository": {
             "repo_id": "test-repo",
             "local_path": "/tmp/test-repo",
-            "is_remote": False
+            "is_remote": False,
         },
-        "windows": [{"id": "w01", "start_date": "2026-06-01", "end_date": "2026-06-15", "commit_count": 100}],
+        "windows": [
+            {
+                "id": "w01",
+                "start_date": "2026-06-01",
+                "end_date": "2026-06-15",
+                "commit_count": 100,
+            }
+        ],
         "metrics": {
             "M-01": {"commit_frequency": [10.5, 12.3, 11.7, None, 13.2]},
-            "M-02": {"code_churn": [45.2, 38.7, 52.1, 29.8, 41.9]}
+            "M-02": {"code_churn": [45.2, 38.7, 52.1, 29.8, 41.9]},
         },
         "detector_results": {
             "D-01": {"drift_score": 0.23, "status": "PASSED"},
             "D-02": {"correlation": 0.76, "significant_pairs": 5},
-            "D-03": {"compression_ratio": 3.2, "space_savings": 68.5}
+            "D-03": {"compression_ratio": 3.2, "space_savings": 68.5},
         },
-        "scores": {
-            "integrity": {"overall": 0.89},
-            "confidence": {"overall": 0.92}
-        },
+        "scores": {"integrity": {"overall": 0.89}, "confidence": {"overall": 0.92}},
         "evidence": {
             "evidence_ids": ["ev_001", "ev_002"],
             "traceability": {
                 "detectors_to_metrics": {"D-01": ["M-01"], "D-02": ["M-02"]},
-                "metrics_to_windows": {"M-01": ["w01"], "M-02": ["w01"]}
-            }
+                "metrics_to_windows": {"M-01": ["w01"], "M-02": ["w01"]},
+            },
         },
         "explanations": [
             "Moderate commit frequency increase detected",
-            "Code churn shows expected variance"
-        ]
+            "Code churn shows expected variance",
+        ],
     }
 
     output_formats = ["json", "md", "csv"]
@@ -57,9 +63,9 @@ def test_report_generator_integration_basic():
         assert isinstance(report_output, ReportOutput)
 
         # Verify all required ACS INT-08 fields are present
-        assert hasattr(report_output, 'report_paths')
-        assert hasattr(report_output, 'manifest_path')
-        assert hasattr(report_output, 'checksums')
+        assert hasattr(report_output, "report_paths")
+        assert hasattr(report_output, "manifest_path")
+        assert hasattr(report_output, "checksums")
 
         # Verify report_paths contains requested formats
         assert "json" in report_output.report_paths
@@ -98,7 +104,7 @@ def test_report_generator_integration_basic():
 
         # Verify JSON content
         json_path = report_output.report_paths["json"]
-        with open(json_path, 'r') as f:
+        with open(json_path, "r") as f:
             json_data = json.load(f)
             assert "metadata" in json_data
             assert "analysis_result" in json_data
@@ -106,7 +112,7 @@ def test_report_generator_integration_basic():
             assert json_data["analysis_result"]["repository"]["repo_id"] == "test-repo"
 
         # Verify manifest content per BSD §20
-        with open(report_output.manifest_path, 'r') as f:
+        with open(report_output.manifest_path, "r") as f:
             manifest_data = json.load(f)
             assert "manifest_version" in manifest_data
             assert "miie_version" in manifest_data
@@ -146,7 +152,7 @@ def test_report_generator_integration_atomic_writes():
         assert json_file.stat().st_size > 0
 
         # Verify it's valid JSON
-        with open(json_file, 'r') as f:
+        with open(json_file, "r") as f:
             data = json.load(f)
             assert "metadata" in data
             assert "analysis_result" in data
@@ -184,7 +190,7 @@ def test_report_generator_integration_different_format_combinations():
         ["md", "csv"],
         ["json", "md", "csv", "txt"],
         ["txt"],
-        ["csv", "json"]
+        ["csv", "json"],
     ]
 
     for output_formats in test_cases:

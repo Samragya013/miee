@@ -2,21 +2,26 @@
 
 Implements the IBenchmarkEngine interface for executing benchmark suites.
 """
-from typing import Dict, Any, List, Optional
-from datetime import datetime
-import hashlib
-import json
 
+import hashlib
+from datetime import datetime
+from typing import Any, Dict, List
+
+from miie.contracts.interfaces import IBenchmarkEngine
 from miie.schemas.models import BenchmarkRun
 from miie.schemas.serialization import json_dumps
-from miie.contracts.interfaces import IBenchmarkEngine
 
 
 class BenchmarkEngine(IBenchmarkEngine):
     """Benchmark Engine implementation that executes benchmark suites."""
 
-    def execute(self, suite_id: str, detector_ids: List[str],
-                config: Dict[str, Any], seed: int = 42) -> BenchmarkRun:
+    def execute(
+        self,
+        suite_id: str,
+        detector_ids: List[str],
+        config: Dict[str, Any],
+        seed: int = 42,
+    ) -> BenchmarkRun:
         """Execute benchmark suite.
 
         Args:
@@ -30,6 +35,7 @@ class BenchmarkEngine(IBenchmarkEngine):
         """
         # Set random seed for reproducible results
         import random
+
         random.seed(seed)
 
         # Generate benchmark predictions based on detector performance simulation
@@ -40,6 +46,7 @@ class BenchmarkEngine(IBenchmarkEngine):
             # Generate deterministic but varied performance metrics based on seed and detector ID
             detector_seed = hash(f"{suite_id}_{detector_id}_{seed}") % 2**32
             import random
+
             local_random = random.Random(detector_seed)
 
             # Simulate different aspects of detector performance
@@ -63,7 +70,7 @@ class BenchmarkEngine(IBenchmarkEngine):
                 "memory_usage_mb": round(memory_usage, 2),
                 "samples_processed": local_random.randint(100, 1000),
                 "false_positive_rate": round(local_random.uniform(0.01, 0.1), 4),
-                "false_negative_rate": round(local_random.uniform(0.05, 0.2), 4)
+                "false_negative_rate": round(local_random.uniform(0.05, 0.2), 4),
             }
 
         # Use deterministic timestamp based on seed for reproducibility
@@ -75,8 +82,15 @@ class BenchmarkEngine(IBenchmarkEngine):
             "timestamp": fixed_timestamp,
             "seed_used": seed,
             "detectors_benchmarked": len(detector_ids),
-            "execution_time_ms": round(sum(p.get("processing_time_ms", 0) for p in predictions.values() if isinstance(p, dict) and "processing_time_ms" in p), 2),
-            "config_used": config
+            "execution_time_ms": round(
+                sum(
+                    p.get("processing_time_ms", 0)
+                    for p in predictions.values()
+                    if isinstance(p, dict) and "processing_time_ms" in p
+                ),
+                2,
+            ),
+            "config_used": config,
         }
 
         # Create metadata about the benchmark execution
@@ -89,19 +103,23 @@ class BenchmarkEngine(IBenchmarkEngine):
             "config_hash": hashlib.sha256(json_dumps(config).encode()).hexdigest(),
             "execution_environment": {
                 "python_version": "3.9.0",  # In practice, this would be sys.version
-                "platform": "test-environment"
-            }
+                "platform": "test-environment",
+            },
         }
 
-        return BenchmarkRun(
-            predictions=predictions,
-            metadata=metadata
-        )
+        return BenchmarkRun(predictions=predictions, metadata=metadata)
+
+
 class MockBenchmarkEngine:
     """Mock benchmark engine that returns deterministic benchmark run."""
 
-    def execute(self, suite_id: str, detector_ids: List[str],
-                config: Dict[str, Any], seed: int = 42) -> BenchmarkRun:
+    def execute(
+        self,
+        suite_id: str,
+        detector_ids: List[str],
+        config: Dict[str, Any],
+        seed: int = 42,
+    ) -> BenchmarkRun:
         """Return a fixed BenchmarkRun for testing."""
         # Return fixed predictions for each detector
         predictions = {}
@@ -115,7 +133,7 @@ class MockBenchmarkEngine:
                 "memory_usage_mb": 100.0,
                 "samples_processed": 100,
                 "false_positive_rate": 0.05,
-                "false_negative_rate": 0.10
+                "false_negative_rate": 0.10,
             }
 
         # Add suite-level metrics
@@ -125,7 +143,7 @@ class MockBenchmarkEngine:
             "seed_used": seed,
             "detectors_benchmarked": len(detector_ids),
             "execution_time_ms": 50.0,
-            "config_used": config
+            "config_used": config,
         }
 
         metadata = {
@@ -137,11 +155,8 @@ class MockBenchmarkEngine:
             "config_hash": "mock_config_hash",
             "execution_environment": {
                 "python_version": "3.9.0",
-                "platform": "test-environment"
-            }
+                "platform": "test-environment",
+            },
         }
 
-        return BenchmarkRun(
-            predictions=predictions,
-            metadata=metadata
-        )
+        return BenchmarkRun(predictions=predictions, metadata=metadata)

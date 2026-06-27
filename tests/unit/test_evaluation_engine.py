@@ -1,8 +1,8 @@
 """Unit tests for EvaluationEngine implementation."""
-from miie.processing.evaluation.engine import EvaluationEngine
+
 from miie.processing.benchmark.engine import BenchmarkEngine
-from miie.schemas.models import EvaluationResult, BenchmarkRun
-import datetime
+from miie.processing.evaluation.engine import EvaluationEngine
+from miie.schemas.models import BenchmarkRun, EvaluationResult
 
 
 def test_evaluation_engine_creation():
@@ -21,7 +21,7 @@ def test_evaluation_engine_evaluate_returns_expected_structure():
         suite_id="test-suite",
         detector_ids=["D-01", "D-02"],
         config={"test": True},
-        seed=42
+        seed=42,
     )
 
     ground_truth = {"example": "data"}
@@ -31,10 +31,10 @@ def test_evaluation_engine_evaluate_returns_expected_structure():
     assert evaluation_result is not None
     assert isinstance(evaluation_result, EvaluationResult)
     # Check that all fields are present and are floats
-    assert hasattr(evaluation_result, 'accuracy')
-    assert hasattr(evaluation_result, 'precision')
-    assert hasattr(evaluation_result, 'recall')
-    assert hasattr(evaluation_result, 'f1_score')
+    assert hasattr(evaluation_result, "accuracy")
+    assert hasattr(evaluation_result, "precision")
+    assert hasattr(evaluation_result, "recall")
+    assert hasattr(evaluation_result, "f1_score")
     assert isinstance(evaluation_result.accuracy, float)
     assert isinstance(evaluation_result.precision, float)
     assert isinstance(evaluation_result.recall, float)
@@ -52,15 +52,8 @@ def test_evaluation_engine_evaluate_handles_empty_benchmark_run():
 
     # Create a benchmark run with no valid detector predictions
     benchmark_run = BenchmarkRun(
-        predictions={
-            "suite_summary": {
-                "suite_id": "test",
-                "seed_used": 42
-            }
-        },
-        metadata={
-            "test": "metadata"
-        }
+        predictions={"suite_summary": {"suite_id": "test", "seed_used": 42}},
+        metadata={"test": "metadata"},
     )
 
     ground_truth = {}
@@ -87,26 +80,23 @@ def test_evaluation_engine_evaluate_calculates_correct_averages():
                 "accuracy": 0.8,
                 "precision": 0.75,
                 "recall": 0.85,
-                "f1_score": 0.79
+                "f1_score": 0.79,
             },
             "D-02": {
                 "accuracy": 0.9,
                 "precision": 0.85,
                 "recall": 0.9,
-                "f1_score": 0.87
+                "f1_score": 0.87,
             },
             "D-03": {
                 "accuracy": 0.7,
                 "precision": 0.65,
                 "recall": 0.75,
-                "f1_score": 0.70
+                "f1_score": 0.70,
             },
-            "suite_summary": {
-                "suite_id": "test",
-                "seed_used": 42
-            }
+            "suite_summary": {"suite_id": "test", "seed_used": 42},
         },
-        metadata={}
+        metadata={},
     )
 
     ground_truth = {}
@@ -135,17 +125,12 @@ def test_evaluation_engine_evaluate_ignores_non_detector_predictions():
                 "accuracy": 0.8,
                 "precision": 0.7,
                 "recall": 0.9,
-                "f1_score": 0.79
+                "f1_score": 0.79,
             },
-            "suite_summary": {
-                "suite_id": "test",
-                "timestamp": "2026-01-01"
-            },
-            "config_info": {
-                "method": "test"
-            }
+            "suite_summary": {"suite_id": "test", "timestamp": "2026-01-01"},
+            "config_info": {"method": "test"},
         },
-        metadata={}
+        metadata={},
     )
 
     ground_truth = {}
@@ -166,10 +151,7 @@ def test_evaluation_engine_evaluate_respects_ground_truth_parameter():
     # Create a benchmark run
     benchmark_engine = BenchmarkEngine()
     benchmark_run = benchmark_engine.execute(
-        suite_id="test-suite",
-        detector_ids=["D-01"],
-        config={"test": True},
-        seed=42
+        suite_id="test-suite", detector_ids=["D-01"], config={"test": True}, seed=42
     )
 
     # Test with different ground truth values

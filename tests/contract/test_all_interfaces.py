@@ -6,25 +6,25 @@ has the required methods with correct signatures.
 Implements: CT-01..CT-17 (contract test coverage for interface definitions)
 """
 
-import pytest
 import inspect
-from typing import get_type_hints, Protocol
+from typing import Protocol
+
+import pytest
 
 from miie.contracts.interfaces import (
-    IIngestionEngine,
-    IExtractionEngine,
-    ISegmentationEngine,
-    IDetectorEngine,
-    IScoringEngine,
-    IEvidenceEngine,
-    IExplanationEngine,
     IBenchmarkEngine,
-    IEvaluationEngine,
-    IReportGenerator,
     IDataExporter,
     IDatasetGenerator,
+    IDetectorEngine,
+    IEvaluationEngine,
+    IEvidenceEngine,
+    IExplanationEngine,
+    IExtractionEngine,
+    IIngestionEngine,
+    IReportGenerator,
+    IScoringEngine,
+    ISegmentationEngine,
 )
-
 
 # ---------------------------------------------------------------------------
 # Protocol → required methods mapping (from ACS §3 INT definitions)
@@ -41,7 +41,12 @@ PROTOCOL_METHODS: dict[type, dict[str, list[str]]] = {
         "segment": ["metric_dataframe", "strategy", "size", "custom_boundaries"],
     },
     IDetectorEngine: {
-        "invoke": ["metric_dataframe", "windows", "detector_config", "enabled_detectors"],
+        "invoke": [
+            "metric_dataframe",
+            "windows",
+            "detector_config",
+            "enabled_detectors",
+        ],
     },
     IScoringEngine: {
         "compute_integrity_score": [
@@ -62,7 +67,12 @@ PROTOCOL_METHODS: dict[type, dict[str, list[str]]] = {
         ],
     },
     IExplanationEngine: {
-        "generate": ["evidence_package", "score_package", "metric_filter", "detector_filter"],
+        "generate": [
+            "evidence_package",
+            "score_package",
+            "metric_filter",
+            "detector_filter",
+        ],
     },
     IBenchmarkEngine: {
         "execute": ["suite_id", "detector_ids", "config", "seed"],
@@ -96,21 +106,17 @@ class TestProtocolExistence:
         assert protocol is not None
 
     def test_total_protocol_count(self):
-        assert len(ALL_PROTOCOLS) == 12, (
-            f"Expected 12 ACS protocols, got {len(ALL_PROTOCOLS)}"
-        )
+        assert len(ALL_PROTOCOLS) == 12, f"Expected 12 ACS protocols, got {len(ALL_PROTOCOLS)}"
 
     @pytest.mark.parametrize("protocol", ALL_PROTOCOLS, ids=lambda p: p.__name__)
     def test_protocol_inherits_from_protocol(self, protocol):
-        assert issubclass(protocol, Protocol), (
-            f"{protocol.__name__} must inherit from typing.Protocol"
-        )
+        assert issubclass(protocol, Protocol), f"{protocol.__name__} must inherit from typing.Protocol"
 
     @pytest.mark.parametrize("protocol", ALL_PROTOCOLS, ids=lambda p: p.__name__)
     def test_protocol_is_runtime_checkable(self, protocol):
-        assert getattr(protocol, "_is_runtime_protocol", False) is True, (
-            f"{protocol.__name__} must be decorated with @runtime_checkable"
-        )
+        assert (
+            getattr(protocol, "_is_runtime_protocol", False) is True
+        ), f"{protocol.__name__} must be decorated with @runtime_checkable"
 
 
 class TestProtocolMethods:
@@ -122,13 +128,9 @@ class TestProtocolMethods:
     )
     def test_methods_exist(self, protocol, expected_methods):
         for method_name in expected_methods:
-            assert hasattr(protocol, method_name), (
-                f"{protocol.__name__} missing method: {method_name}"
-            )
+            assert hasattr(protocol, method_name), f"{protocol.__name__} missing method: {method_name}"
             method = getattr(protocol, method_name)
-            assert callable(method), (
-                f"{protocol.__name__}.{method_name} must be callable"
-            )
+            assert callable(method), f"{protocol.__name__}.{method_name} must be callable"
 
     @pytest.mark.parametrize(
         "protocol, expected_methods",
@@ -142,8 +144,7 @@ class TestProtocolMethods:
             actual_params = list(sig.parameters.keys())
             for pname in param_names:
                 assert pname in actual_params, (
-                    f"{protocol.__name__}.{method_name} missing parameter: {pname}; "
-                    f"found: {actual_params}"
+                    f"{protocol.__name__}.{method_name} missing parameter: {pname}; " f"found: {actual_params}"
                 )
 
 
@@ -159,9 +160,9 @@ class TestProtocolReturnTypes:
         for method_name in PROTOCOL_METHODS[protocol]:
             method = getattr(protocol, method_name)
             sig = inspect.signature(method)
-            assert sig.return_annotation is not inspect.Parameter.empty, (
-                f"{protocol.__name__}.{method_name} must have a return type annotation"
-            )
+            assert (
+                sig.return_annotation is not inspect.Parameter.empty
+            ), f"{protocol.__name__}.{method_name} must have a return type annotation"
 
 
 class TestProtocolNamesMatchACS:
@@ -197,73 +198,113 @@ class TestMockImplementations:
         class Impl:
             def ingest(self, repo_path, cache_dir=None, keep_cache=False, shallow_depth=None):
                 pass
+
             def validate(self, context):
                 return True
+
         assert isinstance(Impl(), IIngestionEngine)
 
     def test_extraction_engine(self):
         class Impl:
-            def extract(self, context, metric_list, since=None, until=None, exclude_bots=False, windows=None):
+            def extract(
+                self,
+                context,
+                metric_list,
+                since=None,
+                until=None,
+                exclude_bots=False,
+                windows=None,
+            ):
                 pass
+
         assert isinstance(Impl(), IExtractionEngine)
 
     def test_segmentation_engine(self):
         class Impl:
             def segment(self, metric_dataframe, strategy, size, custom_boundaries=None):
                 return []
+
         assert isinstance(Impl(), ISegmentationEngine)
 
     def test_detector_engine(self):
         class Impl:
-            def invoke(self, metric_dataframe, windows, detector_config=None, enabled_detectors=None):
+            def invoke(
+                self,
+                metric_dataframe,
+                windows,
+                detector_config=None,
+                enabled_detectors=None,
+            ):
                 pass
+
         assert isinstance(Impl(), IDetectorEngine)
 
     def test_scoring_engine(self):
         class Impl:
             def compute_integrity_score(self, detector_results, metric_dataframe, windows, detector_weights=None):
                 pass
+
         assert isinstance(Impl(), IScoringEngine)
 
     def test_evidence_engine(self):
         class Impl:
-            def generate(self, repository_context, metric_dataframe, windows,
-                         detector_results, score_package, configuration):
+            def generate(
+                self,
+                repository_context,
+                metric_dataframe,
+                windows,
+                detector_results,
+                score_package,
+                configuration,
+            ):
                 pass
+
         assert isinstance(Impl(), IEvidenceEngine)
 
     def test_explanation_engine(self):
         class Impl:
-            def generate(self, evidence_package, score_package, metric_filter=None, detector_filter=None):
+            def generate(
+                self,
+                evidence_package,
+                score_package,
+                metric_filter=None,
+                detector_filter=None,
+            ):
                 pass
+
         assert isinstance(Impl(), IExplanationEngine)
 
     def test_benchmark_engine(self):
         class Impl:
             def execute(self, suite_id, detector_ids, config, seed=42):
                 pass
+
         assert isinstance(Impl(), IBenchmarkEngine)
 
     def test_evaluation_engine(self):
         class Impl:
             def evaluate(self, benchmark_run, ground_truth):
                 pass
+
         assert isinstance(Impl(), IEvaluationEngine)
 
     def test_report_generator(self):
         class Impl:
             def generate(self, analysis_result, output_formats, output_dir):
                 pass
+
         assert isinstance(Impl(), IReportGenerator)
 
     def test_data_exporter(self):
         class Impl:
             def export(self, data, formats, output_dir):
                 return {}
+
         assert isinstance(Impl(), IDataExporter)
 
     def test_dataset_generator(self):
         class Impl:
             def generate(self, dataset_type, count, output_dir, seed=None):
                 return []
+
         assert isinstance(Impl(), IDatasetGenerator)

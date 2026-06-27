@@ -3,24 +3,25 @@ Integration Tests for MIIE v1.0 Pipeline Skeleton
 Tests the orchestration pipeline with mock implementations.
 """
 
-import pytest
-from pathlib import Path
 from datetime import datetime, timedelta
+from pathlib import Path
+
+import pytest
 
 from miie.orchestration.pipeline import AnalysisPipeline
+from miie.schemas.models import BenchmarkRun
 from tests.fixtures.mock_services import (
-    MockIngestionEngine,
-    MockExtractionEngine,
-    MockSegmentationEngine,
+    MockBenchmarkEngine,
     MockDetectorEngine,
-    MockScoringEngine,
+    MockEvaluationEngine,
     MockEvidenceEngine,
     MockExplanationEngine,
+    MockExtractionEngine,
+    MockIngestionEngine,
     MockReportGenerator,
-    MockBenchmarkEngine,
-    MockEvaluationEngine
+    MockScoringEngine,
+    MockSegmentationEngine,
 )
-from miie.schemas.models import BenchmarkRun
 
 
 class TestAnalysisPipeline:
@@ -39,7 +40,7 @@ class TestAnalysisPipeline:
             explanation_engine=MockExplanationEngine(),
             report_generator=MockReportGenerator(),
             benchmark_engine=MockBenchmarkEngine(),
-            evaluation_engine=MockEvaluationEngine()
+            evaluation_engine=MockEvaluationEngine(),
         )
 
     def test_pipeline_initialization(self, pipeline):
@@ -63,11 +64,7 @@ class TestAnalysisPipeline:
         output_dir = tmp_path / "output"
 
         # Act
-        result = pipeline.run_analysis(
-            repo_path=repo_path,
-            metric_list=metric_list,
-            output_dir=output_dir
-        )
+        result = pipeline.run_analysis(repo_path=repo_path, metric_list=metric_list, output_dir=output_dir)
 
         # Assert
         assert result is not None
@@ -114,7 +111,7 @@ class TestAnalysisPipeline:
             exclude_bots=True,
             segmentation_strategy="commit",
             segmentation_size=5,
-            output_dir=output_dir
+            output_dir=output_dir,
         )
 
         # Assert
@@ -131,11 +128,7 @@ class TestAnalysisPipeline:
         config = {"threshold": 0.05}
 
         # Act
-        benchmark_run = pipeline.run_benchmark(
-            suite_id=suite_id,
-            detector_ids=detector_ids,
-            config=config
-        )
+        benchmark_run = pipeline.run_benchmark(suite_id=suite_id, detector_ids=detector_ids, config=config)
 
         # Assert
         assert benchmark_run is not None
@@ -147,17 +140,11 @@ class TestAnalysisPipeline:
     def test_evaluate_benchmark_success(self, pipeline):
         """Test benchmark evaluation."""
         # Arrange
-        benchmark_run = BenchmarkRun(
-            predictions={"D-01": [0.8, 0.75, 0.82]},
-            metadata={}
-        )
+        benchmark_run = BenchmarkRun(predictions={"D-01": [0.8, 0.75, 0.82]}, metadata={})
         ground_truth = {"D-01": [0.78, 0.76, 0.80]}
 
         # Act
-        evaluation_result = pipeline.evaluate_benchmark(
-            benchmark_run=benchmark_run,
-            ground_truth=ground_truth
-        )
+        evaluation_result = pipeline.evaluate_benchmark(benchmark_run=benchmark_run, ground_truth=ground_truth)
 
         # Assert
         assert evaluation_result is not None
@@ -175,7 +162,7 @@ class TestAnalysisPipeline:
             scoring_engine=MockScoringEngine(),
             evidence_engine=MockEvidenceEngine(),
             explanation_engine=MockExplanationEngine(),
-            report_generator=MockReportGenerator()
+            report_generator=MockReportGenerator(),
             # No benchmark_engine or evaluation_engine
         )
 
@@ -184,11 +171,7 @@ class TestAnalysisPipeline:
         assert pipeline.evaluation_engine is None
 
         # Should still be able to run analysis
-        result = pipeline.run_analysis(
-            repo_path="/tmp/test",
-            metric_list=["M-01"],
-            output_dir=Path("./tmp_output")
-        )
+        result = pipeline.run_analysis(repo_path="/tmp/test", metric_list=["M-01"], output_dir=Path("./tmp_output"))
         assert result is not None
 
         # But benchmark/evaluation methods should fail
@@ -196,13 +179,7 @@ class TestAnalysisPipeline:
             pipeline.run_benchmark("suite", ["D-01"], {})
 
         with pytest.raises(RuntimeError, match="Evaluation engine not available"):
-            pipeline.evaluate_benchmark(
-                BenchmarkRun(
-                    predictions={},
-                    metadata={}
-                ),
-                {}
-            )
+            pipeline.evaluate_benchmark(BenchmarkRun(predictions={}, metadata={}), {})
 
 
 if __name__ == "__main__":

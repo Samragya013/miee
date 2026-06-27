@@ -1,14 +1,21 @@
 """Unit tests for mock explanation engines."""
+
+import datetime
+
 from miie.processing.explanation.mock_explanation import (
+    MockDetailedExplanationEngine,
     MockExplanationEngine,
     MockZeroExplanationEngine,
-    MockDetailedExplanationEngine
 )
 from miie.schemas.models import (
-    EvidencePackage, ScorePackage, WindowDefinition, DetectorResults,
-    Provenance, IntegrityScore, ConfidenceScore
+    ConfidenceScore,
+    DetectorResults,
+    EvidencePackage,
+    IntegrityScore,
+    Provenance,
+    ScorePackage,
+    WindowDefinition,
 )
-import datetime
 
 
 def create_test_evidence_package():
@@ -18,7 +25,7 @@ def create_test_evidence_package():
         start_date=datetime.datetime(2026, 1, 1),
         end_date=datetime.datetime(2026, 1, 31),
         commits=10,
-        strategy="fixed_size"
+        strategy="fixed_size",
     )
 
     return EvidencePackage(
@@ -29,21 +36,35 @@ def create_test_evidence_package():
             seed=42,
             platform="test-platform",
             python_version="3.9.0",
-            dependency_hash="test-dep-hash"
+            dependency_hash="test-dep-hash",
         ),
         windows=[window],
         metrics=["M-01", "M-02"],
-        detector_outputs=DetectorResults(detector_outputs={
-            "D-01": {"anomaly_score": 0.3},
-            "D-02": {"drift_detected": False},
-            "D-03": {"correlation_breakdown": True}
-        }),
+        detector_outputs=DetectorResults(
+            detector_outputs={
+                "D-01": {"anomaly_score": 0.3},
+                "D-02": {"drift_detected": False},
+                "D-03": {"correlation_breakdown": True},
+            }
+        ),
         scores=ScorePackage(
-            integrity=IntegrityScore(overall=0.75, per_metric={"M-01": 0.80, "M-02": 0.70}, formula_version="1.0.0"),
-            confidence=ConfidenceScore(overall=0.85, factors={"sample_size": 0.9, "data_quality": 0.8, "temporal_coverage": 0.85}, band="medium"),
+            integrity=IntegrityScore(
+                overall=0.75,
+                per_metric={"M-01": 0.80, "M-02": 0.70},
+                formula_version="1.0.0",
+            ),
+            confidence=ConfidenceScore(
+                overall=0.85,
+                factors={
+                    "sample_size": 0.9,
+                    "data_quality": 0.8,
+                    "temporal_coverage": 0.85,
+                },
+                band="medium",
+            ),
             timestamp=datetime.datetime.now(tz=datetime.timezone.utc),
-            config_hash="test"
-        )
+            config_hash="test",
+        ),
     )
 
 
@@ -53,19 +74,19 @@ def create_test_score_package():
         integrity=IntegrityScore(
             overall=0.75,
             per_metric={"M-01": 0.80, "M-02": 0.70},
-            formula_version="1.0.0"
+            formula_version="1.0.0",
         ),
         confidence=ConfidenceScore(
             overall=0.85,
             factors={
                 "sample_size": 0.9,
                 "data_quality": 0.8,
-                "temporal_coverage": 0.85
+                "temporal_coverage": 0.85,
             },
-            band="medium"
+            band="medium",
         ),
         timestamp=datetime.datetime.now(tz=datetime.timezone.utc),
-        config_hash="test"
+        config_hash="test",
     )
 
 
@@ -78,8 +99,8 @@ def test_mock_explanation_engine_returns_expected_structure():
     report = engine.generate(evidence, scores)
 
     assert report is not None
-    assert hasattr(report, 'narratives')
-    assert hasattr(report, 'recommendations')
+    assert hasattr(report, "narratives")
+    assert hasattr(report, "recommendations")
     assert isinstance(report.narratives, list)
     assert isinstance(report.recommendations, list)
     assert len(report.narratives) == 4

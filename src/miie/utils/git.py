@@ -2,21 +2,21 @@
 
 Parses GitHub URLs, validates ownership, and clones repositories with auth support.
 """
-import re
-from pathlib import Path
-from typing import Optional, Tuple
+
+import shutil
 import subprocess
 import tempfile
-import shutil
+from pathlib import Path
+from typing import Optional, Tuple
 from urllib.parse import urlparse
-
 
 # GitHub URL patterns
 GITHUB_URL_PATTERNS = [
-    r'^https?://github\.com/([^/]+/[^/]+)(?:\.git)?$',
-    r'^git@github\.com:([^/]+/[^/]+)\.git$',
-    r'^ssh://git@github\.com/([^/]+/[^/]+)\.git$',
+    r"^https?://github\.com/([^/]+/[^/]+)(?:\.git)?$",
+    r"^git@github\.com:([^/]+/[^/]+)\.git$",
+    r"^ssh://git@github\.com/([^/]+/[^/]+)\.git$",
 ]
+
 
 class GitURLParser:
     """Parse and validate GitHub repository URLs."""
@@ -37,40 +37,40 @@ class GitURLParser:
         url = url.strip()
 
         # Handle SSH URLs (git@github.com:owner/repo.git)
-        if url.startswith('git@github.com:'):
-            url = 'https://' + url.replace('git@github.com:', 'github.com/')
+        if url.startswith("git@github.com:"):
+            url = "https://" + url.replace("git@github.com:", "github.com/")
 
         # Handle ssh://git@github.com/ URLs
-        if url.startswith('ssh://git@github.com/'):
-            url = 'https://' + url[len('ssh://git@'):]
+        if url.startswith("ssh://git@github.com/"):
+            url = "https://" + url[len("ssh://git@") :]
 
         # Handle git:// URLs
-        if url.startswith('git://'):
-            url = url.replace('git://', 'https://')
+        if url.startswith("git://"):
+            url = url.replace("git://", "https://")
 
         parsed = urlparse(url)
         # Only allow http/https schemes
-        if parsed.scheme not in ('http', 'https', ''):
-            raise ValueError(f'Unsupported URL scheme: {parsed.scheme} — {url}')
+        if parsed.scheme not in ("http", "https", ""):
+            raise ValueError(f"Unsupported URL scheme: {parsed.scheme} — {url}")
 
-        if parsed.netloc not in ('github.com', 'www.github.com'):
-            raise ValueError(f'Not a GitHub URL: {url}')
+        if parsed.netloc not in ("github.com", "www.github.com"):
+            raise ValueError(f"Not a GitHub URL: {url}")
 
-        path = parsed.path.strip('/')
+        path = parsed.path.strip("/")
         if not path:
-            raise ValueError(f'Invalid GitHub URL (no path): {url}')
+            raise ValueError(f"Invalid GitHub URL (no path): {url}")
 
         # Remove .git suffix if present
-        if path.endswith('.git'):
+        if path.endswith(".git"):
             path = path[:-4]
 
-        parts = path.split('/')
+        parts = path.split("/")
         if len(parts) != 2:
-            raise ValueError(f'Invalid GitHub URL path: {path}')
+            raise ValueError(f"Invalid GitHub URL path: {path}")
 
         owner, repo = parts
         if not owner or not repo:
-            raise ValueError(f'Invalid owner or repo in URL: {url}')
+            raise ValueError(f"Invalid owner or repo in URL: {url}")
 
         return owner, repo
 
@@ -97,12 +97,7 @@ class GitCloner:
         self.auth_token = auth_token
         self.shallow_depth = shallow_depth
 
-    def clone(
-        self,
-        url: str,
-        target_dir: Optional[Path] = None,
-        cleanup_after: bool = False
-    ) -> Path:
+    def clone(self, url: str, target_dir: Optional[Path] = None, cleanup_after: bool = False) -> Path:
         """Clone a GitHub repository.
 
         Args:
@@ -122,7 +117,7 @@ class GitCloner:
 
         # Determine target directory
         if target_dir is None:
-            target_dir = Path(tempfile.mkdtemp(prefix=f'miiie_{owner}_{repo}_'))
+            target_dir = Path(tempfile.mkdtemp(prefix=f"miiie_{owner}_{repo}_"))
         else:
             target_dir = Path(target_dir)
             target_dir.mkdir(parents=True, exist_ok=True)
@@ -131,15 +126,15 @@ class GitCloner:
         clone_url = url
         if self.auth_token:
             # Use token for authentication
-            if url.startswith('https://'):
-                clone_url = url.replace('https://', f'https://{self.auth_token}@')
-            elif url.startswith('http://'):
-                clone_url = url.replace('http://', f'https://{self.auth_token}@')
+            if url.startswith("https://"):
+                clone_url = url.replace("https://", f"https://{self.auth_token}@")
+            elif url.startswith("http://"):
+                clone_url = url.replace("http://", f"https://{self.auth_token}@")
 
         # Build git clone command
-        cmd = ['git', 'clone']
+        cmd = ["git", "clone"]
         if self.shallow_depth is not None and self.shallow_depth > 0:
-            cmd.extend(['--depth', str(self.shallow_depth)])
+            cmd.extend(["--depth", str(self.shallow_depth)])
         cmd.extend([clone_url, str(target_dir)])
 
         # Execute git clone
@@ -148,9 +143,9 @@ class GitCloner:
                 cmd,
                 capture_output=True,
                 text=True,
-                encoding='utf-8',
-                errors='replace',
-                check=True
+                encoding="utf-8",
+                errors="replace",
+                check=True,
             )
         except subprocess.CalledProcessError as e:
             error_msg = f"Failed to clone {url}\n"
@@ -161,6 +156,7 @@ class GitCloner:
         # Setup cleanup if requested
         if cleanup_after:
             import atexit
+
             atexit.register(self._cleanup_temp_dir, target_dir)
 
         return target_dir

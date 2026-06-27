@@ -5,6 +5,7 @@ Covers:
 - Target validation logic
 - Evaluation results have all required fields
 """
+
 import json
 import subprocess
 import sys
@@ -19,9 +20,14 @@ RESULTS_DIR = BENCHMARKS_DIR / "results"
 def _run_evaluation(seed: int = 42) -> subprocess.CompletedProcess:
     """Run the evaluation script as a subprocess."""
     return subprocess.run(
-        [sys.executable, str(BENCHMARKS_DIR / "run_evaluation.py"),
-         "--seed", str(seed),
-         "--output", str(RESULTS_DIR)],
+        [
+            sys.executable,
+            str(BENCHMARKS_DIR / "run_evaluation.py"),
+            "--seed",
+            str(seed),
+            "--output",
+            str(RESULTS_DIR),
+        ],
         capture_output=True,
         text=True,
         cwd=str(BENCHMARKS_DIR.parent),
@@ -31,8 +37,12 @@ def _run_evaluation(seed: int = 42) -> subprocess.CompletedProcess:
 def _run_validation() -> subprocess.CompletedProcess:
     """Run the validation script as a subprocess."""
     return subprocess.run(
-        [sys.executable, str(BENCHMARKS_DIR / "validate_targets.py"),
-         "--results-dir", str(RESULTS_DIR)],
+        [
+            sys.executable,
+            str(BENCHMARKS_DIR / "validate_targets.py"),
+            "--results-dir",
+            str(RESULTS_DIR),
+        ],
         capture_output=True,
         text=True,
         cwd=str(BENCHMARKS_DIR.parent),
@@ -54,28 +64,38 @@ class TestEvaluationScript:
 
     def test_creates_output_files(self):
         _run_evaluation(seed=42)
-        for fname in ("D-01_evaluation.json", "D-02_evaluation.json",
-                       "D-03_evaluation.json", "benchmark_summary.json"):
+        for fname in (
+            "D-01_evaluation.json",
+            "D-02_evaluation.json",
+            "D-03_evaluation.json",
+            "benchmark_summary.json",
+        ):
             path = RESULTS_DIR / fname
             assert path.exists(), f"Expected output file not found: {path}"
 
     def test_deterministic_with_same_seed(self):
         _run_evaluation(seed=99)
         content_first = {}
-        for fname in ("D-01_evaluation.json", "D-02_evaluation.json", "D-03_evaluation.json"):
+        for fname in (
+            "D-01_evaluation.json",
+            "D-02_evaluation.json",
+            "D-03_evaluation.json",
+        ):
             content_first[fname] = (RESULTS_DIR / fname).read_text(encoding="utf-8")
 
         _run_evaluation(seed=99)
         for fname, first_content in content_first.items():
             second_content = (RESULTS_DIR / fname).read_text(encoding="utf-8")
-            assert first_content == second_content, (
-                f"Results differ across runs with same seed for {fname}"
-            )
+            assert first_content == second_content, f"Results differ across runs with same seed for {fname}"
 
     def test_different_seeds_produce_different_results(self):
         _run_evaluation(seed=42)
         content_a = {}
-        for fname in ("D-01_evaluation.json", "D-02_evaluation.json", "D-03_evaluation.json"):
+        for fname in (
+            "D-01_evaluation.json",
+            "D-02_evaluation.json",
+            "D-03_evaluation.json",
+        ):
             content_a[fname] = (RESULTS_DIR / fname).read_text(encoding="utf-8")
 
         _run_evaluation(seed=123)
@@ -107,19 +127,22 @@ class TestValidationScript:
         _run_evaluation(seed=42)
         result = _run_validation()
         output = result.stdout
-        assert "PASS" in output or "FAIL" in output, (
-            "Validation output should contain PASS or FAIL"
-        )
+        assert "PASS" in output or "FAIL" in output, "Validation output should contain PASS or FAIL"
 
     def test_exits_one_when_results_missing(self):
         """Validation should fail if results directory is empty."""
         import shutil
+
         temp_dir = RESULTS_DIR / "_temp_empty"
         temp_dir.mkdir(exist_ok=True)
         try:
             result = subprocess.run(
-                [sys.executable, str(BENCHMARKS_DIR / "validate_targets.py"),
-                 "--results-dir", str(temp_dir)],
+                [
+                    sys.executable,
+                    str(BENCHMARKS_DIR / "validate_targets.py"),
+                    "--results-dir",
+                    str(temp_dir),
+                ],
                 capture_output=True,
                 text=True,
                 cwd=str(BENCHMARKS_DIR.parent),
@@ -135,11 +158,25 @@ class TestValidationScript:
 class TestEvaluationResultSchema:
     """Tests that evaluation JSONs match the BSD §16 schema."""
 
-    REQUIRED_FIELDS = ("suite_id", "detector_id", "detector_version", "metrics",
-                       "confusion_matrix", "per_dataset_results")
+    REQUIRED_FIELDS = (
+        "suite_id",
+        "detector_id",
+        "detector_version",
+        "metrics",
+        "confusion_matrix",
+        "per_dataset_results",
+    )
 
-    REQUIRED_METRICS = ("accuracy", "precision", "recall", "f1",
-                        "auc_roc", "auc_pr", "fpr", "fnr")
+    REQUIRED_METRICS = (
+        "accuracy",
+        "precision",
+        "recall",
+        "f1",
+        "auc_roc",
+        "auc_pr",
+        "fpr",
+        "fnr",
+    )
 
     REQUIRED_CM_FIELDS = ("tp", "fp", "tn", "fn")
 
@@ -165,12 +202,10 @@ class TestEvaluationResultSchema:
         metrics = data["metrics"]
         for metric in self.REQUIRED_METRICS:
             assert metric in metrics, f"{detector_id} metrics missing: {metric}"
-            assert isinstance(metrics[metric], (int, float)), (
-                f"{detector_id} metrics['{metric}'] must be numeric"
-            )
-            assert 0.0 <= metrics[metric] <= 1.0, (
-                f"{detector_id} metrics['{metric}'] = {metrics[metric]}, expected [0, 1]"
-            )
+            assert isinstance(metrics[metric], (int, float)), f"{detector_id} metrics['{metric}'] must be numeric"
+            assert (
+                0.0 <= metrics[metric] <= 1.0
+            ), f"{detector_id} metrics['{metric}'] = {metrics[metric]}, expected [0, 1]"
 
     @pytest.mark.parametrize("detector_id", DETECTOR_IDS)
     def test_has_confusion_matrix_fields(self, detector_id):
@@ -179,12 +214,8 @@ class TestEvaluationResultSchema:
         cm = data["confusion_matrix"]
         for field in self.REQUIRED_CM_FIELDS:
             assert field in cm, f"{detector_id} confusion_matrix missing: {field}"
-            assert isinstance(cm[field], int), (
-                f"{detector_id} confusion_matrix['{field}'] must be int"
-            )
-            assert cm[field] >= 0, (
-                f"{detector_id} confusion_matrix['{field}'] must be >= 0"
-            )
+            assert isinstance(cm[field], int), f"{detector_id} confusion_matrix['{field}'] must be int"
+            assert cm[field] >= 0, f"{detector_id} confusion_matrix['{field}'] must be >= 0"
 
     @pytest.mark.parametrize("detector_id", DETECTOR_IDS)
     def test_detector_id_matches_filename(self, detector_id):

@@ -2,9 +2,11 @@
 Centralized validation service for MIIE using JSON Schema draft-07.
 Provides a single authority path for schema validation.
 """
+
 import json
 import os
-from typing import Dict, Any, Optional
+from typing import Any, Dict, Optional
+
 import jsonschema
 from jsonschema import ValidationError as JsonschemaValidationError
 
@@ -28,7 +30,7 @@ class ValidationService:
         if schemas_dir is None:
             # Default to the schemas directory relative to this file
             base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-            schemas_dir = os.path.join(base_dir, 'schemas')
+            schemas_dir = os.path.join(base_dir, "schemas")
 
         self.schemas_dir = schemas_dir
         self._schemas: Dict[str, Dict[str, Any]] = {}
@@ -42,12 +44,12 @@ class ValidationService:
             raise FileNotFoundError(f"Schemas directory not found: {self.schemas_dir}")
 
         for filename in os.listdir(self.schemas_dir):
-            if filename.endswith('.schema.json'):
-                schema_name = filename[:-len('.schema.json')]
+            if filename.endswith(".schema.json"):
+                schema_name = filename[: -len(".schema.json")]
                 schema_path = os.path.join(self.schemas_dir, filename)
 
                 try:
-                    with open(schema_path, 'r', encoding='utf-8') as f:
+                    with open(schema_path, "r", encoding="utf-8") as f:
                         schema = json.load(f)
 
                     # Validate that the schema itself is a valid draft-07 schema

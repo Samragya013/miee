@@ -6,20 +6,17 @@ Extracts all 7 metrics from Git repositories and external artifacts.
 Handles unavailable metrics per BSD/TFS missing data policy.
 """
 
-from miie.contracts.interfaces import IExtractionEngine
-from miie.contracts.errors import ExtractionError
-from miie.schemas.models import RepositoryContext, MetricDataFrame
-from miie.schemas.metric_registry import METRIC_REGISTRY, MetricInfo
-from typing import List, Optional, Dict, Any
 import datetime
-import subprocess
-import hashlib
-import uuid
 import json
-import os
-import warnings
+import subprocess
+import uuid
 from pathlib import Path
+from typing import Any, List, Optional
 from xml.etree import ElementTree
+
+from miie.contracts.errors import ExtractionError
+from miie.contracts.interfaces import IExtractionEngine
+from miie.schemas.models import MetricDataFrame, RepositoryContext
 
 
 def validate_metric_ids(metric_list: List[str]) -> None:
@@ -33,7 +30,10 @@ def validate_metric_ids(metric_list: List[str]) -> None:
         ExtractionError: If any metric ID is not in the frozen registry
     """
     try:
-        from miie.schemas.metric_registry import validate_metric_ids as schema_validate_metric_ids
+        from miie.schemas.metric_registry import (
+            validate_metric_ids as schema_validate_metric_ids,
+        )
+
         schema_validate_metric_ids(metric_list)
     except ValueError as e:
         raise ExtractionError(str(e))
@@ -64,7 +64,7 @@ class MetricExtractionEngine(IExtractionEngine):
         since: Optional[datetime.datetime] = None,
         until: Optional[datetime.datetime] = None,
         exclude_bots: bool = False,
-        windows: Optional[List[Any]] = None
+        windows: Optional[List[Any]] = None,
     ) -> MetricDataFrame:
         """
         Extract metrics from repository.
@@ -99,13 +99,9 @@ class MetricExtractionEngine(IExtractionEngine):
                 metrics[metric_id] = self._extract_code_coverage(context)
             elif metric_id == "M-02":
                 if windows:
-                    metrics[metric_id] = self._extract_commit_frequency_windowed(
-                        context, windows, exclude_bots
-                    )
+                    metrics[metric_id] = self._extract_commit_frequency_windowed(context, windows, exclude_bots)
                 else:
-                    metrics[metric_id] = self._extract_commit_frequency(
-                        context, since, until, exclude_bots
-                    )
+                    metrics[metric_id] = self._extract_commit_frequency(context, since, until, exclude_bots)
             elif metric_id == "M-03":
                 metrics[metric_id] = self._extract_review_participation()
             elif metric_id == "M-04":
@@ -114,13 +110,9 @@ class MetricExtractionEngine(IExtractionEngine):
                 metrics[metric_id] = self._extract_issue_resolution_time()
             elif metric_id == "M-06":
                 if windows:
-                    metrics[metric_id] = self._extract_code_churn_windowed(
-                        context, windows, exclude_bots
-                    )
+                    metrics[metric_id] = self._extract_code_churn_windowed(context, windows, exclude_bots)
                 else:
-                    metrics[metric_id] = self._extract_code_churn(
-                        context, since, until, exclude_bots
-                    )
+                    metrics[metric_id] = self._extract_code_churn(context, since, until, exclude_bots)
             elif metric_id == "M-07":
                 metrics[metric_id] = self._extract_cyclomatic_complexity(context)
             else:
@@ -133,7 +125,7 @@ class MetricExtractionEngine(IExtractionEngine):
                 repo_id=context.repo_id,
                 run_id=run_id,
                 timestamp=timestamp,
-                metrics=metrics
+                metrics=metrics,
             )
         except ValueError as e:
             raise ExtractionError(f"Invalid MetricDataFrame: {e}")
@@ -143,7 +135,7 @@ class MetricExtractionEngine(IExtractionEngine):
         context: RepositoryContext,
         since: Optional[datetime.datetime],
         until: Optional[datetime.datetime],
-        exclude_bots: bool
+        exclude_bots: bool,
     ) -> Optional[dict]:
         """
         Extract Commit Frequency (M-02) from Git history.
@@ -154,9 +146,7 @@ class MetricExtractionEngine(IExtractionEngine):
         try:
             # For Day 7 foundation, we extract total commit count as a single value
             # In future versions, this would be windowed
-            commit_count = self._get_commit_count_since_until(
-                context.local_path, since, until, exclude_bots
-            )
+            commit_count = self._get_commit_count_since_until(context.local_path, since, until, exclude_bots)
 
             # Return as a single window (w00) for foundation implementation
             # This represents the total commit frequency for the entire history
@@ -167,10 +157,7 @@ class MetricExtractionEngine(IExtractionEngine):
             return None
 
     def _extract_commit_frequency_windowed(
-        self,
-        context: RepositoryContext,
-        windows: List[Any],
-        exclude_bots: bool
+        self, context: RepositoryContext, windows: List[Any], exclude_bots: bool
     ) -> Optional[dict]:
         """
         Extract Commit Frequency (M-02) per window from Git history.
@@ -188,20 +175,20 @@ class MetricExtractionEngine(IExtractionEngine):
         """
         try:
             # Single git log call to get all commit dates
-            cmd = ['git', 'log', '--format=%aI', '--no-merges']
+            cmd = ["git", "log", "--format=%aI", "--no-merges"]
             result = subprocess.run(
                 cmd,
                 cwd=context.local_path,
                 capture_output=True,
                 text=True,
-                encoding='utf-8',
-                errors='replace',
-                check=True
+                encoding="utf-8",
+                errors="replace",
+                check=True,
             )
 
             # Parse commit dates
             commit_dates = []
-            for line in result.stdout.strip().split('\n'):
+            for line in result.stdout.strip().split("\n"):
                 if line.strip():
                     try:
                         # Parse ISO format date
@@ -225,10 +212,7 @@ class MetricExtractionEngine(IExtractionEngine):
             return None
 
     def _extract_code_churn_windowed(
-        self,
-        context: RepositoryContext,
-        windows: List[Any],
-        exclude_bots: bool
+        self, context: RepositoryContext, windows: List[Any], exclude_bots: bool
     ) -> Optional[dict]:
         """
         Extract Code Churn (M-06) per window from Git history.
@@ -246,43 +230,43 @@ class MetricExtractionEngine(IExtractionEngine):
         """
         try:
             # Single git log call to get all commit dates and stats
-            cmd = ['git', 'log', '--format=%aI', '--shortstat', '--no-merges']
+            cmd = ["git", "log", "--format=%aI", "--shortstat", "--no-merges"]
             result = subprocess.run(
                 cmd,
                 cwd=context.local_path,
                 capture_output=True,
                 text=True,
-                encoding='utf-8',
-                errors='replace',
-                check=True
+                encoding="utf-8",
+                errors="replace",
+                check=True,
             )
 
             # Parse commit dates and churn values
             commits = []
-            lines = result.stdout.strip().split('\n')
+            lines = result.stdout.strip().split("\n")
             i = 0
             while i < len(lines):
                 line = lines[i].strip()
-                if line and 'insertion' in line.lower() or 'deletion' in line.lower():
+                if line and "insertion" in line.lower() or "deletion" in line.lower():
                     # This is a stats line, parse it
                     insertions = 0
                     deletions = 0
-                    parts = line.split(',')
+                    parts = line.split(",")
                     for part in parts:
                         part = part.strip()
-                        if 'insertion' in part:
+                        if "insertion" in part:
                             try:
                                 insertions = int(part.split()[0])
                             except (ValueError, IndexError):
                                 pass
-                        elif 'deletion' in part:
+                        elif "deletion" in part:
                             try:
                                 deletions = int(part.split()[0])
                             except (ValueError, IndexError):
                                 pass
                     # Get the date from the previous line
                     if i > 0:
-                        date_str = lines[i-1].strip()
+                        date_str = lines[i - 1].strip()
                         if date_str:
                             try:
                                 dt = datetime.datetime.fromisoformat(date_str)
@@ -295,8 +279,7 @@ class MetricExtractionEngine(IExtractionEngine):
             result_dict = {}
             for window in windows:
                 window_id = window.window_id
-                churn_values = [churn for cd, churn in commits
-                               if window.start_date <= cd < window.end_date]
+                churn_values = [churn for cd, churn in commits if window.start_date <= cd < window.end_date]
                 total_churn = sum(churn_values) if churn_values else 0.0
                 result_dict[window_id] = [total_churn]
 
@@ -309,7 +292,7 @@ class MetricExtractionEngine(IExtractionEngine):
         context: RepositoryContext,
         since: Optional[datetime.datetime],
         until: Optional[datetime.datetime],
-        exclude_bots: bool
+        exclude_bots: bool,
     ) -> Optional[dict]:
         """
         Extract Code Churn (M-06) from Git history.
@@ -320,9 +303,7 @@ class MetricExtractionEngine(IExtractionEngine):
         try:
             # For Day 7 foundation, we extract total churn as a single value
             # In future versions, this would be windowed
-            churn_value = self._get_code_churn_since_until(
-                context.local_path, since, until, exclude_bots
-            )
+            churn_value = self._get_code_churn_since_until(context.local_path, since, until, exclude_bots)
 
             # Return as a single window (w00) for foundation implementation
             # This represents the total code churn for the entire history
@@ -569,13 +550,15 @@ class MetricExtractionEngine(IExtractionEngine):
             # Try lizard first
             try:
                 import lizard
+
                 return self._extract_complexity_lizard(lizard, repo_path)
             except ImportError:
                 pass
 
             # Try radon as fallback
             try:
-                from radon.complexity import cc_visit
+                pass
+
                 return self._extract_complexity_radon(repo_path)
             except ImportError:
                 pass
@@ -625,7 +608,6 @@ class MetricExtractionEngine(IExtractionEngine):
         """Extract complexity using radon."""
         try:
             from radon.complexity import cc_visit
-            from radon.raw import analyze
 
             py_files = list(repo_path.rglob("*.py"))
             if not py_files:
@@ -658,7 +640,7 @@ class MetricExtractionEngine(IExtractionEngine):
         repo_path: Path,
         since: Optional[datetime.datetime],
         until: Optional[datetime.datetime],
-        exclude_bots: bool
+        exclude_bots: bool,
     ) -> Optional[int]:
         """
         Get commit count for a specific time range.
@@ -668,19 +650,19 @@ class MetricExtractionEngine(IExtractionEngine):
         """
         try:
             # Build git rev-list command
-            cmd = ['git', 'rev-list', '--count', 'HEAD']
+            cmd = ["git", "rev-list", "--count", "HEAD"]
 
             # Add since/until filters
             if since:
-                since_str = since.strftime('%Y-%m-%d')
-                cmd.extend(['--since', since_str])
+                since_str = since.strftime("%Y-%m-%d")
+                cmd.extend(["--since", since_str])
             if until:
-                until_str = until.strftime('%Y-%m-%d')
-                cmd.extend(['--until', until_str])
+                until_str = until.strftime("%Y-%m-%d")
+                cmd.extend(["--until", until_str])
 
             # Add bot exclusion if requested
             if exclude_bots:
-                cmd.extend(['--exclude', '*/.git/*'])  # Simple approach
+                cmd.extend(["--exclude", "*/.git/*"])  # Simple approach
                 # More sophisticated bot exclusion would check author emails
 
             result = subprocess.run(
@@ -688,9 +670,9 @@ class MetricExtractionEngine(IExtractionEngine):
                 cwd=repo_path,
                 capture_output=True,
                 text=True,
-                encoding='utf-8',
-                errors='replace',
-                check=True
+                encoding="utf-8",
+                errors="replace",
+                check=True,
             )
 
             count_str = result.stdout.strip()
@@ -704,7 +686,7 @@ class MetricExtractionEngine(IExtractionEngine):
         repo_path: Path,
         since: Optional[datetime.datetime],
         until: Optional[datetime.datetime],
-        exclude_bots: bool
+        exclude_bots: bool,
     ) -> Optional[float]:
         """
         Get code churn (lines added + deleted) for a specific time range.
@@ -714,39 +696,39 @@ class MetricExtractionEngine(IExtractionEngine):
         """
         try:
             # Build git log command with shortstat to get insertions/deletions
-            cmd = ['git', 'log', '--pretty=format:', '--numstat']
+            cmd = ["git", "log", "--pretty=format:", "--numstat"]
 
             # Add since/until filters
             if since:
-                since_str = since.strftime('%Y-%m-%d')
-                cmd.extend(['--since', since_str])
+                since_str = since.strftime("%Y-%m-%d")
+                cmd.extend(["--since", since_str])
             if until:
-                until_str = until.strftime('%Y-%m-%d')
-                cmd.extend(['--until', until_str])
+                until_str = until.strftime("%Y-%m-%d")
+                cmd.extend(["--until", until_str])
 
             # Add bot exclusion if requested (basic implementation)
             if exclude_bots:
                 # Exclude common bot patterns - this is simplified
-                cmd.extend(['--author', '^(?!.*(bot|dependabot|github-actions)).*$'])
+                cmd.extend(["--author", "^(?!.*(bot|dependabot|github-actions)).*$"])
 
             result = subprocess.run(
                 cmd,
                 cwd=repo_path,
                 capture_output=True,
                 text=True,
-                encoding='utf-8',
-                errors='replace',
-                check=True
+                encoding="utf-8",
+                errors="replace",
+                check=True,
             )
 
             total_churn = 0
-            for line in result.stdout.strip().split('\n'):
+            for line in result.stdout.strip().split("\n"):
                 if line:
-                    parts = line.split('\t')
+                    parts = line.split("\t")
                     if len(parts) >= 2:
                         try:
-                            additions = int(parts[0]) if parts[0] != '-' else 0
-                            deletions = int(parts[1]) if parts[1] != '-' else 0
+                            additions = int(parts[0]) if parts[0] != "-" else 0
+                            deletions = int(parts[1]) if parts[1] != "-" else 0
                             total_churn += additions + deletions
                         except ValueError:
                             # Skip lines that don't parse as numbers

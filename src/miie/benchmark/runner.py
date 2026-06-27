@@ -2,19 +2,19 @@
 Implements the IBenchmarkEngine interface with suite loading, detector isolation,
 temporal isolation, and leakage prevention.
 """
+
 import hashlib
 import json
-import os
-import random
-import subprocess
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, Any, List, Optional
+from typing import Any, Dict, List, Optional
 
+from miie.contracts.interfaces import IBenchmarkEngine
+from miie.processing.benchmark.engine import (
+    BenchmarkEngine as ProcessingBenchmarkEngine,
+)
 from miie.schemas.models import BenchmarkRun
 from miie.schemas.serialization import json_dumps
-from miie.contracts.interfaces import IBenchmarkEngine
-from miie.processing.benchmark.engine import BenchmarkEngine as ProcessingBenchmarkEngine
 
 
 class BenchmarkRunner(IBenchmarkEngine):
@@ -40,14 +40,19 @@ class BenchmarkRunner(IBenchmarkEngine):
         self._suite_to_pathology = {
             "B-01": "metric-drift",
             "B-02": "correlation-breakdown",
-            "B-03": "threshold-compression"
+            "B-03": "threshold-compression",
         }
 
         # Pathology to suite mapping (reverse)
         self._pathology_to_suite = {v: k for k, v in self._suite_to_pathology.items()}
 
-    def execute(self, suite_id: str, detector_ids: List[str],
-                config: Dict[str, Any], seed: int = 42) -> BenchmarkRun:
+    def execute(
+        self,
+        suite_id: str,
+        detector_ids: List[str],
+        config: Dict[str, Any],
+        seed: int = 42,
+    ) -> BenchmarkRun:
         """Execute benchmark suite with isolation and leakage prevention.
 
         Args:
@@ -64,7 +69,9 @@ class BenchmarkRunner(IBenchmarkEngine):
 
         # Validate suite_id
         if suite_id not in self._suite_to_pathology:
-            raise ValueError(f"Unsupported suite_id: {suite_id}. Supported suites: {list(self._suite_to_pathology.keys())}")
+            raise ValueError(
+                f"Unsupported suite_id: {suite_id}. Supported suites: {list(self._suite_to_pathology.keys())}"
+            )
 
         # Get pathology type for this suite
         pathology_type = self._suite_to_pathology[suite_id]
@@ -90,7 +97,7 @@ class BenchmarkRunner(IBenchmarkEngine):
                 suite_id=suite_id,
                 detector_ids=[detector_id],  # Only this detector
                 config=config,
-                seed=detector_seed
+                seed=detector_seed,
             )
 
             # Extract the predictions for this detector
@@ -108,12 +115,13 @@ class BenchmarkRunner(IBenchmarkEngine):
             "seed_used": base_seed,
             "detectors_benchmarked": len(detector_ids),
             "execution_time_ms": sum(
-                p.get("processing_time_ms", 0) for p in all_predictions.values()
+                p.get("processing_time_ms", 0)
+                for p in all_predictions.values()
                 if isinstance(p, dict) and "processing_time_ms" in p
             ),
             "config_used": config,
             "pathology_type": pathology_type,
-            "suite_candidates_count": len(suite_candidates)
+            "suite_candidates_count": len(suite_candidates),
         }
 
         all_predictions["suite_summary"] = suite_summary
@@ -130,20 +138,17 @@ class BenchmarkRunner(IBenchmarkEngine):
             "config_hash": hashlib.sha256(json_dumps(config).encode()).hexdigest(),
             "execution_environment": {
                 "python_version": "3.9.0",  # In practice, this would be sys.version
-                "platform": "test-isolated-environment"
+                "platform": "test-isolated-environment",
             },
             # Leakage prevention: we only accessed the specified suite's candidates
             "leakage_prevention": {
                 "suite_accessed": suite_id,
                 "candidates_accessed": len(suite_candidates),
-                "isolation_verified": True
-            }
+                "isolation_verified": True,
+            },
         }
 
-        return BenchmarkRun(
-            predictions=all_predictions,
-            metadata=metadata
-        )
+        return BenchmarkRun(predictions=all_predictions, metadata=metadata)
 
     def _load_suite_candidates(self, suite_id: str) -> List[Dict[str, Any]]:
         """Load candidate information for a given suite from the manifest.
@@ -160,7 +165,7 @@ class BenchmarkRunner(IBenchmarkEngine):
             return []
 
         try:
-            with open(manifest_path, 'r') as f:
+            with open(manifest_path, "r") as f:
                 manifest_data = json.load(f)
 
             candidates = manifest_data.get("candidates", {})
@@ -176,7 +181,7 @@ class BenchmarkRunner(IBenchmarkEngine):
                 #   candidates 041-080: B-02 (correlation-breakdown)
                 #   candidates 081-120: B-03 (threshold-compression)
                 try:
-                    candidate_num = int(candidate_id.split('_')[1])
+                    candidate_num = int(candidate_id.split("_")[1])
                     if suite_id == "B-01" and 1 <= candidate_num <= 40:
                         suite_candidates.append(candidate_data)
                     elif suite_id == "B-02" and 41 <= candidate_num <= 80:
@@ -196,8 +201,13 @@ class BenchmarkRunner(IBenchmarkEngine):
 class MockBenchmarkRunner:
     """Mock benchmark runner that returns deterministic benchmark runs."""
 
-    def execute(self, suite_id: str, detector_ids: List[str],
-                config: Dict[str, Any], seed: int = 42) -> BenchmarkRun:
+    def execute(
+        self,
+        suite_id: str,
+        detector_ids: List[str],
+        config: Dict[str, Any],
+        seed: int = 42,
+    ) -> BenchmarkRun:
         """Return a fixed BenchmarkRun for testing."""
         # Return fixed predictions for each detector
         predictions = {}
@@ -211,7 +221,7 @@ class MockBenchmarkRunner:
                 "memory_usage_mb": 100.0,
                 "samples_processed": 100,
                 "false_positive_rate": 0.05,
-                "false_negative_rate": 0.10
+                "false_negative_rate": 0.10,
             }
 
         # Add suite-level metrics
@@ -221,7 +231,7 @@ class MockBenchmarkRunner:
             "seed_used": seed,
             "detectors_benchmarked": len(detector_ids),
             "execution_time_ms": 50.0,
-            "config_used": config
+            "config_used": config,
         }
 
         metadata = {
@@ -233,11 +243,8 @@ class MockBenchmarkRunner:
             "config_hash": "mock_config_hash",
             "execution_environment": {
                 "python_version": "3.9.0",
-                "platform": "test-environment"
-            }
+                "platform": "test-environment",
+            },
         }
 
-        return BenchmarkRun(
-            predictions=predictions,
-            metadata=metadata
-        )
+        return BenchmarkRun(predictions=predictions, metadata=metadata)

@@ -3,52 +3,41 @@ Contract Layer Validator Tests
 Tests for validation logic in the contracts layer.
 """
 
-import pytest
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
+import pytest
+
 from miie.contracts.validators import (
-    validate_repository_inputs,
-    validate_extraction_inputs,
-    validate_segmentation_inputs,
-    validate_detection_inputs,
+    ValidationError,
+    validate_benchmark_inputs,
+    validate_cli_analyze_inputs,
+    validate_cli_ingest_inputs,
     validate_d01_input,
     validate_d02_input,
     validate_d03_input,
-    validate_scoring_inputs,
+    validate_detection_inputs,
+    validate_evaluation_inputs,
     validate_evidence_inputs,
     validate_explanation_inputs,
-    validate_benchmark_inputs,
-    validate_evaluation_inputs,
+    validate_extraction_inputs,
     validate_report_inputs,
-    validate_cli_ingest_inputs,
-    validate_cli_analyze_inputs,
-    ValidationError,
-    IngestionError,
-    ExtractionError,
-    SegmentationError,
-    DetectionError,
-    ScoreError,
-    EvidenceError,
-    ExplanationError,
-    BenchmarkError,
-    EvaluationError,
-    ReportError
+    validate_repository_inputs,
+    validate_scoring_inputs,
+    validate_segmentation_inputs,
 )
 from miie.schemas.models import (
-    RepositoryContext,
-    MetricDataFrame,
-    WindowDefinition,
-    EvidencePackage,
-    DetectorResults,
-    ScorePackage,
     BenchmarkRun,
-    Provenance,
-    IntegrityScore,
     ConfidenceScore,
-    WarningItem
+    DetectorResults,
+    EvidencePackage,
+    IntegrityScore,
+    MetricDataFrame,
+    Provenance,
+    RepositoryContext,
+    ScorePackage,
+    WindowDefinition,
 )
-import pandas as pd
 
 
 def _make_score_package():
@@ -57,7 +46,7 @@ def _make_score_package():
         integrity=IntegrityScore(overall=0.9, per_metric={"M-01": 0.9}, formula_version="1.0.0"),
         confidence=ConfidenceScore(overall=0.8, factors={"sample_size": 0.8}, band="high"),
         timestamp=datetime.now(tz=timezone.utc),
-        config_hash="abc123"
+        config_hash="abc123",
     )
 
 
@@ -87,7 +76,7 @@ def test_validate_extraction_inputs_valid():
         remote_url="https://github.com/test/repo.git",
         total_commits=100,
         contributor_count=10,
-        language_distribution={"Python": 1000}
+        language_distribution={"Python": 1000},
     )
 
     # This should not raise an exception
@@ -96,7 +85,7 @@ def test_validate_extraction_inputs_valid():
         metric_list=["M-01", "M-02"],
         since=datetime.now() - timedelta(days=30),
         until=datetime.now(),
-        exclude_bots=True
+        exclude_bots=True,
     )
 
 
@@ -109,7 +98,7 @@ def test_validate_extraction_inputs_invalid_metric():
         remote_url="https://github.com/test/repo.git",
         total_commits=100,
         contributor_count=10,
-        language_distribution={"Python": 1000}
+        language_distribution={"Python": 1000},
     )
 
     with pytest.raises(ValidationError) as exc_info:
@@ -118,7 +107,7 @@ def test_validate_extraction_inputs_invalid_metric():
             metric_list=["M-01", "INVALID-METRIC"],
             since=datetime.now() - timedelta(days=30),
             until=datetime.now(),
-            exclude_bots=True
+            exclude_bots=True,
         )
     assert "Invalid metric ID" in str(exc_info.value)
 
@@ -129,22 +118,18 @@ def test_validate_segmentation_inputs_valid():
     metrics_dict = {
         "M-01": {
             "timestamps": [datetime.now() - timedelta(days=i) for i in range(10)],
-            "values": [float(i) for i in range(10)]
+            "values": [float(i) for i in range(10)],
         }
     }
     metric_df = MetricDataFrame(
         repo_id="test-repo",
         run_id="test-run",
         timestamp=datetime.now(),
-        metrics=metrics_dict
+        metrics=metrics_dict,
     )
 
     # This should not raise an exception
-    validate_segmentation_inputs(
-        metric_dataframe=metric_df,
-        strategy="time",
-        size=7
-    )
+    validate_segmentation_inputs(metric_dataframe=metric_df, strategy="time", size=7)
 
 
 def test_validate_segmentation_inputs_invalid_strategy():
@@ -152,22 +137,18 @@ def test_validate_segmentation_inputs_invalid_strategy():
     metrics_dict = {
         "M-01": {
             "timestamps": [datetime.now() - timedelta(days=i) for i in range(10)],
-            "values": [float(i) for i in range(10)]
+            "values": [float(i) for i in range(10)],
         }
     }
     metric_df = MetricDataFrame(
         repo_id="test-repo",
         run_id="test-run",
         timestamp=datetime.now(),
-        metrics=metrics_dict
+        metrics=metrics_dict,
     )
 
     with pytest.raises(ValidationError) as exc_info:
-        validate_segmentation_inputs(
-            metric_dataframe=metric_df,
-            strategy="invalid-strategy",
-            size=7
-        )
+        validate_segmentation_inputs(metric_dataframe=metric_df, strategy="invalid-strategy", size=7)
     assert "strategy must be one of" in str(exc_info.value)
 
 
@@ -179,7 +160,7 @@ def test_validate_d01_input_valid():
         values_b=[2.0, 3.0, 4.0, 5.0, 6.0],
         metric_id="M-01",
         window_pair=("w01", "w02"),
-        config={"alpha": 0.05, "psi_threshold": 0.25}
+        config={"alpha": 0.05, "psi_threshold": 0.25},
     )
 
 
@@ -191,7 +172,7 @@ def test_validate_d01_input_invalid_alpha():
             values_b=[2.0, 3.0, 4.0, 5.0, 6.0],
             metric_id="M-01",
             window_pair=("w01", "w02"),
-            config={"alpha": 0.1, "psi_threshold": 0.25}
+            config={"alpha": 0.1, "psi_threshold": 0.25},
         )
     assert "alpha must be 0.05" in str(exc_info.value)
 
@@ -204,16 +185,16 @@ def test_validate_d02_input_valid():
         values_b=[2.0, 3.0, 4.0, 5.0, 6.0],
         metric_a="M-01",
         metric_b="M-02",
-            window_history=[
+        window_history=[
             WindowDefinition(
                 window_id="w01",
                 start_date=datetime.now() - timedelta(days=14),
                 end_date=datetime.now() - timedelta(days=7),
                 commits=10,
-                strategy="fixed_size"
+                strategy="fixed_size",
             )
         ],
-        config={"correlation_threshold": 0.3}
+        config={"correlation_threshold": 0.3},
     )
 
 
@@ -231,10 +212,10 @@ def test_validate_d02_input_same_metrics():
                     start_date=datetime.now() - timedelta(days=14),
                     end_date=datetime.now() - timedelta(days=7),
                     commits=10,
-                    strategy="fixed_size"
+                    strategy="fixed_size",
                 )
             ],
-            config={"correlation_threshold": 0.3}
+            config={"correlation_threshold": 0.3},
         )
     assert "metric_a and metric_b must be different" in str(exc_info.value)
 
@@ -260,14 +241,14 @@ def test_validate_detection_inputs_valid():
     metrics_dict = {
         "M-01": {
             "timestamps": [datetime.now() - timedelta(days=i) for i in range(10)],
-            "values": [float(i) for i in range(10)]
+            "values": [float(i) for i in range(10)],
         }
     }
     metric_df = MetricDataFrame(
         repo_id="test-repo",
         run_id="test-run",
         timestamp=datetime.now(),
-        metrics=metrics_dict
+        metrics=metrics_dict,
     )
 
     # Create window definitions (non-overlapping)
@@ -278,15 +259,15 @@ def test_validate_detection_inputs_valid():
             start_date=now - timedelta(days=14),
             end_date=now - timedelta(days=8),  # End 1 day before next window starts
             commits=10,
-            strategy="fixed_size"
+            strategy="fixed_size",
         ),
         WindowDefinition(
             window_id="w04",
             start_date=now - timedelta(days=7),  # Start 1 day after previous window ends,
             end_date=now,
             commits=10,
-            strategy="fixed_size"
-        )
+            strategy="fixed_size",
+        ),
     ]
 
     # This should not raise an exception
@@ -294,7 +275,7 @@ def test_validate_detection_inputs_valid():
         metric_dataframe=metric_df,
         windows=windows,
         detector_config={"D-01": {"threshold": 0.5}},
-        enabled_detectors=["D-01"]
+        enabled_detectors=["D-01"],
     )
 
 
@@ -303,14 +284,14 @@ def test_validate_detection_inputs_invalid_enabled_detector():
     metrics_dict = {
         "M-01": {
             "timestamps": [datetime.now() - timedelta(days=i) for i in range(10)],
-            "values": [float(i) for i in range(10)]
+            "values": [float(i) for i in range(10)],
         }
     }
     metric_df = MetricDataFrame(
         repo_id="test-repo",
         run_id="test-run",
         timestamp=datetime.now(),
-        metrics=metrics_dict
+        metrics=metrics_dict,
     )
 
     windows = [
@@ -319,7 +300,7 @@ def test_validate_detection_inputs_invalid_enabled_detector():
             start_date=datetime.now() - timedelta(days=14),
             end_date=datetime.now() - timedelta(days=7),
             commits=10,
-            strategy="fixed_size"
+            strategy="fixed_size",
         )
     ]
 
@@ -327,7 +308,7 @@ def test_validate_detection_inputs_invalid_enabled_detector():
         validate_detection_inputs(
             metric_dataframe=metric_df,
             windows=windows,
-            enabled_detectors=["D-04"]  # Invalid detector ID
+            enabled_detectors=["D-04"],  # Invalid detector ID
         )
     assert "Invalid detector ID" in str(exc_info.value)
 
@@ -337,14 +318,14 @@ def test_validate_detection_inputs_invalid_config_detector():
     metrics_dict = {
         "M-01": {
             "timestamps": [datetime.now() - timedelta(days=i) for i in range(10)],
-            "values": [float(i) for i in range(10)]
+            "values": [float(i) for i in range(10)],
         }
     }
     metric_df = MetricDataFrame(
         repo_id="test-repo",
         run_id="test-run",
         timestamp=datetime.now(),
-        metrics=metrics_dict
+        metrics=metrics_dict,
     )
 
     windows = [
@@ -353,7 +334,7 @@ def test_validate_detection_inputs_invalid_config_detector():
             start_date=datetime.now() - timedelta(days=14),
             end_date=datetime.now() - timedelta(days=7),
             commits=10,
-            strategy="fixed_size"
+            strategy="fixed_size",
         )
     ]
 
@@ -361,7 +342,7 @@ def test_validate_detection_inputs_invalid_config_detector():
         validate_detection_inputs(
             metric_dataframe=metric_df,
             windows=windows,
-            detector_config={"D-04": {"threshold": 0.5}}  # Invalid detector ID
+            detector_config={"D-04": {"threshold": 0.5}},  # Invalid detector ID
         )
     assert "Invalid detector ID in detector_config" in str(exc_info.value)
 
@@ -371,14 +352,14 @@ def test_validate_detection_inputs_empty_windows():
     metrics_dict = {
         "M-01": {
             "timestamps": [datetime.now() - timedelta(days=i) for i in range(10)],
-            "values": [float(i) for i in range(10)]
+            "values": [float(i) for i in range(10)],
         }
     }
     metric_df = MetricDataFrame(
         repo_id="test-repo",
         run_id="test-run",
         timestamp=datetime.now(),
-        metrics=metrics_dict
+        metrics=metrics_dict,
     )
 
     with pytest.raises(ValidationError) as exc_info:
@@ -386,7 +367,7 @@ def test_validate_detection_inputs_empty_windows():
             metric_dataframe=metric_df,
             windows=[],  # Empty windows list
             detector_config={"D-01": {"threshold": 0.5}},
-            enabled_detectors=["D-01"]
+            enabled_detectors=["D-01"],
         )
     assert "windows must be a non-empty list" in str(exc_info.value)
 
@@ -399,11 +380,7 @@ def test_validate_d03_input_valid():
         thresholds=[0.5, 1.0, 1.5, 2.0, 2.5],
         metric_id="M-01",
         window_id="w01",
-        config={
-            "margin": 0.02,
-            "bootstrap_iterations": 1000,
-            "bootstrap_seed": 42
-        }
+        config={"margin": 0.02, "bootstrap_iterations": 1000, "bootstrap_seed": 42},
     )
 
 
@@ -418,8 +395,8 @@ def test_validate_d03_input_invalid_bootstrap_iterations():
             config={
                 "margin": 0.02,
                 "bootstrap_iterations": 500,  # Invalid - should be 1000
-                "bootstrap_seed": 42
-            }
+                "bootstrap_seed": 42,
+            },
         )
     assert "bootstrap_iterations must be 1000 (frozen)" in str(exc_info.value)
 
@@ -435,8 +412,8 @@ def test_validate_d03_input_invalid_bootstrap_seed():
             config={
                 "margin": 0.02,
                 "bootstrap_iterations": 1000,
-                "bootstrap_seed": 99  # Invalid - should be 42
-            }
+                "bootstrap_seed": 99,  # Invalid - should be 42
+            },
         )
     assert "bootstrap_seed must be 42 (frozen)" in str(exc_info.value)
 
@@ -447,14 +424,14 @@ def test_validate_scoring_inputs_valid():
     metrics_dict = {
         "M-01": {
             "timestamps": [datetime.now() - timedelta(days=i) for i in range(10)],
-            "values": [float(i) for i in range(10)]
+            "values": [float(i) for i in range(10)],
         }
     }
     metric_df = MetricDataFrame(
         repo_id="test-repo",
         run_id="test-run",
         timestamp=datetime.now(),
-        metrics=metrics_dict
+        metrics=metrics_dict,
     )
 
     windows = [
@@ -463,7 +440,7 @@ def test_validate_scoring_inputs_valid():
             start_date=datetime.now() - timedelta(days=14),
             end_date=datetime.now() - timedelta(days=7),
             commits=10,
-            strategy="fixed_size"
+            strategy="fixed_size",
         )
     ]
 
@@ -472,7 +449,7 @@ def test_validate_scoring_inputs_valid():
         detector_results=DetectorResults(),  # Proper DetectorResults object
         metric_dataframe=metric_df,
         windows=windows,
-        detector_weights={"D-01": 0.5, "D-02": 0.3, "D-03": 0.2}
+        detector_weights={"D-01": 0.5, "D-02": 0.3, "D-03": 0.2},
     )
 
 
@@ -481,14 +458,14 @@ def test_validate_scoring_inputs_invalid_weight_negative():
     metrics_dict = {
         "M-01": {
             "timestamps": [datetime.now() - timedelta(days=i) for i in range(10)],
-            "values": [float(i) for i in range(10)]
+            "values": [float(i) for i in range(10)],
         }
     }
     metric_df = MetricDataFrame(
         repo_id="test-repo",
         run_id="test-run",
         timestamp=datetime.now(),
-        metrics=metrics_dict
+        metrics=metrics_dict,
     )
 
     windows = [
@@ -497,7 +474,7 @@ def test_validate_scoring_inputs_invalid_weight_negative():
             start_date=datetime.now() - timedelta(days=14),
             end_date=datetime.now() - timedelta(days=7),
             commits=10,
-            strategy="fixed_size"
+            strategy="fixed_size",
         )
     ]
 
@@ -506,7 +483,11 @@ def test_validate_scoring_inputs_invalid_weight_negative():
             detector_results=DetectorResults(),
             metric_dataframe=metric_df,
             windows=windows,
-            detector_weights={"D-01": -0.1, "D-02": 0.6, "D-03": 0.5}  # Negative weight
+            detector_weights={
+                "D-01": -0.1,
+                "D-02": 0.6,
+                "D-03": 0.5,
+            },  # Negative weight
         )
     assert "Weight for D-01 must be non-negative number" in str(exc_info.value)
 
@@ -516,14 +497,14 @@ def test_validate_scoring_inputs_invalid_detector_id():
     metrics_dict = {
         "M-01": {
             "timestamps": [datetime.now() - timedelta(days=i) for i in range(10)],
-            "values": [float(i) for i in range(10)]
+            "values": [float(i) for i in range(10)],
         }
     }
     metric_df = MetricDataFrame(
         repo_id="test-repo",
         run_id="test-run",
         timestamp=datetime.now(),
-        metrics=metrics_dict
+        metrics=metrics_dict,
     )
 
     windows = [
@@ -532,7 +513,7 @@ def test_validate_scoring_inputs_invalid_detector_id():
             start_date=datetime.now() - timedelta(days=14),
             end_date=datetime.now() - timedelta(days=7),
             commits=10,
-            strategy="fixed_size"
+            strategy="fixed_size",
         )
     ]
 
@@ -541,7 +522,7 @@ def test_validate_scoring_inputs_invalid_detector_id():
             detector_results=DetectorResults(),
             metric_dataframe=metric_df,
             windows=windows,
-            detector_weights={"D-01": 0.5, "D-04": 0.5}  # Invalid detector ID
+            detector_weights={"D-01": 0.5, "D-04": 0.5},  # Invalid detector ID
         )
     assert "Invalid detector ID in detector_weights" in str(exc_info.value)
 
@@ -554,20 +535,20 @@ def test_validate_evidence_inputs_valid():
         local_path=Path("/path/to/repo"),
         is_remote=True,
         total_commits=100,
-        contributor_count=10
+        contributor_count=10,
     )
 
     metrics_dict = {
         "M-01": {
             "timestamps": [datetime.now() - timedelta(days=i) for i in range(5)],
-            "values": [float(i) for i in range(5)]
+            "values": [float(i) for i in range(5)],
         }
     }
     metric_df = MetricDataFrame(
         repo_id="test-repo",
         run_id="test-run",
         timestamp=datetime.now(),
-        metrics=metrics_dict
+        metrics=metrics_dict,
     )
 
     windows = [
@@ -576,7 +557,7 @@ def test_validate_evidence_inputs_valid():
             start_date=datetime.now() - timedelta(days=10),
             end_date=datetime.now() - timedelta(days=5),
             commits=10,
-            strategy="fixed_size"
+            strategy="fixed_size",
         )
     ]
 
@@ -591,7 +572,7 @@ def test_validate_evidence_inputs_valid():
         "seed": 42,
         "platform": "test-platform",
         "python_version": "3.11.9",
-        "dependency_hash": "def456"
+        "dependency_hash": "def456",
     }
 
     # This should not raise an exception
@@ -601,7 +582,7 @@ def test_validate_evidence_inputs_valid():
         windows=windows,
         detector_results=detector_results,
         score_package=score_package,
-        configuration={"test": "config"}
+        configuration={"test": "config"},
     )
 
 
@@ -614,7 +595,7 @@ def test_validate_evidence_inputs_invalid_repo_context():
             windows=[],
             detector_results={},
             score_package={},
-            configuration={}
+            configuration={},
         )
     assert "repository_context must be a valid RepositoryContext object" in str(exc_info.value)
 
@@ -628,18 +609,18 @@ def test_validate_evidence_inputs_invalid_windows():
                 local_path=Path("/path/to/repo"),
                 is_remote=True,
                 total_commits=100,
-                contributor_count=10
+                contributor_count=10,
             ),
             metric_dataframe=MetricDataFrame(
                 repo_id="test-repo",
                 run_id="test-run",
                 timestamp=datetime.now(),
-                metrics={"M-01": {"timestamps": [datetime.now()], "values": [1.0]}}
+                metrics={"M-01": {"timestamps": [datetime.now()], "values": [1.0]}},
             ),
             windows="not-a-list",  # Invalid type
             detector_results=DetectorResults(),
             score_package=_make_score_package(),
-            configuration={"test": "config"}
+            configuration={"test": "config"},
         )
     assert "windows must be a list" in str(exc_info.value)
 
@@ -654,7 +635,7 @@ def test_validate_explanation_inputs_valid():
         seed=42,
         platform="test-platform",
         python_version="3.11.9",
-        dependency_hash="def456"
+        dependency_hash="def456",
     )
     evidence_package = EvidencePackage(
         provenance=provenance,
@@ -664,34 +645,22 @@ def test_validate_explanation_inputs_valid():
                 start_date=datetime.now().date() - timedelta(days=7),
                 end_date=datetime.now().date(),
                 commits=5,
-                strategy="time"
+                strategy="time",
             )
         ],
         metrics={
             "M-01": {
                 "timestamps": [datetime.now() - timedelta(days=i) for i in range(5)],
-                "values": [float(i) for i in range(5)]
+                "values": [float(i) for i in range(5)],
             }
         },
-        detector_outputs=DetectorResults(
-            detector_outputs={
-                "D-01": {"result": "test"}
-            }
-        ),
+        detector_outputs=DetectorResults(detector_outputs={"D-01": {"result": "test"}}),
         scores=ScorePackage(
-            integrity=IntegrityScore(
-                overall=0.5,
-                per_metric={},
-                formula_version="1.0.0"
-            ),
-            confidence=ConfidenceScore(
-                overall=0.5,
-                factors={},
-                band=None
-            ),
+            integrity=IntegrityScore(overall=0.5, per_metric={}, formula_version="1.0.0"),
+            confidence=ConfidenceScore(overall=0.5, factors={}, band=None),
             timestamp=datetime.now(tz=timezone.utc),
-            config_hash="abc123"
-        )
+            config_hash="abc123",
+        ),
     )
     score_package = _make_score_package()
 
@@ -700,7 +669,7 @@ def test_validate_explanation_inputs_valid():
         evidence_package=evidence_package,
         score_package=score_package,
         metric_filter="M-01",
-        detector_filter="D-01"
+        detector_filter="D-01",
     )
 
 
@@ -714,7 +683,7 @@ def test_validate_explanation_inputs_invalid_metric_filter():
         seed=42,
         platform="test-platform",
         python_version="3.11.9",
-        dependency_hash="def456"
+        dependency_hash="def456",
     )
     evidence_package = EvidencePackage(
         provenance=provenance,
@@ -724,34 +693,22 @@ def test_validate_explanation_inputs_invalid_metric_filter():
                 start_date=datetime.now().date() - timedelta(days=7),
                 end_date=datetime.now().date(),
                 commits=5,
-                strategy="time"
+                strategy="time",
             )
         ],
         metrics={
             "M-01": {
                 "timestamps": [datetime.now() - timedelta(days=i) for i in range(5)],
-                "values": [float(i) for i in range(5)]
+                "values": [float(i) for i in range(5)],
             }
         },
-        detector_outputs=DetectorResults(
-            detector_outputs={
-                "D-01": {"result": "test"}
-            }
-        ),
+        detector_outputs=DetectorResults(detector_outputs={"D-01": {"result": "test"}}),
         scores=ScorePackage(
-            integrity=IntegrityScore(
-                overall=0.5,
-                per_metric={},
-                formula_version="1.0.0"
-            ),
-            confidence=ConfidenceScore(
-                overall=0.5,
-                factors={},
-                band=None
-            ),
+            integrity=IntegrityScore(overall=0.5, per_metric={}, formula_version="1.0.0"),
+            confidence=ConfidenceScore(overall=0.5, factors={}, band=None),
             timestamp=datetime.now(tz=timezone.utc),
-            config_hash="abc123"
-        )
+            config_hash="abc123",
+        ),
     )
     score_package = _make_score_package()
 
@@ -760,7 +717,7 @@ def test_validate_explanation_inputs_invalid_metric_filter():
             evidence_package=evidence_package,
             score_package=score_package,
             metric_filter="M-08",  # Invalid metric ID
-            detector_filter="D-01"
+            detector_filter="D-01",
         )
     assert "metric_filter must be one of" in str(exc_info.value)
 
@@ -775,7 +732,7 @@ def test_validate_explanation_inputs_invalid_detector_filter():
         seed=42,
         platform="test-platform",
         python_version="3.11.9",
-        dependency_hash="def456"
+        dependency_hash="def456",
     )
     evidence_package = EvidencePackage(
         provenance=provenance,
@@ -785,34 +742,22 @@ def test_validate_explanation_inputs_invalid_detector_filter():
                 start_date=datetime.now().date() - timedelta(days=7),
                 end_date=datetime.now().date(),
                 commits=5,
-                strategy="time"
+                strategy="time",
             )
         ],
         metrics={
             "M-01": {
                 "timestamps": [datetime.now() - timedelta(days=i) for i in range(5)],
-                "values": [float(i) for i in range(5)]
+                "values": [float(i) for i in range(5)],
             }
         },
-        detector_outputs=DetectorResults(
-            detector_outputs={
-                "D-01": {"result": "test"}
-            }
-        ),
+        detector_outputs=DetectorResults(detector_outputs={"D-01": {"result": "test"}}),
         scores=ScorePackage(
-            integrity=IntegrityScore(
-                overall=0.5,
-                per_metric={},
-                formula_version="1.0.0"
-            ),
-            confidence=ConfidenceScore(
-                overall=0.5,
-                factors={},
-                band=None
-            ),
+            integrity=IntegrityScore(overall=0.5, per_metric={}, formula_version="1.0.0"),
+            confidence=ConfidenceScore(overall=0.5, factors={}, band=None),
             timestamp=datetime.now(tz=timezone.utc),
-            config_hash="abc123"
-        )
+            config_hash="abc123",
+        ),
     )
     score_package = _make_score_package()
 
@@ -821,7 +766,7 @@ def test_validate_explanation_inputs_invalid_detector_filter():
             evidence_package=evidence_package,
             score_package=score_package,
             metric_filter="M-01",
-            detector_filter="D-04"  # Invalid detector ID
+            detector_filter="D-04",  # Invalid detector ID
         )
     assert "detector_filter must be one of" in str(exc_info.value)
 
@@ -833,7 +778,7 @@ def test_validate_benchmark_inputs_valid():
         suite_id="suite-1",
         detector_ids=["D-01", "D-02"],
         config={"setting": "value"},
-        seed=42
+        seed=42,
     )
 
 
@@ -844,7 +789,7 @@ def test_validate_benchmark_inputs_invalid_detector():
             suite_id="suite-1",
             detector_ids=["D-01", "D-04"],  # Invalid detector ID
             config={"setting": "value"},
-            seed=42
+            seed=42,
         )
     assert "Invalid detector ID" in str(exc_info.value)
 
@@ -856,7 +801,7 @@ def test_validate_benchmark_inputs_invalid_seed():
             suite_id="suite-1",
             detector_ids=["D-01"],
             config={"setting": "value"},
-            seed="not-an-integer"  # Invalid seed type
+            seed="not-an-integer",  # Invalid seed type
         )
     assert "seed must be an integer" in str(exc_info.value)
 
@@ -866,23 +811,17 @@ def test_validate_evaluation_inputs_valid():
     # Create minimal valid objects for testing
     benchmark_run = BenchmarkRun(
         predictions={"test": "prediction"},
-        metadata={"benchmark_id": "test-benchmark", "run_id": "test-run"}
+        metadata={"benchmark_id": "test-benchmark", "run_id": "test-run"},
     )
 
     # This should not raise an exception
-    validate_evaluation_inputs(
-        benchmark_run=benchmark_run,
-        ground_truth={"accuracy": 0.95}
-    )
+    validate_evaluation_inputs(benchmark_run=benchmark_run, ground_truth={"accuracy": 0.95})
 
 
 def test_validate_evaluation_inputs_invalid_benchmark_run():
     """Test validation with invalid benchmark_run."""
     with pytest.raises(ValidationError) as exc_info:
-        validate_evaluation_inputs(
-            benchmark_run="not-a-dict",  # Invalid type
-            ground_truth={}
-        )
+        validate_evaluation_inputs(benchmark_run="not-a-dict", ground_truth={})  # Invalid type
     assert "benchmark_run must be a valid BenchmarkRun object" in str(exc_info.value)
 
 
@@ -892,7 +831,7 @@ def test_validate_report_inputs_valid():
     validate_report_inputs(
         analysis_result={"test": "result"},
         output_formats=["json", "md"],
-        output_dir=Path("/tmp/output")
+        output_dir=Path("/tmp/output"),
     )
 
 
@@ -902,7 +841,7 @@ def test_validate_report_inputs_invalid_format():
         validate_report_inputs(
             analysis_result={},
             output_formats=["json", "invalid-format"],  # Invalid format
-            output_dir=Path("/tmp/output")
+            output_dir=Path("/tmp/output"),
         )
     assert "Invalid output format: invalid-format" in str(exc_info.value)
 
@@ -920,7 +859,7 @@ def test_validate_cli_analyze_inputs_valid():
         output_dir=Path("/tmp/output"),
         detectors=["D-01", "D-02"],
         format=["json", "md"],
-        exclude_bots=True
+        exclude_bots=True,
     )
 
 
@@ -930,7 +869,7 @@ def test_validate_cli_analyze_inputs_invalid_metric():
         validate_cli_analyze_inputs(
             repo_path="/path/to/repo",
             metrics=["M-01", "M-08"],  # Invalid metric ID
-            exclude_bots=True
+            exclude_bots=True,
         )
     assert "Invalid metric ID: M-08" in str(exc_info.value)
 
@@ -941,7 +880,7 @@ def test_validate_cli_analyze_inputs_invalid_detector():
         validate_cli_analyze_inputs(
             repo_path="/path/to/repo",
             detectors=["D-01", "D-04"],  # Invalid detector ID
-            exclude_bots=True
+            exclude_bots=True,
         )
     assert "Invalid detector ID: D-04" in str(exc_info.value)
 

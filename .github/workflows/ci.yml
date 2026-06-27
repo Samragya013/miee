@@ -15,8 +15,8 @@ jobs:
         with:
           python-version: '3.12'
       - run: pip install black isort flake8 flake8-bugbear
-      - run: black --check src/ tests/
       - run: isort --check-only src/ tests/
+      - run: black --check src/ tests/
       - run: flake8 src/ tests/
 
   typecheck:

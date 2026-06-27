@@ -4,45 +4,32 @@ Implements validation logic for all module interfaces and CLI contracts.
 Based on ACS Section 20: Validation Contract Framework and interface-specific validation rules.
 """
 
-import re
-from typing import List, Dict, Any, Optional
 from datetime import datetime
 from pathlib import Path
+from typing import Any, Dict, List, Optional
 from urllib.parse import urlparse
+
+# Import custom exceptions
+from miie.contracts.errors import ValidationError
 
 # Import schemas for validation
 from miie.schemas.models import (
-    RepositoryContext,
-    MetricDataFrame,
-    WindowDefinition,
+    BenchmarkRun,
     DetectorResults,
-    ScorePackage,
     EvidencePackage,
-    ExplanationReport,
-    BenchmarkRun
-)
-
-# Import custom exceptions
-from miie.contracts.errors import (
-    ValidationError,
-    IngestionError,
-    ExtractionError,
-    SegmentationError,
-    DetectionError,
-    ScoreError,
-    EvidenceError,
-    ExplanationError,
-    BenchmarkError,
-    EvaluationError,
-    SerializationError,
-    ReportError
+    MetricDataFrame,
+    RepositoryContext,
+    ScorePackage,
+    WindowDefinition,
 )
 
 
-def validate_repository_inputs(repo_path: str,
-                              cache_dir: Optional[Path] = None,
-                              keep_cache: bool = False,
-                              shallow_depth: Optional[int] = None) -> None:
+def validate_repository_inputs(
+    repo_path: str,
+    cache_dir: Optional[Path] = None,
+    keep_cache: bool = False,
+    shallow_depth: Optional[int] = None,
+) -> None:
     """Validate inputs for INT-01: Repository Ingestion.
 
     Validates:
@@ -73,14 +60,14 @@ def validate_repository_inputs(repo_path: str,
 
     if is_url:
         # Validate URL scheme
-        if parsed.scheme not in ['https', 'ssh']:
+        if parsed.scheme not in ["https", "ssh"]:
             raise ValidationError(f"Repository URL scheme must be https:// or ssh://, got: {parsed.scheme}")
     else:
         # Validate local path
         path_obj = Path(repo_path)
         if not path_obj.exists():
             raise ValidationError(f"Repository path does not exist: {repo_path}")
-        if not (path_obj / '.git').exists():
+        if not (path_obj / ".git").exists():
             raise ValidationError(f"Path is not a Git repository (missing .git directory): {repo_path}")
 
         # Try to validate it's a proper git repo
@@ -103,11 +90,13 @@ def validate_repository_inputs(repo_path: str,
             raise ValidationError("shallow_depth must be an integer ≥ 1")
 
 
-def validate_extraction_inputs(repository_context: RepositoryContext,
-                              metric_list: List[str],
-                              since: Optional[datetime] = None,
-                              until: Optional[datetime] = None,
-                              exclude_bots: bool = False) -> None:
+def validate_extraction_inputs(
+    repository_context: RepositoryContext,
+    metric_list: List[str],
+    since: Optional[datetime] = None,
+    until: Optional[datetime] = None,
+    exclude_bots: bool = False,
+) -> None:
     """Validate inputs for INT-02: Metric Extraction.
 
     Validates:
@@ -150,10 +139,12 @@ def validate_extraction_inputs(repository_context: RepositoryContext,
         raise ValidationError("exclude_bots must be a boolean")
 
 
-def validate_segmentation_inputs(metric_dataframe: MetricDataFrame,
-                                strategy: str,
-                                size: int,
-                                custom_boundaries: Optional[List[tuple[datetime, datetime]]] = None) -> None:
+def validate_segmentation_inputs(
+    metric_dataframe: MetricDataFrame,
+    strategy: str,
+    size: int,
+    custom_boundaries: Optional[List[tuple[datetime, datetime]]] = None,
+) -> None:
     """Validate inputs for INT-03: Window Segmentation.
 
     Validates:
@@ -201,10 +192,12 @@ def validate_segmentation_inputs(metric_dataframe: MetricDataFrame,
             raise ValidationError(f"custom_boundaries should not be provided when strategy='{strategy}'")
 
 
-def validate_detection_inputs(metric_dataframe: MetricDataFrame,
-                             windows: List[WindowDefinition],
-                             detector_config: Optional[Dict[str, Dict[str, Any]]] = None,
-                             enabled_detectors: Optional[List[str]] = None) -> None:
+def validate_detection_inputs(
+    metric_dataframe: MetricDataFrame,
+    windows: List[WindowDefinition],
+    detector_config: Optional[Dict[str, Dict[str, Any]]] = None,
+    enabled_detectors: Optional[List[str]] = None,
+) -> None:
     """Validate inputs for INT-04: Detector Invocation.
 
     Validates:
@@ -264,12 +257,18 @@ def validate_detection_inputs(metric_dataframe: MetricDataFrame,
     if len(windows) > 1:
         for i in range(len(windows) - 1):
             if windows[i].end_date >= windows[i + 1].start_date:
-                raise ValidationError(f"Windows must be non-overlapping and chronologically ordered: window {i} ends at {windows[i].end_date}, window {i+1} starts at {windows[i+1].start_date}")
+                raise ValidationError(
+                    f"Windows must be non-overlapping and chronologically ordered: window {i} ends at {windows[i].end_date}, window {i+1} starts at {windows[i+1].start_date}"
+                )
 
 
-def validate_d01_input(values_a: List[float], values_b: List[float],
-                      metric_id: str, window_pair: tuple[str, str],
-                      config: Dict[str, Any]) -> None:
+def validate_d01_input(
+    values_a: List[float],
+    values_b: List[float],
+    metric_id: str,
+    window_pair: tuple[str, str],
+    config: Dict[str, Any],
+) -> None:
     """Validate inputs for D-01 Distributional Drift detector.
 
     Validates:
@@ -300,7 +299,7 @@ def validate_d01_input(values_a: List[float], values_b: List[float],
     if not isinstance(window_pair, tuple) or len(window_pair) != 2:
         raise ValidationError("window_pair must be a tuple of two strings")
 
-    if not all(isinstance(w, str) and w.startswith('w') and len(w) == 3 and w[1:].isdigit() for w in window_pair):
+    if not all(isinstance(w, str) and w.startswith("w") and len(w) == 3 and w[1:].isdigit() for w in window_pair):
         raise ValidationError("window_pair elements must be window IDs in format wNN")
 
     # Validate config
@@ -317,10 +316,14 @@ def validate_d01_input(values_a: List[float], values_b: List[float],
         raise ValidationError(f"psi_threshold must be 0.25 (frozen), got: {psi_threshold}")
 
 
-def validate_d02_input(values_a: List[float], values_b: List[float],
-                      metric_a: str, metric_b: str,
-                      window_history: List[WindowDefinition],
-                      config: Dict[str, Any]) -> None:
+def validate_d02_input(
+    values_a: List[float],
+    values_b: List[float],
+    metric_a: str,
+    metric_b: str,
+    window_history: List[WindowDefinition],
+    config: Dict[str, Any],
+) -> None:
     """Validate inputs for D-02 Correlation Breakdown detector.
 
     Validates:
@@ -373,9 +376,13 @@ def validate_d02_input(values_a: List[float], values_b: List[float],
         raise ValidationError(f"correlation_threshold must be 0.3 (frozen), got: {correlation_threshold}")
 
 
-def validate_d03_input(metric_values: List[float], thresholds: List[float],
-                      metric_id: str, window_id: str,
-                      config: Dict[str, Any]) -> None:
+def validate_d03_input(
+    metric_values: List[float],
+    thresholds: List[float],
+    metric_id: str,
+    window_id: str,
+    config: Dict[str, Any],
+) -> None:
     """Validate inputs for D-03 Threshold Compression detector.
 
     Validates:
@@ -406,7 +413,9 @@ def validate_d03_input(metric_values: List[float], thresholds: List[float],
     if metric_id not in valid_metrics:
         raise ValidationError(f"metric_id must be one of {valid_metrics}, got: {metric_id}")
 
-    if not isinstance(window_id, str) or not (window_id.startswith('w') and len(window_id) == 3 and window_id[1:].isdigit()):
+    if not isinstance(window_id, str) or not (
+        window_id.startswith("w") and len(window_id) == 3 and window_id[1:].isdigit()
+    ):
         raise ValidationError(f"window_id must be in format wNN, got: {window_id}")
 
     # Validate config
@@ -428,10 +437,12 @@ def validate_d03_input(metric_values: List[float], thresholds: List[float],
         raise ValidationError(f"bootstrap_seed must be 42 (frozen), got: {bootstrap_seed}")
 
 
-def validate_scoring_inputs(detector_results: DetectorResults,
-                           metric_dataframe: MetricDataFrame,
-                           windows: List[WindowDefinition],
-                           detector_weights: Optional[Dict[str, float]] = None) -> None:
+def validate_scoring_inputs(
+    detector_results: DetectorResults,
+    metric_dataframe: MetricDataFrame,
+    windows: List[WindowDefinition],
+    detector_weights: Optional[Dict[str, float]] = None,
+) -> None:
     """Validate inputs for INT-05: Score Calculation.
 
     Validates:
@@ -478,12 +489,14 @@ def validate_scoring_inputs(detector_results: DetectorResults,
                 raise ValidationError(f"Weight for {det_id} must be non-negative number, got: {weight}")
 
 
-def validate_evidence_inputs(repository_context: RepositoryContext,
-                            metric_dataframe: MetricDataFrame,
-                            windows: List[WindowDefinition],
-                            detector_results: DetectorResults,
-                            score_package: ScorePackage,
-                            configuration: Dict[str, Any]) -> None:
+def validate_evidence_inputs(
+    repository_context: RepositoryContext,
+    metric_dataframe: MetricDataFrame,
+    windows: List[WindowDefinition],
+    detector_results: DetectorResults,
+    score_package: ScorePackage,
+    configuration: Dict[str, Any],
+) -> None:
     """Validate inputs for INT-06: Evidence Generation.
 
     Validates:
@@ -525,10 +538,12 @@ def validate_evidence_inputs(repository_context: RepositoryContext,
         raise ValidationError("configuration must be a dictionary")
 
 
-def validate_explanation_inputs(evidence_package: EvidencePackage,
-                               score_package: ScorePackage,
-                               metric_filter: Optional[str] = None,
-                               detector_filter: Optional[str] = None) -> None:
+def validate_explanation_inputs(
+    evidence_package: EvidencePackage,
+    score_package: ScorePackage,
+    metric_filter: Optional[str] = None,
+    detector_filter: Optional[str] = None,
+) -> None:
     """Validate inputs for INT-07: Explanation Generation.
 
     Validates:
@@ -568,8 +583,7 @@ def validate_explanation_inputs(evidence_package: EvidencePackage,
             raise ValidationError(f"detector_filter must be one of {valid_detectors}, got: {detector_filter}")
 
 
-def validate_benchmark_inputs(suite_id: str, detector_ids: List[str],
-                             config: Dict[str, Any], seed: int = 42) -> None:
+def validate_benchmark_inputs(suite_id: str, detector_ids: List[str], config: Dict[str, Any], seed: int = 42) -> None:
     """Validate inputs for INT-09: Benchmark Execution.
 
     Validates:
@@ -605,8 +619,7 @@ def validate_benchmark_inputs(suite_id: str, detector_ids: List[str],
         raise ValidationError("seed must be an integer")
 
 
-def validate_evaluation_inputs(benchmark_run: BenchmarkRun,
-                              ground_truth: Dict[str, Any]) -> None:
+def validate_evaluation_inputs(benchmark_run: BenchmarkRun, ground_truth: Dict[str, Any]) -> None:
     """Validate inputs for INT-10: Evaluation.
 
     Validates:
@@ -629,9 +642,7 @@ def validate_evaluation_inputs(benchmark_run: BenchmarkRun,
         raise ValidationError("ground_truth must be a dictionary")
 
 
-def validate_report_inputs(analysis_result: Dict[str, Any],
-                          output_formats: List[str],
-                          output_dir: Path) -> None:
+def validate_report_inputs(analysis_result: Dict[str, Any], output_formats: List[str], output_dir: Path) -> None:
     """Validate inputs for INT-08: Report Generation.
 
     Validates:
@@ -670,36 +681,51 @@ def validate_cli_ingest_inputs(repo_path: str, shallow: Optional[int] = None) ->
     validate_repository_inputs(repo_path, shallow_depth=shallow)
 
 
-def validate_cli_analyze_inputs(repo_path: str, since: Optional[str] = None,
-                                until: Optional[str] = None, metrics: Optional[List[str]] = None,
-                                window_strategy: Optional[str] = None, window_size: Optional[int] = None,
-                                output_dir: Optional[Path] = None, detectors: Optional[List[str]] = None,
-                                format: Optional[List[str]] = None, exclude_bots: bool = False) -> None:
+def validate_cli_analyze_inputs(
+    repo_path: str,
+    since: Optional[str] = None,
+    until: Optional[str] = None,
+    metrics: Optional[List[str]] = None,
+    window_strategy: Optional[str] = None,
+    window_size: Optional[int] = None,
+    output_dir: Optional[Path] = None,
+    detectors: Optional[List[str]] = None,
+    format: Optional[List[str]] = None,
+    exclude_bots: bool = False,
+) -> None:
     """Validate inputs for miie analyze CLI command."""
     # Check if repo_path is a GitHub URL
-    if repo_path.startswith(('https://github.com/', 'http://github.com/', 'git@github.com:', 'ssh://git@github.com/')):
+    if repo_path.startswith(
+        (
+            "https://github.com/",
+            "http://github.com/",
+            "git@github.com:",
+            "ssh://git@github.com/",
+        )
+    ):
         # URL validation: check basic structure
         from urllib.parse import urlparse
+
         parsed = urlparse(repo_path)
-        if parsed.netloc not in ('github.com', 'www.github.com'):
+        if parsed.netloc not in ("github.com", "www.github.com"):
             raise ValidationError(f"Invalid GitHub URL: {repo_path}. Must be a GitHub repository URL.")
-        
-        path = parsed.path.strip('/')
+
+        path = parsed.path.strip("/")
         if not path:
             raise ValidationError(f"Invalid GitHub URL path: {path}")
-        
+
         # Remove .git suffix if present
-        if path.endswith('.git'):
+        if path.endswith(".git"):
             path = path[:-4]
-        
-        parts = path.split('/')
+
+        parts = path.split("/")
         if len(parts) != 2:
             raise ValidationError(f"Invalid GitHub URL path: {path}. Expected format: owner/repo")
-        
+
         owner, repo = parts
         if not owner or not repo:
             raise ValidationError(f"Invalid owner or repo in URL: {repo_path}")
-        
+
         # URL is valid, continue with other validations
     else:
         # Local path validation
@@ -773,6 +799,7 @@ def validate_cli_analyze_inputs(repo_path: str, since: Optional[str] = None,
 def is_valid_uuid(uuid_string: str) -> bool:
     """Check if string is a valid UUID4."""
     import uuid
+
     try:
         val = uuid.UUID(uuid_string, version=4)
         return str(val) == uuid_string
@@ -793,7 +820,7 @@ def is_valid_sha256(hex_string: str) -> bool:
 
 def is_valid_window_id(window_id: str) -> bool:
     """Check if string is a valid window ID (wNN format)."""
-    return isinstance(window_id, str) and len(window_id) == 3 and window_id.startswith('w') and window_id[1:].isdigit()
+    return isinstance(window_id, str) and len(window_id) == 3 and window_id.startswith("w") and window_id[1:].isdigit()
 
 
 def is_valid_metric_id(metric_id: str) -> bool:

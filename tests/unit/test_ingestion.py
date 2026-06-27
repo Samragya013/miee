@@ -3,9 +3,9 @@ Tests for the ingestion module.
 """
 
 import pytest
-from pathlib import Path
-from miie.processing.ingestion import validate_repository, RepositoryIngestionEngine
+
 from miie.contracts.errors import IngestionError
+from miie.processing.ingestion import RepositoryIngestionEngine, validate_repository
 
 
 def test_validate_repository_valid_git_repo(tmp_path):
@@ -81,8 +81,9 @@ def test_RepositoryIngestionEngine_validate_with_valid_context(tmp_path):
     # We need to create a RepositoryContext. We can use the RepositoryIngestionEngine to create one via ingest?
     # But the validate method just calls validate_repository on the local_path.
     # So we can create a RepositoryContext with the local_path set to our repo.
-    from miie.schemas.models import RepositoryContext
     import datetime
+
+    from miie.schemas.models import RepositoryContext
 
     context = RepositoryContext(
         repo_id="test",
@@ -93,7 +94,7 @@ def test_RepositoryIngestionEngine_validate_with_valid_context(tmp_path):
         last_commit_date=datetime.datetime.now(datetime.timezone.utc),
         contributor_count=1,
         is_shallow=False,
-        is_fork=False
+        is_fork=False,
     )
 
     engine = RepositoryIngestionEngine()
@@ -103,8 +104,9 @@ def test_RepositoryIngestionEngine_validate_with_valid_context(tmp_path):
 def test_RepositoryIngestionEngine_validate_with_invalid_context(tmp_path):
     """Test that RepositoryIngestionEngine.validate returns False for an invalid context."""
     # Create a RepositoryContext with a non-existent path
-    from miie.schemas.models import RepositoryContext
     import datetime
+
+    from miie.schemas.models import RepositoryContext
 
     context = RepositoryContext(
         repo_id="test",
@@ -115,7 +117,7 @@ def test_RepositoryIngestionEngine_validate_with_invalid_context(tmp_path):
         last_commit_date=datetime.datetime.now(datetime.timezone.utc),
         contributor_count=1,
         is_shallow=False,
-        is_fork=False
+        is_fork=False,
     )
 
     engine = RepositoryIngestionEngine()

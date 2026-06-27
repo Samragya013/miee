@@ -14,9 +14,7 @@ import datetime
 import re
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Union
-
-from miie.schemas.serialization import json_dumps, json_loads
+from typing import Any, Dict, List, Optional
 
 
 @dataclass
@@ -26,6 +24,7 @@ class RepositoryContext:
 
     Source: BSD-Engineering Section 5.3
     """
+
     repo_id: str
     local_path: Path
     is_remote: bool
@@ -54,6 +53,7 @@ class MetricDataFrame:
     Source: BSD-Engineering Section 6
     Represents metric data as defined in BSD Section 6.3 JSON serialization.
     """
+
     repo_id: str
     run_id: str
     timestamp: datetime.datetime
@@ -74,6 +74,7 @@ class D01Output:
 
     Source: BSD-Engineering Section 8.2
     """
+
     ks_statistic: float
     ks_p_value: float
     psi_value: float
@@ -83,7 +84,9 @@ class D01Output:
 
     def __post_init__(self):
         if self.direction not in {"mean_shift", "variance_collapse", "shape_change"}:
-            raise ValueError(f"direction must be one of mean_shift, variance_collapse, shape_change; got {self.direction}")
+            raise ValueError(
+                f"direction must be one of mean_shift, variance_collapse, shape_change; got {self.direction}"
+            )
         if not (0.0 <= self.severity <= 1.0):
             raise ValueError(f"severity must be between 0.0 and 1.0, got {self.severity}")
 
@@ -95,6 +98,7 @@ class D02Output:
 
     Source: BSD-Engineering Section 8.3
     """
+
     pearson_r: float
     spearman_r: float
     fisher_z_ci: tuple  # (lower, upper)
@@ -104,7 +108,12 @@ class D02Output:
     flagged: bool
 
     def __post_init__(self):
-        allowed_types = {"sudden_drop", "sign_reversal", "gradual_erosion", "confidence_exclusion"}
+        allowed_types = {
+            "sudden_drop",
+            "sign_reversal",
+            "gradual_erosion",
+            "confidence_exclusion",
+        }
         if self.breakdown_type is not None and self.breakdown_type not in allowed_types:
             raise ValueError(f"breakdown_type must be one of {allowed_types} or None; got {self.breakdown_type}")
         if not (0.0 <= self.severity <= 1.0):
@@ -118,6 +127,7 @@ class D03Output:
 
     Source: BSD-Engineering Section 8.4
     """
+
     excess_mass_z: float
     excess_mass_flag: bool
     dip_test_p_value: float
@@ -142,6 +152,7 @@ class DetectorResult:
     Accepts both the legacy dict-based detector_outputs format and the
     new typed d_01/d_02/d_03 fields for backward compatibility.
     """
+
     detector_outputs: Dict[str, Dict] = field(default_factory=dict)
     d_01: Dict[str, Dict[str, D01Output]] = field(default_factory=dict)
     d_02: Dict[str, Dict[str, D02Output]] = field(default_factory=dict)
@@ -162,6 +173,7 @@ class Provenance:
 
     Source: ACS v1.0 Section 10.1 (Evidence Generation)
     """
+
     miie_version: str
     config_hash: str
     timestamp: str  # ISO 8601 UTC
@@ -185,6 +197,7 @@ class WarningItem:
 
     Source: ACS v1.0 Section 10.1 (Evidence Generation)
     """
+
     stage: str
     message: str
     metric_id: Optional[str]
@@ -198,6 +211,7 @@ class EvidencePackage:
 
     Source: ACS v1.0 Section 10.1 (Evidence Generation)
     """
+
     provenance: Provenance
     windows: List[WindowDefinition]
     metrics: Dict[str, Any]  # Summary of metric data
@@ -235,6 +249,7 @@ class EvidencePackage:
 # They are implemented here as minimal placeholders to allow contracts layer development.
 # In a full implementation, these would be replaced with the complete ACS v1.0 schema definitions.
 
+
 @dataclass
 class WindowDefinition:
     """
@@ -242,6 +257,7 @@ class WindowDefinition:
 
     Source: ACS v1.0 Section 6.2 (Window Definition)
     """
+
     window_id: str
     start_date: datetime.date
     end_date: datetime.date
@@ -251,10 +267,12 @@ class WindowDefinition:
 
     def __post_init__(self):
         """Validate WindowDefinition constraints."""
-        if not self.window_id or not re.match(r'^w[0-9]+$', self.window_id):
+        if not self.window_id or not re.match(r"^w[0-9]+$", self.window_id):
             raise ValueError(f"window_id must match pattern ^w[0-9]+$, got {self.window_id}")
         if self.start_date >= self.end_date:
-            raise ValueError(f"start_date must be before end_date, got start_date={self.start_date}, end_date={self.end_date}")
+            raise ValueError(
+                f"start_date must be before end_date, got start_date={self.start_date}, end_date={self.end_date}"
+            )
         if self.commits < 1:
             raise ValueError(f"commits must be >= 1, got {self.commits}")
 
@@ -266,6 +284,7 @@ class DetectorResults:
 
     Source: BSD-Engineering Section 8.5 (DetectorResults dataclass)
     """
+
     d_01: Dict[str, Dict[str, D01Output]] = field(default_factory=dict)
     d_02: Dict[str, Dict[str, D02Output]] = field(default_factory=dict)
     d_03: Dict[str, Dict[str, Dict[str, D03Output]]] = field(default_factory=dict)
@@ -284,6 +303,7 @@ class IntegrityScore:
 
     Source: ACS v1.0 Section 9.2 (Score Package)
     """
+
     overall: float  # [0.0, 1.0]
     per_metric: Dict[str, float]  # metric_id -> [0.0, 1.0]
     formula_version: str
@@ -304,6 +324,7 @@ class ConfidenceScore:
 
     Source: ACS v1.0 Section 9.2 (Score Package)
     """
+
     overall: float  # [0.0, 1.0]
     factors: Dict[str, float]  # sample_size, variance, missing_data, window_balance, detector_success
     band: Optional[str]  # "high" | "medium" | "low" | "critical"
@@ -315,7 +336,12 @@ class ConfidenceScore:
         for factor_name, value in self.factors.items():
             if not (0.0 <= value <= 1.0):
                 raise ValueError(f"confidence.factors['{factor_name}'] must be between 0.0 and 1.0, got {value}")
-        if self.band is not None and self.band not in {"high", "medium", "low", "critical"}:
+        if self.band is not None and self.band not in {
+            "high",
+            "medium",
+            "low",
+            "critical",
+        }:
             raise ValueError(f"confidence.band must be one of 'high', 'medium', 'low', 'critical', got {self.band}")
 
 
@@ -326,6 +352,7 @@ class ScorePackage:
 
     Source: ACS v1.0 Section 9.2 (Score Package)
     """
+
     integrity: IntegrityScore
     confidence: ConfidenceScore
     timestamp: datetime.datetime
@@ -346,6 +373,7 @@ class Explanation:
 
     Source: BSD-Engineering Section 11.1
     """
+
     metric_id: str
     detector_id: str
     narrative: str
@@ -368,6 +396,7 @@ class ExplanationReport:
 
     Source: BSD-Engineering Section 11.1 (ExplanationReport schema)
     """
+
     explanations: List[Explanation] = field(default_factory=list)
     summary: str = ""
     recommendations: List[str] = field(default_factory=list)
@@ -387,6 +416,7 @@ class BenchmarkRun:
 
     Source: BSD-Engineering Section 15.1 (BenchmarkRun schema)
     """
+
     run_id: str = ""
     suite_id: str = ""
     detector_id: str = ""
@@ -412,6 +442,7 @@ class ConfusionMatrix:
 
     Source: BSD-Engineering Section 16.1 (EvaluationResult confusion_matrix)
     """
+
     tp: int = 0
     fp: int = 0
     tn: int = 0
@@ -431,6 +462,7 @@ class EvaluationResult:
 
     Source: BSD-Engineering Section 16.1 (EvaluationResult schema)
     """
+
     suite_id: str = ""
     detector_id: str = ""
     detector_version: str = ""
@@ -462,6 +494,7 @@ class ReportOutput:
     Source: ACS v1.0 Section 13.2 (Report Output)
     TODO: Implement full ReportOutput schema per ACS v1.0 specification
     """
+
     report_paths: Dict[str, Path] = field(default_factory=dict)
     manifest_path: Optional[Path] = None
     checksums: Dict[str, str] = field(default_factory=dict)
@@ -469,7 +502,6 @@ class ReportOutput:
     def __post_init__(self):
         """Validate ReportOutput constraints."""
         # Placeholder validation - full validation TBD
-        pass
 
 
 @dataclass
@@ -479,6 +511,7 @@ class GroundTruthLabel:
 
     Source: BSD-Engineering Section 14.1 (GroundTruth labels items)
     """
+
     repo_id: str  # ^repo_[0-9]{3}$
     metric_id: str
     label: bool
@@ -493,13 +526,21 @@ class GroundTruthLabel:
     annotator_agreement: Optional[float] = None
 
     def __post_init__(self):
-        if not re.match(r'^repo_[0-9]{3}$', self.repo_id):
+        if not re.match(r"^repo_[0-9]{3}$", self.repo_id):
             raise ValueError(f"repo_id must match pattern ^repo_[0-9]{{3}}$; got {self.repo_id}")
         if self.event_type not in {"MDE-01", "MDE-02", "MDE-03", "MDE-04"}:
             raise ValueError(f"event_type must be one of MDE-01, MDE-02, MDE-03, MDE-04; got {self.event_type}")
-        if self.severity is not None and self.severity not in {"mild", "moderate", "severe"}:
+        if self.severity is not None and self.severity not in {
+            "mild",
+            "moderate",
+            "severe",
+        }:
             raise ValueError(f"severity must be one of mild, moderate, severe; got {self.severity}")
-        if self.confidence is not None and self.confidence not in {"high", "medium", "low"}:
+        if self.confidence is not None and self.confidence not in {
+            "high",
+            "medium",
+            "low",
+        }:
             raise ValueError(f"confidence must be one of high, medium, low; got {self.confidence}")
         if self.annotator_agreement is not None and not (0.0 <= self.annotator_agreement <= 1.0):
             raise ValueError(f"annotator_agreement must be between 0.0 and 1.0, got {self.annotator_agreement}")
@@ -512,6 +553,7 @@ class GroundTruthInput:
 
     Source: BSD-Engineering Section 14.1 (GroundTruth schema)
     """
+
     suite_id: str = ""
     version: str = ""
     labels: List[GroundTruthLabel] = field(default_factory=list)
@@ -532,6 +574,7 @@ class Annotation:
     Source: ACS v1.0 Section 15.2 (Annotation)
     TODO: Implement full Annotation schema per ACS v1.0 specification
     """
+
     label: str
     confidence: float = 1.0
     metadata: Dict[str, Any] = field(default_factory=dict)
@@ -547,6 +590,7 @@ class Annotation:
 # BSD §12: AnalysisResult
 # ---------------------------------------------------------------------------
 
+
 @dataclass
 class RunMetadata:
     """
@@ -554,6 +598,7 @@ class RunMetadata:
 
     Source: BSD-Engineering Section 12 (AnalysisResult)
     """
+
     duration_seconds: float
     memory_peak_mb: float
     cpu_time_seconds: float
@@ -579,6 +624,7 @@ class AnalysisResult:
 
     Source: BSD-Engineering Section 12 (AnalysisResult)
     """
+
     miie_version: str
     generated_at: str  # ISO 8601 UTC
     config_hash: str
@@ -622,6 +668,7 @@ class AnalysisResult:
 # BSD §13: BenchmarkDataset
 # ---------------------------------------------------------------------------
 
+
 @dataclass
 class SyntheticRepositoryMetadata:
     """
@@ -629,6 +676,7 @@ class SyntheticRepositoryMetadata:
 
     Source: BSD-Engineering Section 13 (BenchmarkDataset)
     """
+
     repo_id: str  # pattern ^repo_[0-9]{3}$
     category: str  # enum: real_world, synthetic_healthy, synthetic_pathological
     language: str
@@ -636,9 +684,13 @@ class SyntheticRepositoryMetadata:
 
     def __post_init__(self):
         """Validate SyntheticRepositoryMetadata constraints."""
-        if not re.match(r'^repo_[0-9]{3}$', self.repo_id):
+        if not re.match(r"^repo_[0-9]{3}$", self.repo_id):
             raise ValueError(f"repo_id must match pattern ^repo_[0-9]{{3}}$, got {self.repo_id}")
-        allowed_categories = {"real_world", "synthetic_healthy", "synthetic_pathological"}
+        allowed_categories = {
+            "real_world",
+            "synthetic_healthy",
+            "synthetic_pathological",
+        }
         if self.category not in allowed_categories:
             raise ValueError(f"category must be one of {allowed_categories}, got {self.category}")
         if not self.language:
@@ -652,6 +704,7 @@ class PathologyMetadata:
 
     Source: BSD-Engineering Section 13 (BenchmarkDataset)
     """
+
     event_type: str  # MDE-01, MDE-02, MDE-03
     metric_id: str
     target_window: str
@@ -692,6 +745,7 @@ class BenchmarkDataset:
 
     Source: BSD-Engineering Section 13 (BenchmarkDataset)
     """
+
     suite_id: str
     version: str
     description: str
@@ -740,6 +794,7 @@ class BenchmarkDataset:
 # BSD §17: Configuration
 # ---------------------------------------------------------------------------
 
+
 @dataclass
 class DetectorConfig:
     """
@@ -747,6 +802,7 @@ class DetectorConfig:
 
     Source: BSD-Engineering Section 17 (Configuration)
     """
+
     alpha: float = 0.05
     psi_threshold: float = 0.25
     correlation_threshold: float = 0.3
@@ -775,6 +831,7 @@ class Configuration:
 
     Source: BSD-Engineering Section 17 (Configuration)
     """
+
     repo: str
     since: Optional[str] = None
     until: Optional[str] = None
@@ -815,6 +872,7 @@ class Configuration:
 # BSD §18: JobManifest
 # ---------------------------------------------------------------------------
 
+
 @dataclass
 class JobManifest:
     """
@@ -822,6 +880,7 @@ class JobManifest:
 
     Source: BSD-Engineering Section 18 (JobManifest)
     """
+
     job_id: str  # UUID4
     job_type: str  # enum: analyze, benchmark, explain, export, generate
     job_params: Dict[str, Any]
@@ -842,7 +901,14 @@ class JobManifest:
             raise ValueError(f"job_type must be one of {allowed_job_types}, got {self.job_type}")
         if not self.created_at:
             raise ValueError("created_at must not be empty")
-        allowed_statuses = {"created", "queued", "running", "completed", "failed", "cancelled"}
+        allowed_statuses = {
+            "created",
+            "queued",
+            "running",
+            "completed",
+            "failed",
+            "cancelled",
+        }
         if self.status not in allowed_statuses:
             raise ValueError(f"status must be one of {allowed_statuses}, got {self.status}")
         if not (0.0 <= self.progress <= 1.0):
@@ -853,6 +919,7 @@ class JobManifest:
 # BSD §19: StateObject
 # ---------------------------------------------------------------------------
 
+
 @dataclass
 class StateTransition:
     """
@@ -860,6 +927,7 @@ class StateTransition:
 
     Source: BSD-Engineering Section 19 (StateObject)
     """
+
     status: str
     timestamp: str  # ISO 8601 UTC
     stage: Optional[str] = None
@@ -867,7 +935,14 @@ class StateTransition:
 
     def __post_init__(self):
         """Validate StateTransition constraints."""
-        allowed_statuses = {"created", "queued", "running", "completed", "failed", "cancelled"}
+        allowed_statuses = {
+            "created",
+            "queued",
+            "running",
+            "completed",
+            "failed",
+            "cancelled",
+        }
         if self.status not in allowed_statuses:
             raise ValueError(f"status must be one of {allowed_statuses}, got {self.status}")
         if not self.timestamp:
@@ -883,6 +958,7 @@ class RecoveryMetadata:
 
     Source: BSD-Engineering Section 19 (StateObject)
     """
+
     last_completed_stage: Optional[str] = None
     checkpoint_path: Optional[str] = None
     retry_count: int = 0
@@ -900,6 +976,7 @@ class StateObject:
 
     Source: BSD-Engineering Section 19 (StateObject)
     """
+
     job_id: str
     current_status: str
     history: List[StateTransition]
@@ -909,7 +986,14 @@ class StateObject:
         """Validate StateObject constraints."""
         if not self.job_id:
             raise ValueError("job_id must not be empty")
-        allowed_statuses = {"created", "queued", "running", "completed", "failed", "cancelled"}
+        allowed_statuses = {
+            "created",
+            "queued",
+            "running",
+            "completed",
+            "failed",
+            "cancelled",
+        }
         if self.current_status not in allowed_statuses:
             raise ValueError(f"current_status must be one of {allowed_statuses}, got {self.current_status}")
         for i, transition in enumerate(self.history):

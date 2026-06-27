@@ -1,6 +1,8 @@
 """Integration tests for EvaluationEngine."""
-import pytest
+
 from unittest.mock import Mock
+
+import pytest
 
 from miie.benchmark.evaluation import EvaluationEngine
 from miie.schemas.models import BenchmarkRun, EvaluationResult
@@ -27,7 +29,7 @@ class TestEvaluationEngineIntegration:
                 "memory_usage_mb": 150.0,
                 "samples_processed": 95,
                 "false_positive_rate": 0.04,
-                "false_negative_rate": 0.12
+                "false_negative_rate": 0.12,
             },
             "D-02": {
                 "accuracy": 0.78,
@@ -38,7 +40,7 @@ class TestEvaluationEngineIntegration:
                 "memory_usage_mb": 180.0,
                 "samples_processed": 88,
                 "false_positive_rate": 0.06,
-                "false_negative_rate": 0.18
+                "false_negative_rate": 0.18,
             },
             "suite_summary": {
                 "suite_id": "B-01",
@@ -48,18 +50,14 @@ class TestEvaluationEngineIntegration:
                 "execution_time_ms": 27.7,
                 "config_used": {"test": True},
                 "pathology_type": "metric-drift",
-                "suite_candidates_count": 40
-            }
+                "suite_candidates_count": 40,
+            },
         }
 
         # Create realistic ground truth
         ground_truth = {
             "labels": [0, 0, 1, 1, 0, 1, 0, 0, 1, 1, 0, 1, 0, 0, 1],
-            "metadata": {
-                "total_samples": 15,
-                "anomaly_count": 6,
-                "normal_count": 9
-            }
+            "metadata": {"total_samples": 15, "anomaly_count": 6, "normal_count": 9},
         }
 
         # Run evaluation
@@ -88,12 +86,9 @@ class TestEvaluationEngineIntegration:
                 "accuracy": 0.8,
                 "precision": 0.7,
                 "recall": 0.6,
-                "f1_score": 0.64
+                "f1_score": 0.64,
             },
-            "suite_summary": {
-                "suite_id": "B-01",
-                "detectors_benchmarked": 1
-            }
+            "suite_summary": {"suite_id": "B-01", "detectors_benchmarked": 1},
         }
 
         benchmark_run2 = Mock(spec=BenchmarkRun)
@@ -102,18 +97,13 @@ class TestEvaluationEngineIntegration:
                 "accuracy": 0.8,
                 "precision": 0.7,
                 "recall": 0.6,
-                "f1_score": 0.64
+                "f1_score": 0.64,
             },
-            "suite_summary": {
-                "suite_id": "B-01",
-                "detectors_benchmarked": 1
-            }
+            "suite_summary": {"suite_id": "B-01", "detectors_benchmarked": 1},
         }
 
         # Identical ground truth
-        ground_truth = {
-            "labels": [1, 0, 1, 1, 0, 0, 1, 0, 1, 0]
-        }
+        ground_truth = {"labels": [1, 0, 1, 1, 0, 0, 1, 0, 1, 0]}
 
         # Run evaluations
         result1 = self.engine.evaluate(benchmark_run1, ground_truth)
@@ -134,18 +124,13 @@ class TestEvaluationEngineIntegration:
                 "accuracy": 0.75,
                 "precision": 0.70,
                 "recall": 0.65,
-                "f1_score": 0.67
+                "f1_score": 0.67,
             },
-            "suite_summary": {
-                "suite_id": "B-02",
-                "detectors_benchmarked": 1
-            }
+            "suite_summary": {"suite_id": "B-02", "detectors_benchmarked": 1},
         }
 
         # Ground truth with known imbalance
-        ground_truth = {
-            "labels": [0, 0, 0, 0, 0, 1, 1, 1, 0, 0]  # 70% zeros, 30% ones
-        }
+        ground_truth = {"labels": [0, 0, 0, 0, 0, 1, 1, 1, 0, 0]}  # 70% zeros, 30% ones
 
         # Get evaluation result
         result = self.engine.evaluate(benchmark_run, ground_truth)
@@ -179,29 +164,28 @@ class TestEvaluationEngineIntegration:
                 "accuracy": 0.82,
                 "precision": 0.78,
                 "recall": 0.75,
-                "f1_score": 0.76
+                "f1_score": 0.76,
             },
-            "suite_summary": {
-                "suite_id": "B-03",
-                "detectors_benchmarked": 1
-            }
+            "suite_summary": {"suite_id": "B-03", "detectors_benchmarked": 1},
         }
 
         # Ground truth
-        ground_truth = {
-            "labels": [1, 1, 0, 1, 0, 0, 1, 0, 1, 1, 0, 0]
-        }
+        ground_truth = {"labels": [1, 1, 0, 1, 0, 0, 1, 0, 1, 1, 0, 0]}
 
         # Get extended metrics
-        extended_result = self.engine.evaluate_with_extended_metrics(
-            benchmark_run, ground_truth
-        )
+        extended_result = self.engine.evaluate_with_extended_metrics(benchmark_run, ground_truth)
 
         # Verify all expected metrics are present and valid
         expected_keys = {
-            "accuracy", "precision", "recall", "f1_score",
-            "auc_roc", "auc_pr", "fpr", "fnr",
-            "confusion_matrix"
+            "accuracy",
+            "precision",
+            "recall",
+            "f1_score",
+            "auc_roc",
+            "auc_pr",
+            "fpr",
+            "fnr",
+            "confusion_matrix",
         }
         assert set(extended_result.keys()) == expected_keys
 
@@ -223,10 +207,7 @@ class TestEvaluationEngineIntegration:
         assert isinstance(cm["true_positive"], int) and cm["true_positive"] >= 0
 
         # Verify that TP + TN + FP + FN equals total samples
-        total_from_cm = (
-            cm["true_negative"] + cm["false_positive"] +
-            cm["false_negative"] + cm["true_positive"]
-        )
+        total_from_cm = cm["true_negative"] + cm["false_positive"] + cm["false_negative"] + cm["true_positive"]
         assert total_from_cm == len(ground_truth["labels"])
 
     def test_evaluation_handles_edge_cases_gracefully(self):
@@ -248,12 +229,7 @@ class TestEvaluationEngineIntegration:
 
         # Test with missing detector data
         benchmark_run_no_detectors = Mock(spec=BenchmarkRun)
-        benchmark_run_no_detectors.predictions = {
-            "suite_summary": {
-                "suite_id": "B-01",
-                "detectors_benchmarked": 0
-            }
-        }
+        benchmark_run_no_detectors.predictions = {"suite_summary": {"suite_id": "B-01", "detectors_benchmarked": 0}}
 
         ground_truth_normal = {"labels": [1, 0, 1, 0]}
 
@@ -264,12 +240,7 @@ class TestEvaluationEngineIntegration:
     def test_evaluation_result_validation(self):
         """Test that EvaluationResult properly validates its constraints."""
         # Valid EvaluationResult should work
-        valid_result = EvaluationResult(
-            accuracy=0.85,
-            precision=0.78,
-            recall=0.72,
-            f1_score=0.75
-        )
+        valid_result = EvaluationResult(accuracy=0.85, precision=0.78, recall=0.72, f1_score=0.75)
         assert valid_result.accuracy == 0.85
 
         # Test that invalid values would raise validation errors

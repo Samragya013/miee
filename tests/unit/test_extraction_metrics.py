@@ -2,16 +2,13 @@
 Unit tests for metric extraction implementations (M-01, M-03, M-04, M-05, M-07).
 """
 
-import json
 import datetime
+import json
 from pathlib import Path
 from unittest import mock
 
-import pytest
-
 from miie.processing.extraction import MetricExtractionEngine
 from miie.schemas.models import RepositoryContext
-
 
 FIXTURES_DIR = Path(__file__).parent.parent / "fixtures"
 
@@ -35,12 +32,14 @@ def _make_context(tmp_path: Path) -> RepositoryContext:
 # M-01: Code Coverage
 # ---------------------------------------------------------------------------
 
+
 class TestM01CodeCoverage:
     """Tests for M-01 Code Coverage extraction."""
 
     def test_parse_cobertura_xml(self, tmp_path):
         """Test parsing coverage.xml with line-rate attribute."""
         import shutil
+
         src = FIXTURES_DIR / "sample_coverage.xml"
         dst = tmp_path / "coverage.xml"
         shutil.copy(src, dst)
@@ -68,14 +67,7 @@ class TestM01CodeCoverage:
         """Test parsing lcov.info with LH/LF lines."""
         lcov = tmp_path / "lcov.info"
         lcov.write_text(
-            "SF:/src/main.py\n"
-            "DA:1,1\n"
-            "DA:2,1\n"
-            "DA:3,0\n"
-            "DA:4,1\n"
-            "end_of_record\n"
-            "LH:3\n"
-            "LF:4\n"
+            "SF:/src/main.py\n" "DA:1,1\n" "DA:2,1\n" "DA:3,0\n" "DA:4,1\n" "end_of_record\n" "LH:3\n" "LF:4\n"
         )
 
         engine = MetricExtractionEngine()
@@ -103,12 +95,16 @@ class TestM01CodeCoverage:
     def test_parse_dot_coverage_flat(self, tmp_path):
         """Test parsing .coverage JSON with flat coverage dict."""
         cov = tmp_path / ".coverage"
-        cov.write_text(json.dumps({
-            "coverage": {
-                "src/a.py": [1, 1, 0, 1],
-                "src/b.py": [1, 1, 1, 1],
-            }
-        }))
+        cov.write_text(
+            json.dumps(
+                {
+                    "coverage": {
+                        "src/a.py": [1, 1, 0, 1],
+                        "src/b.py": [1, 1, 1, 1],
+                    }
+                }
+            )
+        )
 
         engine = MetricExtractionEngine()
         result = engine._parse_dot_coverage(cov)
@@ -118,6 +114,7 @@ class TestM01CodeCoverage:
     def test_extract_m01_with_cobertura(self, tmp_path):
         """Test full M-01 extraction with coverage.xml in repo."""
         import shutil
+
         src = FIXTURES_DIR / "sample_coverage.xml"
         dst = tmp_path / "coverage.xml"
         shutil.copy(src, dst)
@@ -140,6 +137,7 @@ class TestM01CodeCoverage:
     def test_extract_m01_via_extract_method(self, tmp_path):
         """Test M-01 through the main extract() method."""
         import shutil
+
         src = FIXTURES_DIR / "sample_coverage.xml"
         dst = tmp_path / "coverage.xml"
         shutil.copy(src, dst)
@@ -156,14 +154,13 @@ class TestM01CodeCoverage:
 # M-03: Review Participation
 # ---------------------------------------------------------------------------
 
+
 class TestM03ReviewParticipation:
     """Tests for M-03 Review Participation extraction."""
 
     def test_parse_pr_export(self):
         """Test reviewers_per_pr calculation from sample PR export."""
-        engine = MetricExtractionEngine(
-            pr_export_path=FIXTURES_DIR / "sample_pr_export.json"
-        )
+        engine = MetricExtractionEngine(pr_export_path=FIXTURES_DIR / "sample_pr_export.json")
         result = engine._extract_review_participation()
 
         assert result is not None
@@ -179,9 +176,7 @@ class TestM03ReviewParticipation:
 
     def test_extract_m03_missing_file(self, tmp_path):
         """Test M-03 returns None when PR export file doesn't exist."""
-        engine = MetricExtractionEngine(
-            pr_export_path=tmp_path / "nonexistent.json"
-        )
+        engine = MetricExtractionEngine(pr_export_path=tmp_path / "nonexistent.json")
         result = engine._extract_review_participation()
         assert result is None
 
@@ -197,9 +192,7 @@ class TestM03ReviewParticipation:
     def test_extract_m03_via_extract_method(self):
         """Test M-03 through the main extract() method."""
         context = _make_context(Path("/tmp"))
-        engine = MetricExtractionEngine(
-            pr_export_path=FIXTURES_DIR / "sample_pr_export.json"
-        )
+        engine = MetricExtractionEngine(pr_export_path=FIXTURES_DIR / "sample_pr_export.json")
         mdf = engine.extract(context, ["M-03"])
 
         assert mdf.metrics["M-03"] is not None
@@ -210,14 +203,13 @@ class TestM03ReviewParticipation:
 # M-04: Review Latency
 # ---------------------------------------------------------------------------
 
+
 class TestM04ReviewLatency:
     """Tests for M-04 Review Latency extraction."""
 
     def test_parse_review_latency(self):
         """Test mean review latency from sample PR export."""
-        engine = MetricExtractionEngine(
-            pr_export_path=FIXTURES_DIR / "sample_pr_export.json"
-        )
+        engine = MetricExtractionEngine(pr_export_path=FIXTURES_DIR / "sample_pr_export.json")
         result = engine._extract_review_latency()
 
         assert result is not None
@@ -235,9 +227,18 @@ class TestM04ReviewLatency:
     def test_extract_m04_no_reviews(self, tmp_path):
         """Test M-04 returns None when no PRs have reviews."""
         pr_file = tmp_path / "prs.json"
-        pr_file.write_text(json.dumps([
-            {"id": "PR-1", "created_at": "2025-06-01T10:00:00Z", "first_review_at": None, "reviewers": []},
-        ]))
+        pr_file.write_text(
+            json.dumps(
+                [
+                    {
+                        "id": "PR-1",
+                        "created_at": "2025-06-01T10:00:00Z",
+                        "first_review_at": None,
+                        "reviewers": [],
+                    },
+                ]
+            )
+        )
 
         engine = MetricExtractionEngine(pr_export_path=pr_file)
         result = engine._extract_review_latency()
@@ -246,9 +247,7 @@ class TestM04ReviewLatency:
     def test_extract_m04_via_extract_method(self):
         """Test M-04 through the main extract() method."""
         context = _make_context(Path("/tmp"))
-        engine = MetricExtractionEngine(
-            pr_export_path=FIXTURES_DIR / "sample_pr_export.json"
-        )
+        engine = MetricExtractionEngine(pr_export_path=FIXTURES_DIR / "sample_pr_export.json")
         mdf = engine.extract(context, ["M-04"])
 
         assert mdf.metrics["M-04"] is not None
@@ -259,14 +258,13 @@ class TestM04ReviewLatency:
 # M-05: Issue Resolution Time
 # ---------------------------------------------------------------------------
 
+
 class TestM05IssueResolutionTime:
     """Tests for M-05 Issue Resolution Time extraction."""
 
     def test_parse_issue_resolution(self):
         """Test mean resolution time from sample issue export."""
-        engine = MetricExtractionEngine(
-            issue_export_path=FIXTURES_DIR / "sample_issue_export.json"
-        )
+        engine = MetricExtractionEngine(issue_export_path=FIXTURES_DIR / "sample_issue_export.json")
         result = engine._extract_issue_resolution_time()
 
         assert result is not None
@@ -284,9 +282,18 @@ class TestM05IssueResolutionTime:
     def test_extract_m05_no_closed_issues(self, tmp_path):
         """Test M-05 returns None when no closed issues exist."""
         issue_file = tmp_path / "issues.json"
-        issue_file.write_text(json.dumps([
-            {"id": "I-1", "created_at": "2025-06-01T10:00:00Z", "closed_at": None, "state": "open"},
-        ]))
+        issue_file.write_text(
+            json.dumps(
+                [
+                    {
+                        "id": "I-1",
+                        "created_at": "2025-06-01T10:00:00Z",
+                        "closed_at": None,
+                        "state": "open",
+                    },
+                ]
+            )
+        )
 
         engine = MetricExtractionEngine(issue_export_path=issue_file)
         result = engine._extract_issue_resolution_time()
@@ -295,9 +302,7 @@ class TestM05IssueResolutionTime:
     def test_extract_m05_via_extract_method(self):
         """Test M-05 through the main extract() method."""
         context = _make_context(Path("/tmp"))
-        engine = MetricExtractionEngine(
-            issue_export_path=FIXTURES_DIR / "sample_issue_export.json"
-        )
+        engine = MetricExtractionEngine(issue_export_path=FIXTURES_DIR / "sample_issue_export.json")
         mdf = engine.extract(context, ["M-05"])
 
         assert mdf.metrics["M-05"] is not None
@@ -307,6 +312,7 @@ class TestM05IssueResolutionTime:
 # ---------------------------------------------------------------------------
 # M-07: Cyclomatic Complexity
 # ---------------------------------------------------------------------------
+
 
 class TestM07CyclomaticComplexity:
     """Tests for M-07 Cyclomatic Complexity extraction."""
@@ -392,11 +398,14 @@ class TestM07CyclomaticComplexity:
         mock_radon_complexity = mock.MagicMock(cc_visit=mock_cc_visit)
         mock_radon_raw = mock.MagicMock()
 
-        with mock.patch.dict("sys.modules", {
-            "radon": mock_radon,
-            "radon.complexity": mock_radon_complexity,
-            "radon.raw": mock_radon_raw,
-        }):
+        with mock.patch.dict(
+            "sys.modules",
+            {
+                "radon": mock_radon,
+                "radon.complexity": mock_radon_complexity,
+                "radon.raw": mock_radon_raw,
+            },
+        ):
             engine = MetricExtractionEngine()
             result = engine._extract_complexity_radon(tmp_path)
 
@@ -416,6 +425,7 @@ class TestM07CyclomaticComplexity:
 # ---------------------------------------------------------------------------
 # Graceful fallback tests
 # ---------------------------------------------------------------------------
+
 
 class TestGracefulFallback:
     """Tests for graceful fallback when artifacts or tools are missing."""
@@ -437,6 +447,7 @@ class TestGracefulFallback:
     def test_mixed_available_and_unavailable(self, tmp_path):
         """Test extraction with some metrics available and some not."""
         import shutil
+
         src = FIXTURES_DIR / "sample_coverage.xml"
         dst = tmp_path / "coverage.xml"
         shutil.copy(src, dst)

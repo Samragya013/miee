@@ -3,12 +3,20 @@
 Implements INT-04: Evidence Engine interface.
 Builds traceable evidence packages from scores and detector results.
 """
-from typing import Optional, List, Dict, Any
-from datetime import datetime, timezone
-import hashlib
 
-from ..schemas.models import EvidencePackage, ScorePackage, DetectorResults, WindowDefinition, Provenance, WarningItem
-from miie.schemas.models import RepositoryContext, MetricDataFrame
+import hashlib
+from datetime import datetime, timezone
+from typing import Any, Dict, List
+
+from miie.schemas.models import MetricDataFrame, RepositoryContext
+
+from ..schemas.models import (
+    DetectorResults,
+    EvidencePackage,
+    Provenance,
+    ScorePackage,
+    WindowDefinition,
+)
 
 
 class EvidenceEngine:
@@ -46,39 +54,47 @@ class EvidenceEngine:
         evidence_id = f"evidence_{seed}_{_hash_suffix}"
         score_package_id = f"score_package_{seed}"
         detector_results_ids = list(detector_results.detector_outputs.keys())
-        metrics_used = list(metric_dataframe.metrics.keys()) if hasattr(metric_dataframe, 'metrics') else []
-        windows_analyzed = [w.window_id for w in windows] if windows and hasattr(windows[0], 'window_id') else ["w00"]
+        metrics_used = list(metric_dataframe.metrics.keys()) if hasattr(metric_dataframe, "metrics") else []
+        windows_analyzed = [w.window_id for w in windows] if windows and hasattr(windows[0], "window_id") else ["w00"]
         integrity_verification = {"verified": True, "method": "foundation"}
-        confidence_indicators = score_package.confidence.get("factors", {}) if isinstance(score_package.confidence, dict) else score_package.confidence.factors
+        confidence_indicators = (
+            score_package.confidence.get("factors", {})
+            if isinstance(score_package.confidence, dict)
+            else score_package.confidence.factors
+        )
         reproducibility_info = {"seed": seed, "deterministic": True}
         das_notation = f"DAS:{seed}:{_hash_suffix}"
 
         # Convert WindowDefinition objects to dict format expected by EvidencePackage
         windows_as_dicts = []
         for w in windows:
-            windows_as_dicts.append({
-                "id": w.window_id,
-                "start": w.start_date.isoformat() + "T00:00:00Z",
-                "end": w.end_date.isoformat() + "T00:00:00Z",
-                "commits": w.commits
-            })
+            windows_as_dicts.append(
+                {
+                    "id": w.window_id,
+                    "start": w.start_date.isoformat() + "T00:00:00Z",
+                    "end": w.end_date.isoformat() + "T00:00:00Z",
+                    "commits": w.commits,
+                }
+            )
 
         return EvidencePackage(
             provenance=Provenance(
                 miie_version="1.0.0",
                 config_hash=configuration.get("config_hash", "foundation"),
-                timestamp=now.replace(microsecond=0).isoformat().replace('+00:00', 'Z'),
+                timestamp=now.replace(microsecond=0).isoformat().replace("+00:00", "Z"),
                 seed=seed,
                 platform=configuration.get("platform", "test"),
                 python_version=configuration.get("python_version", "3.9.0"),
-                dependency_hash=configuration.get("dependency_hash", "foundation")
+                dependency_hash=configuration.get("dependency_hash", "foundation"),
             ),
             windows=windows,
-            metrics=metric_dataframe.metrics if hasattr(metric_dataframe, 'metrics') else {},
+            metrics=(metric_dataframe.metrics if hasattr(metric_dataframe, "metrics") else {}),
             detector_outputs=detector_results,
             scores=score_package,
-            warnings=[]
+            warnings=[],
         )
+
+
 class MockEvidenceEngine:
     """Mock evidence engine that returns deterministic evidence package."""
 
@@ -97,36 +113,42 @@ class MockEvidenceEngine:
         evidence_id = f"mock_evidence_{seed}"
         score_package_id = f"mock_score_package_{seed}"
         detector_results_ids = list(detector_results.detector_outputs.keys())
-        metrics_used = list(metric_dataframe.metrics.keys()) if hasattr(metric_dataframe, 'metrics') else []
-        windows_analyzed = [w.window_id for w in windows] if windows and hasattr(windows[0], 'window_id') else ["w00"]
+        metrics_used = list(metric_dataframe.metrics.keys()) if hasattr(metric_dataframe, "metrics") else []
+        windows_analyzed = [w.window_id for w in windows] if windows and hasattr(windows[0], "window_id") else ["w00"]
         integrity_verification = {"verified": True, "method": "mock"}
-        confidence_indicators = score_package.confidence.get("factors", {}) if isinstance(score_package.confidence, dict) else score_package.confidence.factors
+        confidence_indicators = (
+            score_package.confidence.get("factors", {})
+            if isinstance(score_package.confidence, dict)
+            else score_package.confidence.factors
+        )
         reproducibility_info = {"seed": seed, "deterministic": True}
         das_notation = f"DAS:mock:{seed}"
 
         # Convert WindowDefinition objects to dict format expected by EvidencePackage
         windows_as_dicts = []
         for w in windows:
-            windows_as_dicts.append({
-                "id": w.window_id,
-                "start": w.start_date.isoformat() + "T00:00:00Z",
-                "end": w.end_date.isoformat() + "T00:00:00Z",
-                "commits": w.commits
-            })
+            windows_as_dicts.append(
+                {
+                    "id": w.window_id,
+                    "start": w.start_date.isoformat() + "T00:00:00Z",
+                    "end": w.end_date.isoformat() + "T00:00:00Z",
+                    "commits": w.commits,
+                }
+            )
 
         return EvidencePackage(
             provenance=Provenance(
                 miie_version="1.0.0",
                 config_hash=configuration.get("config_hash", "mock"),
-                timestamp=fixed_timestamp.replace(microsecond=0).isoformat().replace('+00:00', 'Z'),
+                timestamp=fixed_timestamp.replace(microsecond=0).isoformat().replace("+00:00", "Z"),
                 seed=seed,
                 platform=configuration.get("platform", "test"),
                 python_version=configuration.get("python_version", "3.9.0"),
-                dependency_hash=configuration.get("dependency_hash", "mock")
+                dependency_hash=configuration.get("dependency_hash", "mock"),
             ),
             windows=windows,
-            metrics=metric_dataframe.metrics if hasattr(metric_dataframe, 'metrics') else {},
+            metrics=(metric_dataframe.metrics if hasattr(metric_dataframe, "metrics") else {}),
             detector_outputs=detector_results,
             scores=score_package,
-            warnings=[]
+            warnings=[],
         )

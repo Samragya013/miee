@@ -2,16 +2,12 @@
 Shared test configuration for contract layer tests.
 """
 
-import pytest
 from datetime import datetime, timedelta
 from pathlib import Path
 
-from miie.schemas.models import (
-    RepositoryContext,
-    MetricDataFrame,
-    WindowDefinition
-)
-import pandas as pd
+import pytest
+
+from miie.schemas.models import MetricDataFrame, RepositoryContext, WindowDefinition
 
 
 @pytest.fixture
@@ -24,7 +20,7 @@ def sample_repository_context():
         remote_url="https://github.com/test/repo.git",
         total_commits=1000,
         contributor_count=50,
-        language_distribution={"Python": 670, "JavaScript": 330}
+        language_distribution={"Python": 670, "JavaScript": 330},
     )
 
 
@@ -33,24 +29,18 @@ def sample_metric_dataframe():
     """Fixture providing a sample MetricDataFrame for testing."""
     timestamps = [datetime.now() - timedelta(days=i) for i in range(30)]
     metrics_dict = {
-        "M-01": {
-            "timestamps": timestamps,
-            "values": [float(i) for i in range(30)]
-        },
-        "M-02": {
-            "timestamps": timestamps,
-            "values": [float(i * 2) for i in range(30)]
-        },
+        "M-01": {"timestamps": timestamps, "values": [float(i) for i in range(30)]},
+        "M-02": {"timestamps": timestamps, "values": [float(i * 2) for i in range(30)]},
         "M-03": {
             "timestamps": timestamps,
-            "values": [float(i * 0.5) for i in range(30)]
-        }
+            "values": [float(i * 0.5) for i in range(30)],
+        },
     }
     return MetricDataFrame(
         repo_id="test-repo",
         run_id="test-run",
         timestamp=datetime.now(),
-        metrics=metrics_dict
+        metrics=metrics_dict,
     )
 
 
@@ -62,13 +52,9 @@ def sample_window_definitions():
         WindowDefinition(
             id="w01",
             start_date=now - timedelta(days=30),
-            end_date=now - timedelta(days=15)
+            end_date=now - timedelta(days=15),
         ),
-        WindowDefinition(
-            id="w02",
-            start_date=now - timedelta(days=15),
-            end_date=now
-        )
+        WindowDefinition(id="w02", start_date=now - timedelta(days=15), end_date=now),
     ]
 
 
@@ -76,6 +62,7 @@ def sample_window_definitions():
 def sample_detector_results():
     """Fixture providing sample DetectorResults for testing."""
     from miie.schemas.models import DetectorResults
+
     # This would normally be populated with actual detector results
     return DetectorResults()
 

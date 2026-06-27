@@ -1,16 +1,16 @@
 """Tests for MIIE CLI commands."""
+
 import subprocess
 import sys
-from pathlib import Path
-
-import pytest
 
 
 def run_cli(*args):
     """Run miie CLI and return CompletedProcess."""
     return subprocess.run(
         [sys.executable, "-m", "miie"] + list(args),
-        capture_output=True, text=True, timeout=60
+        capture_output=True,
+        text=True,
+        timeout=60,
     )
 
 

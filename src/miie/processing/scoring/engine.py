@@ -3,12 +3,17 @@ Implements the IScoringEngine interface for computing integrity and confidence s
 """
 
 import math
-from typing import Dict, Any, List, Optional
 from datetime import datetime, timezone
+from typing import Any, Dict, List, Optional
 
-from miie.schemas.models import ScorePackage, DetectorResults, MetricDataFrame, WindowDefinition
-from miie.contracts.interfaces import IScoringEngine
 from miie.contracts.errors import ValidationError
+from miie.contracts.interfaces import IScoringEngine
+from miie.schemas.models import (
+    DetectorResults,
+    MetricDataFrame,
+    ScorePackage,
+    WindowDefinition,
+)
 
 
 class ScoringEngine(IScoringEngine):
@@ -16,12 +21,14 @@ class ScoringEngine(IScoringEngine):
 
     def __init__(self):
         """Initialize the scoring engine."""
-        pass
 
-    def compute_integrity_score(self, detector_results: DetectorResults,
-                                metric_dataframe: MetricDataFrame,
-                                windows: List[WindowDefinition],
-                                detector_weights: Optional[Dict[str, float]] = None) -> ScorePackage:
+    def compute_integrity_score(
+        self,
+        detector_results: DetectorResults,
+        metric_dataframe: MetricDataFrame,
+        windows: List[WindowDefinition],
+        detector_weights: Optional[Dict[str, float]] = None,
+    ) -> ScorePackage:
         """Compute integrity and confidence scores.
 
         Implements TFS Section 6 (Integrity Score) and TFS Section 7 (Confidence Score).
@@ -42,7 +49,7 @@ class ScoringEngine(IScoringEngine):
             computation_metadata = {
                 "timestamp": datetime.now(timezone.utc).isoformat(),
                 "config_hash": "",  # Would be populated from actual config in real implementation
-                "formula_version": "TFS_v1.0"
+                "formula_version": "TFS_v1.0",
             }
 
             return ScorePackage(
@@ -50,7 +57,7 @@ class ScoringEngine(IScoringEngine):
                 confidence={"overall": 0.0, "factors": {}},
                 timestamp=datetime.now(timezone.utc),
                 config_hash="",  # Would be populated from actual config in real implementation
-                formula_version="TFS_v1.0"
+                formula_version="TFS_v1.0",
             )
 
         # Set up detector weights (equal weights if not provided)
@@ -71,15 +78,13 @@ class ScoringEngine(IScoringEngine):
         )
 
         # Compute confidence score using TFS Section 7 formula
-        confidence_result = self._compute_confidence_score_tfs7(
-            detector_results, metric_dataframe, windows
-        )
+        confidence_result = self._compute_confidence_score_tfs7(detector_results, metric_dataframe, windows)
 
         # Prepare computation metadata per BSD Section 9
         computation_metadata = {
             "timestamp": datetime.now(timezone.utc).isoformat(),
             "config_hash": "",  # Would be populated from actual config in real implementation
-            "formula_version": "TFS_v1.0"
+            "formula_version": "TFS_v1.0",
         }
 
         return ScorePackage(
@@ -87,13 +92,16 @@ class ScoringEngine(IScoringEngine):
             confidence=confidence_result,
             timestamp=datetime.now(timezone.utc),
             config_hash="",  # Would be populated from actual config in real implementation
-            formula_version="TFS_v1.0"
+            formula_version="TFS_v1.0",
         )
 
-    def _compute_integrity_score_tfs6(self, detector_results: DetectorResults,
-                                      metric_dataframe: MetricDataFrame,
-                                      windows: List[WindowDefinition],
-                                      detector_weights: Dict[str, float]) -> Dict[str, Any]:
+    def _compute_integrity_score_tfs6(
+        self,
+        detector_results: DetectorResults,
+        metric_dataframe: MetricDataFrame,
+        windows: List[WindowDefinition],
+        detector_weights: Dict[str, float],
+    ) -> Dict[str, Any]:
         """Compute integrity score per TFS Section 6.3.
 
         Returns a dict with:
@@ -145,14 +153,14 @@ class ScoringEngine(IScoringEngine):
         # Clamp overall score to [0, 1] range
         overall_score = max(0.0, min(1.0, overall_score))
 
-        return {
-            "overall": overall_score,
-            "per_metric": per_metric_scores
-        }
+        return {"overall": overall_score, "per_metric": per_metric_scores}
 
-    def _get_drift_severity(self, detector_results: DetectorResults,
-                            metric_id: str,
-                            windows: List[WindowDefinition]) -> float:
+    def _get_drift_severity(
+        self,
+        detector_results: DetectorResults,
+        metric_id: str,
+        windows: List[WindowDefinition],
+    ) -> float:
         """Get D-01 drift severity for a metric per TFS Section 6.3.
 
         d₁ = min(1.0, mean(drift_magnitude across all window pairs))
@@ -203,9 +211,12 @@ class ScoringEngine(IScoringEngine):
         else:
             return 0.0  # No drift detected
 
-    def _get_breakdown_severity(self, detector_results: DetectorResults,
-                                metric_id: str,
-                                windows: List[WindowDefinition]) -> float:
+    def _get_breakdown_severity(
+        self,
+        detector_results: DetectorResults,
+        metric_id: str,
+        windows: List[WindowDefinition],
+    ) -> float:
         """Get D-02 breakdown severity for a metric per TFS Section 6.3.
 
         d₂ = min(1.0, mean(breakdown_magnitude across all metric pairs and window pairs))
@@ -256,9 +267,12 @@ class ScoringEngine(IScoringEngine):
         else:
             return 0.0  # No breakdown detected
 
-    def _get_compression_severity(self, detector_results: DetectorResults,
-                                  metric_id: str,
-                                  windows: List[WindowDefinition]) -> float:
+    def _get_compression_severity(
+        self,
+        detector_results: DetectorResults,
+        metric_id: str,
+        windows: List[WindowDefinition],
+    ) -> float:
         """Get D-03 compression severity for a metric per TFS Section 6.3.
 
         d₃ = min(1.0, mean(compression_index across all thresholds and windows))
@@ -309,9 +323,12 @@ class ScoringEngine(IScoringEngine):
         else:
             return 0.0  # No compression detected
 
-    def _compute_confidence_score_tfs7(self, detector_results: DetectorResults,
-                                       metric_dataframe: MetricDataFrame,
-                                       windows: List[WindowDefinition]) -> Dict[str, Any]:
+    def _compute_confidence_score_tfs7(
+        self,
+        detector_results: DetectorResults,
+        metric_dataframe: MetricDataFrame,
+        windows: List[WindowDefinition],
+    ) -> Dict[str, Any]:
         """Compute confidence score per TFS Section 7.4-7.5.
 
         Returns a dict with:
@@ -357,12 +374,11 @@ class ScoringEngine(IScoringEngine):
                 "variance": f2,
                 "missing_data": f3,
                 "window_balance": f4,
-                "detector_success": f5
-            }
+                "detector_success": f5,
+            },
         }
 
-    def _compute_sample_size_factor(self, metric_dataframe: MetricDataFrame,
-                                    windows: List[WindowDefinition]) -> float:
+    def _compute_sample_size_factor(self, metric_dataframe: MetricDataFrame, windows: List[WindowDefinition]) -> float:
         """Compute f₁: min(1.0, mean_n / 50.0)
 
         mean_n = mean(|Wₖ| for all k and all metrics with data)
@@ -395,8 +411,7 @@ class ScoringEngine(IScoringEngine):
         f1 = min(1.0, mean_n / 50.0)
         return f1
 
-    def _compute_variance_factor(self, metric_dataframe: MetricDataFrame,
-                                 windows: List[WindowDefinition]) -> float:
+    def _compute_variance_factor(self, metric_dataframe: MetricDataFrame, windows: List[WindowDefinition]) -> float:
         """Compute f₂: 1.0 - min(1.0, mean_CV / 0.5)
 
         mean_CV = mean(CV for all valid windows)
@@ -418,7 +433,7 @@ class ScoringEngine(IScoringEngine):
                         if mean_val != 0:
                             # CV = std / |mean|
                             variance = math.fsum((x - mean_val) ** 2 for x in valid_values) / len(valid_values)
-                            std_val = variance ** 0.5
+                            std_val = variance**0.5
                             cv = std_val / abs(mean_val)
                         else:
                             # Special handling for mean=0
@@ -436,8 +451,7 @@ class ScoringEngine(IScoringEngine):
         f2 = 1.0 - min(1.0, mean_cv / 0.5)
         return f2
 
-    def _compute_missing_data_factor(self, metric_dataframe: MetricDataFrame,
-                                     windows: List[WindowDefinition]) -> float:
+    def _compute_missing_data_factor(self, metric_dataframe: MetricDataFrame, windows: List[WindowDefinition]) -> float:
         """Compute f₃: 1.0 - (missing_pairs / total_pairs)
 
         total_pairs = num_metrics × num_windows
@@ -460,8 +474,7 @@ class ScoringEngine(IScoringEngine):
             # For simplicity, we'll consider a pair missing if there's no data at all
             # In a more sophisticated implementation, we'd check each window specifically
             if not metric_series or all(
-                not isinstance(v, list) or len(v) == 0 or all(x is None for x in v)
-                for v in metric_series.values()
+                not isinstance(v, list) or len(v) == 0 or all(x is None for x in v) for v in metric_series.values()
             ):
                 # This metric has no data at all
                 missing_pairs += num_windows
@@ -504,15 +517,16 @@ class ScoringEngine(IScoringEngine):
         mean_size = math.fsum(window_sizes) / len(window_sizes)
         if mean_size > 0:
             variance = math.fsum((x - mean_size) ** 2 for x in window_sizes) / len(window_sizes)
-            std_size = variance ** 0.5
+            std_size = variance**0.5
             f4 = 1.0 - min(1.0, std_size / mean_size)
         else:
             f4 = 0.0
 
         return f4
 
-    def _compute_detector_success_factor(self, detector_results: DetectorResults,
-                                         metric_dataframe: MetricDataFrame) -> float:
+    def _compute_detector_success_factor(
+        self, detector_results: DetectorResults, metric_dataframe: MetricDataFrame
+    ) -> float:
         """Compute f₅: successful_runs / total_attempts
 
         total_attempts = num_metrics × num_detectors (adjusted for metric availability)

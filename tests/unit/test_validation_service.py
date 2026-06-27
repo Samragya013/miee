@@ -2,12 +2,14 @@
 Test script for the validation service.
 Validates schemas and sample data.
 """
-import json
-import sys
-import os
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..'))
 
-from miie.validation.service import validation_service, ValidationError
+import os
+import sys
+
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
+
+from miie.validation.service import ValidationError, validation_service
+
 
 def test_schema_loading():
     """Test that all schemas are loaded and valid."""
@@ -19,6 +21,7 @@ def test_schema_loading():
         schema = validation_service.get_schema(schema_name)
         print(f"  - {schema_name}: {schema.get('title', 'No title')}")
     return schemas
+
 
 def test_schema_validity():
     """Test that all schemas are valid draft-07."""
@@ -32,6 +35,7 @@ def test_schema_validity():
         else:
             print(f"  {schema_name}: VALID")
     return all_valid
+
 
 def test_validation_with_sample_data():
     """Test validation with sample data for each schema."""
@@ -48,24 +52,19 @@ def test_validation_with_sample_data():
             "contributor_count": 5,
             "is_shallow": False,
             "is_fork": False,
-            "language_distribution": {"Python": 10000}
+            "language_distribution": {"Python": 10000},
         },
         "metric_dataframe": {
             "repo_id": "repo_001",
             "run_id": "run_001",
             "timestamp": "2021-01-01T12:00:00Z",
-            "metrics": {
-                "M-01": {
-                    "w01": [1.0, 2.0, 3.0],
-                    "w02": [4.0, 5.0, 6.0]
-                }
-            }
+            "metrics": {"M-01": {"w01": [1.0, 2.0, 3.0], "w02": [4.0, 5.0, 6.0]}},
         },
         "detector_result": {
             "detector_outputs": {
                 "D-01": {"some_key": "some_value"},
                 "D-02": {},
-                "D-03": {}
+                "D-03": {},
             }
         },
         "evidence_package": {
@@ -76,40 +75,24 @@ def test_validation_with_sample_data():
                 "seed": 42,
                 "platform": "linux",
                 "python_version": "3.10.0",
-                "dependency_hash": "def456"
+                "dependency_hash": "def456",
             },
             "windows": [
                 {
                     "id": "w01",
                     "start": "2020-01-01T00:00:00Z",
                     "end": "2020-01-31T23:59:59Z",
-                    "commits": 100
+                    "commits": 100,
                 }
             ],
-            "metrics": {
-                "M-01": {
-                    "w01": [1.0, 2.0, 3.0]
-                }
-            },
-            "detector_outputs": {
-                "D-01": {"result": 0.5}
-            },
+            "metrics": {"M-01": {"w01": [1.0, 2.0, 3.0]}},
+            "detector_outputs": {"D-01": {"result": 0.5}},
             "scores": {
-                "integrity": {
-                    "overall": 0.8,
-                    "per_metric": {
-                        "M-01": 0.7
-                    }
-                },
-                "confidence": {
-                    "overall": 0.9,
-                    "factors": {
-                        "factor1": 0.8
-                    }
-                }
+                "integrity": {"overall": 0.8, "per_metric": {"M-01": 0.7}},
+                "confidence": {"overall": 0.9, "factors": {"factor1": 0.8}},
             },
-            "warnings": []
-        }
+            "warnings": [],
+        },
     }
 
     all_passed = True
@@ -124,6 +107,7 @@ def test_validation_with_sample_data():
             print(f"  {schema_name}: ERROR - {e}")
             all_passed = False
     return all_passed
+
 
 def test_invalid_data():
     """Test that invalid data is correctly rejected."""
@@ -140,6 +124,7 @@ def test_invalid_data():
     except ValidationError as e:
         print(f"  repository_context (invalid): CORRECTLY REJECTED - {e}")
         return True
+
 
 def main():
     print("Validation Service Test")
@@ -166,8 +151,10 @@ def main():
     except Exception as e:
         print(f"\nUnexpected error during testing: {e}")
         import traceback
+
         traceback.print_exc()
         return 1
+
 
 if __name__ == "__main__":
     sys.exit(main())

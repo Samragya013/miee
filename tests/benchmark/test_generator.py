@@ -1,4 +1,5 @@
 """Unit tests for BenchmarkDatasetGenerator."""
+
 import json
 import os
 import shutil
@@ -42,7 +43,7 @@ def test_generate_single_candidate():
         # Check that metadata.json exists
         metadata_path = candidate_dir / "metadata.json"
         assert metadata_path.exists()
-        with open(metadata_path, 'r') as f:
+        with open(metadata_path, "r") as f:
             metadata = json.load(f)
         assert "repo_id" in metadata
         assert metadata["repo_id"] == "repo_001"
@@ -55,8 +56,12 @@ def test_generate_single_candidate():
         assert git_dir.is_dir()
 
         # Check that we have at least one commit
-        result = subprocess.run(["git", "rev-parse", "--HEAD"],
-                              cwd=candidate_dir, capture_output=True, text=True)
+        result = subprocess.run(
+            ["git", "rev-parse", "--HEAD"],
+            cwd=candidate_dir,
+            capture_output=True,
+            text=True,
+        )
         assert result.returncode == 0
         assert result.stdout.strip() != ""
 
@@ -88,7 +93,7 @@ def test_generate_multiple_candidates():
             # Check metadata
             metadata_path = path / "metadata.json"
             assert metadata_path.exists()
-            with open(metadata_path, 'r') as f:
+            with open(metadata_path, "r") as f:
                 metadata = json.load(f)
             assert metadata["repo_id"] == f"repo_{i+1:03d}"
             # The seed should be derived from base seed and index
@@ -123,7 +128,7 @@ def test_deterministic_generation():
             meta2_path = p2 / "metadata.json"
             assert meta1_path.exists()
             assert meta2_path.exists()
-            with open(meta1_path, 'r') as f1, open(meta2_path, 'r') as f2:
+            with open(meta1_path, "r") as f1, open(meta2_path, "r") as f2:
                 meta1 = json.load(f1)
                 meta2 = json.load(f2)
                 # The generation_seed should be the same
@@ -156,14 +161,12 @@ def test_git_repo_validity():
             git_dir = path / ".git"
             assert git_dir.exists()
             # Check that we can run git status
-            result = subprocess.run(["git", "status"],
-                                  cwd=path, capture_output=True, text=True)
+            result = subprocess.run(["git", "status"], cwd=path, capture_output=True, text=True)
             assert result.returncode == 0
             # Check that we have at least one commit
-            result = subprocess.run(["git", "log", "--oneline"],
-                                  cwd=path, capture_output=True, text=True)
+            result = subprocess.run(["git", "log", "--oneline"], cwd=path, capture_output=True, text=True)
             assert result.returncode == 0
-            lines = result.stdout.strip().split('\n')
+            lines = result.stdout.strip().split("\n")
             assert len(lines) >= 1
             # Each line should be a commit hash and message
             for line in lines:

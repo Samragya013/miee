@@ -1,12 +1,20 @@
 """Unit tests for ExplanationEngine implementation."""
+
+import datetime
+
 from miie.processing.explanation.engine import ExplanationEngine
 from miie.processing.scoring.engine import ScoringEngine
 from miie.processing.scoring.mock_scoring import MockScoringEngine
 from miie.schemas.models import (
-    EvidencePackage, ScorePackage, WindowDefinition, DetectorResults, MetricDataFrame,
-    Provenance, IntegrityScore, ConfidenceScore
+    ConfidenceScore,
+    DetectorResults,
+    EvidencePackage,
+    IntegrityScore,
+    MetricDataFrame,
+    Provenance,
+    ScorePackage,
+    WindowDefinition,
 )
-import datetime
 
 
 def create_test_evidence_package():
@@ -16,7 +24,7 @@ def create_test_evidence_package():
         start_date=datetime.datetime(2026, 1, 1),
         end_date=datetime.datetime(2026, 1, 31),
         commits=10,
-        strategy="fixed_size"
+        strategy="fixed_size",
     )
 
     return EvidencePackage(
@@ -27,21 +35,23 @@ def create_test_evidence_package():
             seed=42,
             platform="test-platform",
             python_version="3.9.0",
-            dependency_hash="test-dep-hash"
+            dependency_hash="test-dep-hash",
         ),
         windows=[window],
         metrics=["M-01", "M-02"],
-        detector_outputs=DetectorResults(detector_outputs={
-            "D-01": {"anomaly_score": 0.3},
-            "D-02": {"drift_detected": False},
-            "D-03": {"correlation_breakdown": True}
-        }),
+        detector_outputs=DetectorResults(
+            detector_outputs={
+                "D-01": {"anomaly_score": 0.3},
+                "D-02": {"drift_detected": False},
+                "D-03": {"correlation_breakdown": True},
+            }
+        ),
         scores=ScorePackage(
             integrity=IntegrityScore(overall=0.75, per_metric={}, formula_version="1.0.0"),
             confidence=ConfidenceScore(overall=0.80, factors={}, band="medium"),
             timestamp=datetime.datetime.now(tz=datetime.timezone.utc),
-            config_hash="test"
-        )
+            config_hash="test",
+        ),
     )
 
 
@@ -55,7 +65,7 @@ def create_test_score_package_from_scoring_engine():
         repo_id="test",
         run_id="test_run",
         timestamp=datetime.datetime.now(datetime.timezone.utc),
-        metrics={"M-02": {"w01": [1.0, 2.0, 3.0]}}
+        metrics={"M-02": {"w01": [1.0, 2.0, 3.0]}},
     )
     windows = [
         WindowDefinition(
@@ -63,14 +73,14 @@ def create_test_score_package_from_scoring_engine():
             start_date=datetime.datetime(2020, 1, 1, tzinfo=datetime.timezone.utc),
             end_date=datetime.datetime(2020, 1, 31, tzinfo=datetime.timezone.utc),
             commits=10,
-            strategy="fixed_size"
+            strategy="fixed_size",
         )
     ]
 
     return scoring_engine.compute_integrity_score(
         detector_results=detector_results,
         metric_dataframe=metric_dataframe,
-        windows=windows
+        windows=windows,
     )
 
 
@@ -89,8 +99,8 @@ def test_explanation_engine_generate_returns_expected_structure():
     report = engine.generate(evidence, scores)
 
     assert report is not None
-    assert hasattr(report, 'narratives')
-    assert hasattr(report, 'recommendations')
+    assert hasattr(report, "narratives")
+    assert hasattr(report, "recommendations")
     assert isinstance(report.narratives, list)
     assert isinstance(report.recommendations, list)
     assert len(report.narratives) > 0
@@ -106,11 +116,13 @@ def test_explanation_engine_generate_with_scoring_engine_integration():
     # Create scoring engine and generate scores
     scoring_engine = ScoringEngine()  # Use actual implementation
 
-    detector_results = DetectorResults(detector_outputs={
-        "D-01": {"some_indicator": False},
-        "D-02": {"another_indicator": True},
-        "D-03": {"third_indicator": False}
-    })
+    detector_results = DetectorResults(
+        detector_outputs={
+            "D-01": {"some_indicator": False},
+            "D-02": {"another_indicator": True},
+            "D-03": {"third_indicator": False},
+        }
+    )
 
     metric_dataframe = MetricDataFrame(
         repo_id="test-repo",
@@ -119,8 +131,8 @@ def test_explanation_engine_generate_with_scoring_engine_integration():
         metrics={
             "M-01": {"w01": [10.0, 12.0, 11.0]},
             "M-02": {"w01": [5.0, 6.0, 5.5]},
-            "M-03": {"w01": [0.8, 0.9, 0.85]}
-        }
+            "M-03": {"w01": [0.8, 0.9, 0.85]},
+        },
     )
 
     windows = [
@@ -129,22 +141,22 @@ def test_explanation_engine_generate_with_scoring_engine_integration():
             start_date=datetime.datetime(2026, 1, 1),
             end_date=datetime.datetime(2026, 1, 31),
             commits=10,
-            strategy="fixed_size"
+            strategy="fixed_size",
         ),
         WindowDefinition(
             window_id="w05",
             start_date=datetime.datetime(2026, 2, 1),
             end_date=datetime.datetime(2026, 2, 28),
             commits=10,
-            strategy="fixed_size"
-        )
+            strategy="fixed_size",
+        ),
     ]
 
     # Generate scores
     score_package = scoring_engine.compute_integrity_score(
         detector_results=detector_results,
         metric_dataframe=metric_dataframe,
-        windows=windows
+        windows=windows,
     )
 
     # Create evidence package
@@ -156,12 +168,12 @@ def test_explanation_engine_generate_with_scoring_engine_integration():
             seed=42,
             platform="test-platform",
             python_version="3.9.0",
-            dependency_hash="test-dep-hash"
+            dependency_hash="test-dep-hash",
         ),
         windows=windows,
         metrics=list(metric_dataframe.metrics.keys()),
         detector_outputs=detector_results,
-        scores=score_package
+        scores=score_package,
     )
 
     # Generate explanation
@@ -207,8 +219,8 @@ def test_explanation_engine_respects_filters():
 
     # Reports with filters might be different (though our current implementation
     # doesn't fully implement filtering, the structure should be valid)
-    assert hasattr(report_with_metric_filter, 'narratives')
-    assert hasattr(report_with_metric_filter, 'recommendations')
+    assert hasattr(report_with_metric_filter, "narratives")
+    assert hasattr(report_with_metric_filter, "recommendations")
 
 
 def test_explanation_engine_handles_edge_cases():
@@ -221,7 +233,7 @@ def test_explanation_engine_handles_edge_cases():
         start_date=datetime.datetime(2026, 1, 1),
         end_date=datetime.datetime(2026, 1, 31),
         commits=10,
-        strategy="fixed_size"
+        strategy="fixed_size",
     )
 
     minimal_evidence = EvidencePackage(
@@ -232,7 +244,7 @@ def test_explanation_engine_handles_edge_cases():
             seed=42,
             platform="test-platform",
             python_version="3.9.0",
-            dependency_hash="test-dep-hash"
+            dependency_hash="test-dep-hash",
         ),
         windows=[window],
         metrics=[],
@@ -241,8 +253,8 @@ def test_explanation_engine_handles_edge_cases():
             integrity=IntegrityScore(overall=0.0, per_metric={}, formula_version="1.0.0"),
             confidence=ConfidenceScore(overall=0.0, factors={}, band="low"),
             timestamp=datetime.datetime.now(tz=datetime.timezone.utc),
-            config_hash="test"
-        )
+            config_hash="test",
+        ),
     )
 
     # Create minimal score package
@@ -250,7 +262,7 @@ def test_explanation_engine_handles_edge_cases():
         integrity=IntegrityScore(overall=0.0, per_metric={}, formula_version="1.0.0"),
         confidence=ConfidenceScore(overall=0.0, factors={}, band="low"),
         timestamp=datetime.datetime.now(tz=datetime.timezone.utc),
-        config_hash="test"
+        config_hash="test",
     )
 
     # Should not crash

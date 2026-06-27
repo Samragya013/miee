@@ -15,7 +15,7 @@ def test_detector_result_creation():
         detector_outputs={
             "D-01": {},  # Distributional Drift Detector
             "D-02": {},  # Correlation Breakdown Detector
-            "D-03": {}   # Threshold Compression Detector
+            "D-03": {},  # Threshold Compression Detector
         }
     )
 
@@ -31,7 +31,7 @@ def test_detector_result_invalid_detector():
         DetectorResult(
             detector_outputs={
                 "D-01": {},  # Valid
-                "D-04": {}   # Invalid - V1 only has D-01 through D-03
+                "D-04": {},  # Invalid - V1 only has D-01 through D-03
             }
         )
 
@@ -53,14 +53,12 @@ def test_detector_result_serialization():
         detector_outputs={
             "D-01": {"sample_key": "sample_value"},
             "D-02": {"another_key": 42},
-            "D-03": {}
+            "D-03": {},
         }
     )
 
     # Convert to dict for JSON serialization
-    result_dict = {
-        "detector_outputs": detector_result.detector_outputs
-    }
+    result_dict = {"detector_outputs": detector_result.detector_outputs}
 
     # Serialize
     json_str = json_dumps(result_dict)

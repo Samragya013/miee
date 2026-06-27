@@ -3,17 +3,20 @@
 These tests verify that previously-discovered bugs remain fixed.
 Each test maps to a specific FERA critical finding.
 """
+
 import json
-from pathlib import Path
 from datetime import datetime, timezone
+from pathlib import Path
 
-import pytest
-
-from miie.schemas.serialization import json_dumps
 from miie.schemas.models import (
-    ScorePackage, IntegrityScore, ConfidenceScore, WindowDefinition,
-    DetectorResults, MetricDataFrame
+    ConfidenceScore,
+    DetectorResults,
+    IntegrityScore,
+    MetricDataFrame,
+    ScorePackage,
+    WindowDefinition,
 )
+from miie.schemas.serialization import json_dumps
 
 
 class TestFERACriticalFindings:
@@ -24,26 +27,46 @@ class TestFERACriticalFindings:
         from miie.processing.scoring.engine import ScoringEngine
 
         engine = ScoringEngine()
-        detector_results = DetectorResults(detector_outputs={
-            "D-01": {"drift_detected": True, "ks_statistic": 0.3, "ks_p_value": 0.01,
-                     "psi_value": 0.1, "mean_shift": 0.5, "variance_ratio": 1.2,
-                     "severity": 0.6},
-            "D-02": {"correlation_breakdown": True, "delta_r": 0.4,
-                     "p_value": 0.02, "severity": 0.7},
-            "D-03": {"threshold_compressed": True, "compression_index": 0.8,
-                     "space_savings": 60.0, "severity": 0.5},
-        })
-        mdf = MetricDataFrame(
-            repo_id="test", run_id="r1",
-            timestamp=datetime.now(timezone.utc),
-            metrics={"M-02": {"w01": [10.0, 12.0, 11.0]}}
+        detector_results = DetectorResults(
+            detector_outputs={
+                "D-01": {
+                    "drift_detected": True,
+                    "ks_statistic": 0.3,
+                    "ks_p_value": 0.01,
+                    "psi_value": 0.1,
+                    "mean_shift": 0.5,
+                    "variance_ratio": 1.2,
+                    "severity": 0.6,
+                },
+                "D-02": {
+                    "correlation_breakdown": True,
+                    "delta_r": 0.4,
+                    "p_value": 0.02,
+                    "severity": 0.7,
+                },
+                "D-03": {
+                    "threshold_compressed": True,
+                    "compression_index": 0.8,
+                    "space_savings": 60.0,
+                    "severity": 0.5,
+                },
+            }
         )
-        windows = [WindowDefinition(
-            window_id="w01",
-            start_date=datetime(2026, 1, 1).date(),
-            end_date=datetime(2026, 1, 7).date(),
-            commits=10, strategy="fixed_size"
-        )]
+        mdf = MetricDataFrame(
+            repo_id="test",
+            run_id="r1",
+            timestamp=datetime.now(timezone.utc),
+            metrics={"M-02": {"w01": [10.0, 12.0, 11.0]}},
+        )
+        windows = [
+            WindowDefinition(
+                window_id="w01",
+                start_date=datetime(2026, 1, 1).date(),
+                end_date=datetime(2026, 1, 7).date(),
+                commits=10,
+                strategy="fixed_size",
+            )
+        ]
         # Should not raise NameError — the core regression test
         score = engine.compute_integrity_score(detector_results, mdf, windows)
         # Verify score has integrity and confidence
@@ -56,20 +79,26 @@ class TestFERACriticalFindings:
         from miie.processing.scoring.engine import ScoringEngine
 
         engine = ScoringEngine()
-        detector_results = DetectorResults(detector_outputs={
-            "D-01": {"drift_detected": False, "severity": 0.0},
-        })
-        mdf = MetricDataFrame(
-            repo_id="test", run_id="r1",
-            timestamp=datetime.now(timezone.utc),
-            metrics={"M-02": {"w01": [10.0, 20.0, 30.0, 40.0, 50.0]}}
+        detector_results = DetectorResults(
+            detector_outputs={
+                "D-01": {"drift_detected": False, "severity": 0.0},
+            }
         )
-        windows = [WindowDefinition(
-            window_id="w01",
-            start_date=datetime(2026, 1, 1).date(),
-            end_date=datetime(2026, 1, 7).date(),
-            commits=10, strategy="fixed_size"
-        )]
+        mdf = MetricDataFrame(
+            repo_id="test",
+            run_id="r1",
+            timestamp=datetime.now(timezone.utc),
+            metrics={"M-02": {"w01": [10.0, 20.0, 30.0, 40.0, 50.0]}},
+        )
+        windows = [
+            WindowDefinition(
+                window_id="w01",
+                start_date=datetime(2026, 1, 1).date(),
+                end_date=datetime(2026, 1, 7).date(),
+                commits=10,
+                strategy="fixed_size",
+            )
+        ]
         score = engine.compute_integrity_score(detector_results, mdf, windows)
         # Real engine returns dict-like confidence
         conf = score.confidence
@@ -97,30 +126,37 @@ class TestFERACriticalFindings:
     def test_evidence_id_deterministic(self):
         """C3: Evidence engine used timestamps making output non-deterministic."""
         from miie.processing.evidence import EvidenceEngine
-        from miie.schemas.models import RepositoryContext, EvidencePackage
+        from miie.schemas.models import EvidencePackage, RepositoryContext
 
         engine = EvidenceEngine()
         ctx = RepositoryContext(
-            repo_id="test", local_path=Path("/tmp/test"),
-            is_remote=False, total_commits=50, contributor_count=3
+            repo_id="test",
+            local_path=Path("/tmp/test"),
+            is_remote=False,
+            total_commits=50,
+            contributor_count=3,
         )
         mdf = MetricDataFrame(
-            repo_id="test", run_id="r1",
+            repo_id="test",
+            run_id="r1",
             timestamp=datetime.now(timezone.utc),
-            metrics={"M-02": {"w01": [10.0]}}
+            metrics={"M-02": {"w01": [10.0]}},
         )
-        windows = [WindowDefinition(
-            window_id="w01",
-            start_date=datetime(2026, 1, 1).date(),
-            end_date=datetime(2026, 1, 7).date(),
-            commits=10, strategy="fixed_size"
-        )]
+        windows = [
+            WindowDefinition(
+                window_id="w01",
+                start_date=datetime(2026, 1, 1).date(),
+                end_date=datetime(2026, 1, 7).date(),
+                commits=10,
+                strategy="fixed_size",
+            )
+        ]
         det_results = DetectorResults(detector_outputs={"D-01": {"drift_detected": False}})
         score_pkg = ScorePackage(
             integrity=IntegrityScore(overall=0.8, per_metric={}, formula_version="1.0.0"),
             confidence=ConfidenceScore(overall=0.7, factors={}, band="medium"),
             timestamp=datetime.now(timezone.utc),
-            config_hash="test"
+            config_hash="test",
         )
         e1 = engine.generate(ctx, mdf, windows, det_results, score_pkg, {"seed": 42})
         e2 = engine.generate(ctx, mdf, windows, det_results, score_pkg, {"seed": 42})
@@ -131,9 +167,12 @@ class TestFERACriticalFindings:
     def test_cli_analyze_dry_run(self):
         """C4: CLI analyze --dry-run should exit cleanly."""
         import subprocess
+
         result = subprocess.run(
             ["python", "-m", "miie", "analyze", ".", "--dry-run"],
-            capture_output=True, text=True, timeout=30
+            capture_output=True,
+            text=True,
+            timeout=30,
         )
         assert result.returncode == 0
         assert "Dry Run" in result.stdout or "dry run" in result.stdout.lower()

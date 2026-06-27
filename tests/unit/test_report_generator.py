@@ -1,10 +1,11 @@
 """Unit tests for ReportGenerator implementation."""
+
+import json
+import tempfile
+from pathlib import Path
+
 from miie.processing.reporting.engine import ReportGenerator
 from miie.schemas.models import ReportOutput
-from pathlib import Path
-import tempfile
-import os
-import json
 
 
 def test_report_generator_creation():
@@ -20,7 +21,7 @@ def test_report_generator_generate_json_format():
         "integrity_score": 0.85,
         "confidence_score": 0.92,
         "metrics_processed": 5,
-        "detectors_used": ["D-01", "D-02", "D-03"]
+        "detectors_used": ["D-01", "D-02", "D-03"],
     }
     output_formats = ["json"]
 
@@ -29,7 +30,7 @@ def test_report_generator_generate_json_format():
         report_output = generator.generate(analysis_result, output_formats, output_dir)
 
         assert isinstance(report_output, ReportOutput)
-        assert hasattr(report_output, 'report_paths')
+        assert hasattr(report_output, "report_paths")
         assert isinstance(report_output.report_paths, dict)
         assert "json" in report_output.report_paths
 
@@ -38,7 +39,7 @@ def test_report_generator_generate_json_format():
         assert json_file.suffix == ".json"
 
         # Verify JSON content
-        with open(json_file, 'r') as f:
+        with open(json_file, "r") as f:
             data = json.load(f)
             assert "metadata" in data
             assert "analysis_result" in data
@@ -49,10 +50,7 @@ def test_report_generator_generate_json_format():
 def test_report_generator_generate_multiple_formats():
     """Test ReportGenerator.generate with multiple output formats."""
     generator = ReportGenerator()
-    analysis_result = {
-        "test_metric": 42.5,
-        "status": "completed"
-    }
+    analysis_result = {"test_metric": 42.5, "status": "completed"}
     output_formats = ["json", "md", "txt"]
 
     with tempfile.TemporaryDirectory() as temp_dir:
@@ -70,13 +68,13 @@ def test_report_generator_generate_multiple_formats():
 
         # Verify JSON content
         json_path = report_output.report_paths["json"]
-        with open(json_path, 'r') as f:
+        with open(json_path, "r") as f:
             data = json.load(f)
             assert data["analysis_result"]["test_metric"] == 42.5
 
         # Verify markdown content
         md_path = report_output.report_paths["markdown"]
-        with open(md_path, 'r') as f:
+        with open(md_path, "r") as f:
             content = f.read()
             assert "# MIIE Analysis Report" in content
             assert "test_metric" in content
@@ -84,7 +82,7 @@ def test_report_generator_generate_multiple_formats():
 
         # Verify text content
         txt_path = report_output.report_paths["text"]
-        with open(txt_path, 'r') as f:
+        with open(txt_path, "r") as f:
             content = f.read()
             assert "MIIE Analysis Report" in content
             assert "test_metric" in content
@@ -97,9 +95,7 @@ def test_report_generator_generate_csv_format():
     analysis_result = {
         "metric_a": 10.5,
         "metric_b": 20.3,
-        "nested": {
-            "sub_metric": 5.0
-        }
+        "nested": {"sub_metric": 5.0},
     }
     output_formats = ["csv"]
 
@@ -113,7 +109,7 @@ def test_report_generator_generate_csv_format():
         assert csv_file.suffix == ".csv"
 
         # Verify CSV content (basic check)
-        with open(csv_file, 'r') as f:
+        with open(csv_file, "r") as f:
             content = f.read()
             assert "metric_a" in content
             assert "10.5" in content
@@ -137,7 +133,7 @@ def test_report_generator_handles_empty_analysis_result():
         assert json_file.exists()
 
         # Verify it contains metadata even with empty analysis
-        with open(json_file, 'r') as f:
+        with open(json_file, "r") as f:
             data = json.load(f)
             assert "metadata" in data
             assert "analysis_result" in data

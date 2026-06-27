@@ -3,25 +3,25 @@ Unit Tests for MIIE v1.0 Workflow Dispatcher
 Tests workflow routing and execution.
 """
 
-import pytest
-from datetime import datetime
 from unittest.mock import Mock
 
-from miie.orchestration.workflow import WorkflowDispatcher, WorkflowType
+import pytest
+
 from miie.orchestration.pipeline import AnalysisPipeline
+from miie.orchestration.workflow import WorkflowDispatcher, WorkflowType
+from miie.schemas.models import BenchmarkRun
 from tests.fixtures.mock_services import (
-    MockIngestionEngine,
-    MockExtractionEngine,
-    MockSegmentationEngine,
+    MockBenchmarkEngine,
     MockDetectorEngine,
-    MockScoringEngine,
+    MockEvaluationEngine,
     MockEvidenceEngine,
     MockExplanationEngine,
+    MockExtractionEngine,
+    MockIngestionEngine,
     MockReportGenerator,
-    MockBenchmarkEngine,
-    MockEvaluationEngine
+    MockScoringEngine,
+    MockSegmentationEngine,
 )
-from miie.schemas.models import BenchmarkRun, EvaluationResult
 
 
 class TestWorkflowDispatcher:
@@ -40,7 +40,7 @@ class TestWorkflowDispatcher:
             explanation_engine=MockExplanationEngine(),
             report_generator=MockReportGenerator(),
             benchmark_engine=MockBenchmarkEngine(),
-            evaluation_engine=MockEvaluationEngine()
+            evaluation_engine=MockEvaluationEngine(),
         )
 
     @pytest.fixture
@@ -67,7 +67,7 @@ class TestWorkflowDispatcher:
         result = dispatcher.execute_workflow(
             workflow_type=WorkflowType.WF_01,
             repo_path="/tmp/test-repo",
-            metric_list=["M-01", "M-02"]
+            metric_list=["M-01", "M-02"],
         )
 
         # Assert
@@ -89,7 +89,7 @@ class TestWorkflowDispatcher:
         result = dispatcher.execute_workflow(
             workflow_type=WorkflowType.WF_02,
             repo_path="/tmp/test-repo",
-            metric_list=["M-01"]
+            metric_list=["M-01"],
         )
 
         # Assert
@@ -110,7 +110,7 @@ class TestWorkflowDispatcher:
             workflow_type=WorkflowType.WF_03,
             repo_path="/tmp/test-repo",
             metric_list=["M-01", "M-02"],
-            output_dir=output_dir
+            output_dir=output_dir,
         )
 
         # Assert
@@ -130,7 +130,7 @@ class TestWorkflowDispatcher:
             workflow_type=WorkflowType.WF_04,
             suite_id="test-suite",
             detector_ids=["D-01", "D-02"],
-            config={"threshold": 0.05}
+            config={"threshold": 0.05},
         )
 
         # Assert
@@ -143,17 +143,14 @@ class TestWorkflowDispatcher:
     def test_execute_wf_05_evaluation_only(self, dispatcher):
         """Test execution of WF_05 (evaluation only)."""
         # Arrange
-        benchmark_run = BenchmarkRun(
-            predictions={"D-01": [0.8, 0.75, 0.82]},
-            metadata={}
-        )
+        benchmark_run = BenchmarkRun(predictions={"D-01": [0.8, 0.75, 0.82]}, metadata={})
         ground_truth = {"D-01": [0.78, 0.76, 0.80]}
 
         # Act
         result = dispatcher.execute_workflow(
             workflow_type=WorkflowType.WF_05,
             benchmark_run=benchmark_run,
-            ground_truth=ground_truth
+            ground_truth=ground_truth,
         )
 
         # Assert
@@ -169,12 +166,12 @@ class TestWorkflowDispatcher:
         dispatcher.execute_workflow(
             workflow_type=WorkflowType.WF_01,
             repo_path="/tmp/test-repo",
-            metric_list=["M-01"]
+            metric_list=["M-01"],
         )
         dispatcher.execute_workflow(
             workflow_type=WorkflowType.WF_03,
             repo_path="/tmp/test-repo",
-            metric_list=["M-02"]
+            metric_list=["M-02"],
         )
 
         # Assert
@@ -191,7 +188,7 @@ class TestWorkflowDispatcher:
         dispatcher.execute_workflow(
             workflow_type=WorkflowType.WF_01,
             repo_path="/tmp/test-repo",
-            metric_list=["M-01"]
+            metric_list=["M-01"],
         )
         assert len(dispatcher.get_workflow_history()) == 1
 
@@ -208,7 +205,7 @@ class TestWorkflowDispatcher:
             dispatcher.execute_workflow(
                 workflow_type="INVALID_WORKFLOW",  # Not a WorkflowType enum
                 repo_path="/tmp/test-repo",
-                metric_list=["M-01"]
+                metric_list=["M-01"],
             )
 
     def test_workflow_error_handling(self, dispatcher):
@@ -222,7 +219,7 @@ class TestWorkflowDispatcher:
             scoring_engine=MockScoringEngine(),
             evidence_engine=MockEvidenceEngine(),
             explanation_engine=MockExplanationEngine(),
-            report_generator=MockReportGenerator()
+            report_generator=MockReportGenerator(),
         )
         dispatcher = WorkflowDispatcher(failing_pipeline)
 
@@ -231,7 +228,7 @@ class TestWorkflowDispatcher:
             dispatcher.execute_workflow(
                 workflow_type=WorkflowType.WF_01,
                 repo_path="/tmp/test-repo",
-                metric_list=["M-01"]
+                metric_list=["M-01"],
             )
 
         # Check that error was recorded in history

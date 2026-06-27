@@ -1,13 +1,15 @@
 """
 Unit tests for D03 Threshold Compression Detector.
 """
-import numpy as np
+
+import datetime
+
 import pytest
+
 from miie.processing.detection.threshold_compression_detector import (
-    ThresholdCompressionDetector
+    ThresholdCompressionDetector,
 )
 from miie.schemas.models import MetricDataFrame
-import datetime
 
 
 class TestThresholdCompressionDetector:
@@ -27,14 +29,14 @@ class TestThresholdCompressionDetector:
                 "M-02": {  # Some metric
                     "w00": [48, 49, 50, 51, 52] * 4,  # 20 observations around 50
                     "w01": [48, 49, 50, 51, 52] * 4,  # Same as w00
-                    "w02": [10, 20, 30, 40, 50] * 4   # Spread out, but with 50s
+                    "w02": [10, 20, 30, 40, 50] * 4,  # Spread out, but with 50s
                 },
                 "M-06": {  # Another metric
                     "w00": [30, 35, 40, 45, 50] * 4,  # 20 observations
                     "w01": [30, 35, 40, 45, 50] * 4,  # Same as w00
-                    "w02": [50, 50, 50, 50, 50] * 4   # All 50s - strong compression
-                }
-            }
+                    "w02": [50, 50, 50, 50, 50] * 4,  # All 50s - strong compression
+                },
+            },
         )
 
         # Create test metric dataframe with insufficient data per window (<20)
@@ -43,13 +45,9 @@ class TestThresholdCompressionDetector:
             run_id="test-run",
             timestamp=datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
             metrics={
-                "M-02": {
-                    "w00": [1, 2, 3]  # Only 3 observations (<20 required)
-                },
-                "M-06": {
-                    "w00": [1, 2, 3]  # Only 3 observations
-                }
-            }
+                "M-02": {"w00": [1, 2, 3]},  # Only 3 observations (<20 required)
+                "M-06": {"w00": [1, 2, 3]},  # Only 3 observations
+            },
         )
 
         # Create test metric dataframe with only one metric
@@ -60,10 +58,10 @@ class TestThresholdCompressionDetector:
             metrics={
                 "M-02": {
                     "w00": [1, 2, 3, 4, 5] * 4,  # 20 observations
-                    "w01": [1, 2, 3, 4, 5] * 4   # 20 observations
+                    "w01": [1, 2, 3, 4, 5] * 4,  # 20 observations
                 }
                 # M-06 missing
-            }
+            },
         )
 
         # Create test metric dataframe with no metrics
@@ -71,7 +69,7 @@ class TestThresholdCompressionDetector:
             repo_id="test-repo",
             run_id="test-run",
             timestamp=datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
-            metrics={}
+            metrics={},
         )
 
     def test_detector_initialization(self):
@@ -106,8 +104,9 @@ class TestThresholdCompressionDetector:
         """Test that execute returns a DetectorResult."""
         result = self.detector.execute(self.test_metric_dataframe)
         from miie.schemas.models import DetectorResult
+
         assert isinstance(result, DetectorResult)
-        assert hasattr(result, 'detector_outputs')
+        assert hasattr(result, "detector_outputs")
         assert self.detector.get_detector_id() in result.detector_outputs
 
     def test_execute_output_structure(self):
@@ -225,6 +224,7 @@ class TestThresholdCompressionDetector:
             assert event1["dip_test_statistic"] == event2["dip_test_statistic"]
             assert event1["dip_test_p_value"] == event2["dip_test_p_value"]
             # note: hypothesized_cause may be the same if deterministic
+
 
 if __name__ == "__main__":
     pytest.main([__file__])

@@ -3,11 +3,13 @@
 Implements INT-03: Window Segmentation Engine interface.
 Segments metric data into windows for analysis.
 """
-from typing import Optional, List, Tuple
-from datetime import datetime, timezone, timedelta
 
-from ..schemas.models import WindowDefinition, MetricDataFrame
+from datetime import datetime, timedelta, timezone
+from typing import List, Optional, Tuple
+
 from miie.contracts.errors import ValidationError
+
+from ..schemas.models import MetricDataFrame, WindowDefinition
 
 
 class WindowSegmentationEngine:
@@ -50,15 +52,19 @@ class WindowSegmentationEngine:
                     raise ValueError(f"custom_boundaries[{i}] must be a tuple of two datetimes, got {boundary}")
                 start, end = boundary
                 if not isinstance(start, datetime) or not isinstance(end, datetime):
-                    raise ValueError(f"custom_boundaries[{i}] elements must be datetime objects, got {type(start)}, {type(end)}")
+                    raise ValueError(
+                        f"custom_boundaries[{i}] elements must be datetime objects, got {type(start)}, {type(end)}"
+                    )
                 if start >= end:
                     raise ValueError(f"custom_boundaries[{i}] start must be before end, got {start} >= {end}")
             # Check for overlapping boundaries
             # Sort boundaries by start date to check for overlaps
             sorted_boundaries = sorted(custom_boundaries, key=lambda x: x[0])
-            for i in range(len(sorted_boundaries)-1):
-                if sorted_boundaries[i][1] > sorted_boundaries[i+1][0]:
-                    raise ValidationError(f"custom_boundaries overlap: {sorted_boundaries[i]} and {sorted_boundaries[i+1]}")
+            for i in range(len(sorted_boundaries) - 1):
+                if sorted_boundaries[i][1] > sorted_boundaries[i + 1][0]:
+                    raise ValidationError(
+                        f"custom_boundaries overlap: {sorted_boundaries[i]} and {sorted_boundaries[i+1]}"
+                    )
 
         # Extract basic information from metric_dataframe
         # Get timestamp from metric_dataframe (as a fallback for date)
@@ -123,9 +129,9 @@ class WindowSegmentationEngine:
 
             # Get first/last commit dates from repository_context if available
             if repository_context is not None:
-                if hasattr(repository_context, 'first_commit_date') and repository_context.first_commit_date:
+                if hasattr(repository_context, "first_commit_date") and repository_context.first_commit_date:
                     first_date = repository_context.first_commit_date
-                if hasattr(repository_context, 'last_commit_date') and repository_context.last_commit_date:
+                if hasattr(repository_context, "last_commit_date") and repository_context.last_commit_date:
                     last_date = repository_context.last_commit_date
 
             if first_date and last_date and total_commits > 0 and size > 0:
@@ -233,5 +239,5 @@ class MockSegmentationEngine:
                     commits=1,
                     strategy=strategy,
                     size_config={"size": size},
-                )
+                ),
             ]

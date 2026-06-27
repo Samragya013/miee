@@ -2,19 +2,18 @@
 Implements the IEvaluationEngine interface for computing classification metrics
 and baseline comparisons.
 """
-from typing import Dict, Any, List, Tuple, Optional
-import math
-import random
 
-from miie.schemas.models import BenchmarkRun, EvaluationResult
+import random
+from typing import Any, Dict, List, Optional, Tuple
+
 from miie.contracts.interfaces import IEvaluationEngine
+from miie.schemas.models import BenchmarkRun, EvaluationResult
 
 
 class EvaluationEngine(IEvaluationEngine):
     """Evaluation Engine that computes classification metrics and baseline comparisons."""
 
-    def evaluate(self, benchmark_run: BenchmarkRun,
-                 ground_truth: Dict[str, Any]) -> EvaluationResult:
+    def evaluate(self, benchmark_run: BenchmarkRun, ground_truth: Dict[str, Any]) -> EvaluationResult:
         """Evaluate benchmark results against ground truth.
 
         Args:
@@ -25,18 +24,11 @@ class EvaluationEngine(IEvaluationEngine):
             EvaluationResult: Container for evaluation metrics
         """
         # Extract predictions and ground truth labels
-        predictions, true_labels = self._extract_predictions_and_labels(
-            benchmark_run, ground_truth
-        )
+        predictions, true_labels = self._extract_predictions_and_labels(benchmark_run, ground_truth)
 
         # Handle edge case where no predictions/labels are available
         if not predictions or not true_labels:
-            return EvaluationResult(
-                accuracy=0.0,
-                precision=0.0,
-                recall=0.0,
-                f1_score=0.0
-            )
+            return EvaluationResult(accuracy=0.0, precision=0.0, recall=0.0, f1_score=0.0)
 
         # Compute confusion matrix
         tn, fp, fn, tp = self._compute_confusion_matrix(predictions, true_labels)
@@ -52,16 +44,11 @@ class EvaluationEngine(IEvaluationEngine):
         # - FPR, FNR (can be derived from confusion matrix)
         # But for now we focus on the core metrics as defined in EvaluationResult
 
-        return EvaluationResult(
-            accuracy=accuracy,
-            precision=precision,
-            recall=recall,
-            f1_score=f1_score
-        )
+        return EvaluationResult(accuracy=accuracy, precision=precision, recall=recall, f1_score=f1_score)
 
-    def _extract_predictions_and_labels(self,
-                                        benchmark_run: BenchmarkRun,
-                                        ground_truth: Dict[str, Any]) -> Tuple[List[int], List[int]]:
+    def _extract_predictions_and_labels(
+        self, benchmark_run: BenchmarkRun, ground_truth: Dict[str, Any]
+    ) -> Tuple[List[int], List[int]]:
         """Extract binary predictions and true labels from benchmark run and ground truth.
 
         Returns:
@@ -125,8 +112,7 @@ class EvaluationEngine(IEvaluationEngine):
 
         return predictions, true_labels
 
-    def _compute_confusion_matrix(self, predictions: List[int],
-                                  true_labels: List[int]) -> Tuple[int, int, int, int]:
+    def _compute_confusion_matrix(self, predictions: List[int], true_labels: List[int]) -> Tuple[int, int, int, int]:
         """Compute confusion matrix components.
 
         Returns:
@@ -238,8 +224,9 @@ class EvaluationEngine(IEvaluationEngine):
 
         return predictions
 
-    def rule_based_baseline(self, true_labels: List[int],
-                           metric_dataframe: Optional[Dict[str, Any]] = None) -> List[int]:
+    def rule_based_baseline(
+        self, true_labels: List[int], metric_dataframe: Optional[Dict[str, Any]] = None
+    ) -> List[int]:
         """Generate rule-based predictions (baseline 4).
 
         Args:
@@ -290,9 +277,7 @@ class EvaluationEngine(IEvaluationEngine):
         """Compute Area Under ROC Curve (placeholder)."""
         # Implementation would require probability scores, not just binary predictions
         # For now, return a placeholder based on accuracy
-        accuracy = self._compute_accuracy(
-            *self._compute_confusion_matrix(predictions, true_labels)
-        )
+        accuracy = self._compute_accuracy(*self._compute_confusion_matrix(predictions, true_labels))
         # AUC-ROC of a random classifier is 0.5, perfect classifier is 1.0
         # This is a rough approximation
         return 0.5 + (accuracy - 0.5)  # Maps [0,1] accuracy to [0.5,1.0] AUC-ROC
@@ -300,23 +285,20 @@ class EvaluationEngine(IEvaluationEngine):
     def _compute_auc_pr(self, predictions: List[int], true_labels: List[int]) -> float:
         """Compute Area Under Precision-Recall Curve (placeholder)."""
         # Implementation would require probability scores
-        precision = self._compute_precision(
-            *self._compute_confusion_matrix(predictions, true_labels)[2:4]  # tp, fp
-        )
+        precision = self._compute_precision(*self._compute_confusion_matrix(predictions, true_labels)[2:4])  # tp, fp
         # Rough approximation - not mathematically sound but gives a sense
         return precision
 
-    def evaluate_with_extended_metrics(self, benchmark_run: BenchmarkRun,
-                                     ground_truth: Dict[str, Any]) -> Dict[str, Any]:
+    def evaluate_with_extended_metrics(
+        self, benchmark_run: BenchmarkRun, ground_truth: Dict[str, Any]
+    ) -> Dict[str, Any]:
         """Evaluate with extended metrics including AUC-ROC, AUC-PR, FPR, FNR.
 
         Returns:
             Dictionary containing all evaluation metrics
         """
         # Extract predictions and ground truth labels
-        predictions, true_labels = self._extract_predictions_and_labels(
-            benchmark_run, ground_truth
-        )
+        predictions, true_labels = self._extract_predictions_and_labels(benchmark_run, ground_truth)
 
         if not predictions or not true_labels:
             return {
@@ -327,7 +309,7 @@ class EvaluationEngine(IEvaluationEngine):
                 "auc_roc": 0.5,
                 "auc_pr": 0.0,
                 "fpr": 0.0,
-                "fnr": 0.0
+                "fnr": 0.0,
             }
 
         # Compute confusion matrix
@@ -356,6 +338,6 @@ class EvaluationEngine(IEvaluationEngine):
                 "true_negative": tn,
                 "false_positive": fp,
                 "false_negative": fn,
-                "true_positive": tp
-            }
+                "true_positive": tp,
+            },
         }

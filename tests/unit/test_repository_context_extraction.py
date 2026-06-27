@@ -2,20 +2,31 @@
 Tests for repository metadata extraction functionality in ingestion.py.
 """
 
-import datetime
 import subprocess
 from pathlib import Path
+
 import pytest
-from miie.processing.ingestion import RepositoryIngestionEngine
+
 from miie.contracts.errors import IngestionError
+from miie.processing.ingestion import RepositoryIngestionEngine
 from miie.schemas.models import RepositoryContext
 
 
 def init_git_repo(repo_path: Path) -> None:
     """Initialize a git repository with basic configuration."""
-    subprocess.run(['git', 'init'], cwd=repo_path, check=True, capture_output=True)
-    subprocess.run(['git', 'config', 'user.name', 'Test User'], cwd=repo_path, check=True, capture_output=True)
-    subprocess.run(['git', 'config', 'user.email', 'test@example.com'], cwd=repo_path, check=True, capture_output=True)
+    subprocess.run(["git", "init"], cwd=repo_path, check=True, capture_output=True)
+    subprocess.run(
+        ["git", "config", "user.name", "Test User"],
+        cwd=repo_path,
+        check=True,
+        capture_output=True,
+    )
+    subprocess.run(
+        ["git", "config", "user.email", "test@example.com"],
+        cwd=repo_path,
+        check=True,
+        capture_output=True,
+    )
 
 
 def make_commit(repo_path: Path, commit_message: str) -> None:
@@ -24,8 +35,13 @@ def make_commit(repo_path: Path, commit_message: str) -> None:
     dummy_file = repo_path / "dummy.txt"
     # Write different content each time to ensure there's something to commit
     dummy_file.write_text(f"dummy content at {commit_message}")
-    subprocess.run(['git', 'add', 'dummy.txt'], cwd=repo_path, check=True, capture_output=True)
-    subprocess.run(['git', 'commit', '-m', commit_message], cwd=repo_path, check=True, capture_output=True)
+    subprocess.run(["git", "add", "dummy.txt"], cwd=repo_path, check=True, capture_output=True)
+    subprocess.run(
+        ["git", "commit", "-m", commit_message],
+        cwd=repo_path,
+        check=True,
+        capture_output=True,
+    )
 
 
 def create_repo_with_history(repo_path: Path, num_commits: int = 10, num_contributors: int = 1) -> None:
@@ -45,16 +61,16 @@ def create_repo_with_history(repo_path: Path, num_commits: int = 10, num_contrib
     for contributor in range(num_contributors):
         # Set contributor identity
         subprocess.run(
-            ['git', 'config', 'user.name', f'Contributor {contributor+1}'],
+            ["git", "config", "user.name", f"Contributor {contributor+1}"],
             cwd=repo_path,
             check=True,
-            capture_output=True
+            capture_output=True,
         )
         subprocess.run(
-            ['git', 'config', 'user.email', f'contributor{contributor+1}@example.com'],
+            ["git", "config", "user.email", f"contributor{contributor+1}@example.com"],
             cwd=repo_path,
             check=True,
-            capture_output=True
+            capture_output=True,
         )
 
         # Make commits for this contributor
@@ -66,16 +82,16 @@ def create_repo_with_history(repo_path: Path, num_commits: int = 10, num_contrib
     remaining = num_commits - (commits_per_contributor * num_contributors)
     if remaining > 0:
         subprocess.run(
-            ['git', 'config', 'user.name', 'Contributor 1'],
+            ["git", "config", "user.name", "Contributor 1"],
             cwd=repo_path,
             check=True,
-            capture_output=True
+            capture_output=True,
         )
         subprocess.run(
-            ['git', 'config', 'user.email', 'contributor1@example.com'],
+            ["git", "config", "user.email", "contributor1@example.com"],
             cwd=repo_path,
             check=True,
-            capture_output=True
+            capture_output=True,
         )
         for i in range(remaining):
             make_commit(repo_path, f"Remaining commit {i+1}")
@@ -124,8 +140,8 @@ def test_ingest_with_shallow_clone(tmp_path):
     create_repo_with_history(repo_path, num_commits=20, num_contributors=1)
 
     # Convert to shallow clone by creating .git/shallow file
-    git_dir = repo_path / '.git'
-    shallow_file = git_dir / 'shallow'
+    git_dir = repo_path / ".git"
+    shallow_file = git_dir / "shallow"
     shallow_file.touch()  # Create empty shallow file
 
     # Ingest the repository
@@ -182,6 +198,7 @@ def test_ingest_nonexistent_path(tmp_path):
 def test_repository_context_validation_contributor_count():
     """Test that RepositoryContext validation catches contributor_count < 1."""
     import datetime
+
     with pytest.raises(ValueError, match="contributor_count must be >= 1"):
         RepositoryContext(
             repo_id="test",
@@ -192,13 +209,14 @@ def test_repository_context_validation_contributor_count():
             last_commit_date=datetime.datetime.now(datetime.timezone.utc),
             contributor_count=0,  # This should fail validation
             is_shallow=False,
-            is_fork=False
+            is_fork=False,
         )
 
 
 def test_repository_context_validation_total_commits():
     """Test that RepositoryContext validation catches total_commits < 10."""
     import datetime
+
     with pytest.raises(ValueError, match="total_commits must be >= 10"):
         RepositoryContext(
             repo_id="test",
@@ -209,7 +227,7 @@ def test_repository_context_validation_total_commits():
             last_commit_date=datetime.datetime.now(datetime.timezone.utc),
             contributor_count=1,
             is_shallow=False,
-            is_fork=False
+            is_fork=False,
         )
 
 

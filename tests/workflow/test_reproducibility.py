@@ -1,24 +1,22 @@
 """Reproducibility tests for deterministic output verification."""
-import os
-import json
+
 import hashlib
-from unittest.mock import Mock
+import os
 
 import numpy as np
 from scipy.stats import rankdata
 
+from miie.benchmark.evaluation import EvaluationEngine as MockEvaluationEngine
+from miie.benchmark.runner import MockBenchmarkRunner
 from miie.orchestration.pipeline import AnalysisPipeline
-from tests.fixtures.mock_services import MockIngestionEngine
-from tests.fixtures.mock_services import MockExtractionEngine
-from miie.processing.segmentation import MockSegmentationEngine
 from miie.processing.detection.mock_detectors import MockDetectorEngine
-from miie.processing.scoring.mock_scoring import MockScoringEngine
 from miie.processing.evidence import MockEvidenceEngine
 from miie.processing.explanation.mock_explanation import MockExplanationEngine
 from miie.processing.reporting.engine import MockReportGenerator
-from miie.benchmark.runner import MockBenchmarkRunner
-from miie.benchmark.evaluation import EvaluationEngine as MockEvaluationEngine
+from miie.processing.scoring.mock_scoring import MockScoringEngine
+from miie.processing.segmentation import MockSegmentationEngine
 from miie.utils.seed import SeedManager
+from tests.fixtures.mock_services import MockExtractionEngine, MockIngestionEngine
 
 
 class TestReproducibility:
@@ -47,7 +45,7 @@ class TestReproducibility:
             explanation_engine=self.explanation_engine,
             report_generator=self.report_generator,
             benchmark_engine=self.benchmark_engine,
-            evaluation_engine=self.evaluation_engine
+            evaluation_engine=self.evaluation_engine,
         )
 
     def _get_file_hash(self, file_path):
@@ -64,11 +62,13 @@ class TestReproducibility:
         """Verify that identical analyses produce byte-identical outputs."""
         # Run the same analysis twice with the same seed
         from pathlib import Path
+
         output_dir_1 = Path("test_reproducibility_output_1")
         output_dir_2 = Path("test_reproducibility_output_2")
 
         # Clean up any existing output directories
         import shutil
+
         for directory in [output_dir_1, output_dir_2]:
             if directory.exists():
                 shutil.rmtree(directory)
@@ -96,7 +96,7 @@ class TestReproducibility:
             "evidence.json",
             "analysis_report_20230615_120000.json",
             "metrics.csv",
-            "results.json"
+            "results.json",
         ]
 
         for file_name in files_to_compare:
@@ -120,11 +120,13 @@ class TestReproducibility:
     def test_different_seeds_produce_different_outputs(self):
         """Verify that different seeds produce different outputs (non-deterministic across seeds)."""
         from pathlib import Path
+
         output_dir_1 = Path("test_reproducibility_seed_42")
         output_dir_2 = Path("test_reproducibility_seed_123")
 
         # Clean up any existing output directories
         import shutil
+
         for directory in [output_dir_1, output_dir_2]:
             if directory.exists():
                 shutil.rmtree(directory)
@@ -148,10 +150,7 @@ class TestReproducibility:
         assert result_2 is not None
 
         # Check that at least some output files differ
-        files_to_compare = [
-            "evidence.json",
-            "analysis_report_20230615_120000.json"
-        ]
+        files_to_compare = ["evidence.json", "analysis_report_20230615_120000.json"]
 
         at_least_one_different = False
         for file_name in files_to_compare:
@@ -179,10 +178,12 @@ class TestReproducibility:
         """Verify reproducible handling of edge case inputs."""
         # Test with minimal repository-like input
         from pathlib import Path
+
         output_dir = Path("test_reproducibility_edge_case")
 
         if output_dir.exists():
             import shutil
+
             shutil.rmtree(output_dir)
 
         # This should not crash, even if it produces empty/default outputs
@@ -197,6 +198,7 @@ class TestReproducibility:
         # Clean up
         if output_dir.exists():
             import shutil
+
             shutil.rmtree(output_dir)
 
 
@@ -236,6 +238,7 @@ class TestDeterminismFixes:
     def test_scoring_engine_math_fsum(self):
         """Verify that scoring engine uses math.fsum for bitwise-identical sums."""
         import math
+
         # math.fsum is exact for floats; regular sum is not
         values = [0.1] * 10
         fsum_result = math.fsum(values)
@@ -248,36 +251,53 @@ class TestDeterminismFixes:
     def test_spearman_rankdata_ties(self):
         """scipy.stats.rankdata with method='average' handles ties correctly."""
         x = np.array([1.0, 2.0, 2.0, 3.0])
-        ranked = rankdata(x, method='average')
+        ranked = rankdata(x, method="average")
         expected = np.array([1.0, 2.5, 2.5, 4.0])
         np.testing.assert_array_equal(ranked, expected)
 
     def test_spearman_ties_reproducible(self):
         """Ranking with ties must be identical across runs."""
         x = np.array([1.0, 2.0, 2.0, 3.0, 3.0, 3.0])
-        ranked1 = rankdata(x, method='average')
-        ranked2 = rankdata(x, method='average')
+        ranked1 = rankdata(x, method="average")
+        ranked2 = rankdata(x, method="average")
         np.testing.assert_array_equal(ranked1, ranked2)
 
     def test_sha256_not_md5(self):
         """Verify SHA-256 is used (64-char hex) instead of MD5 (32-char hex)."""
         import hashlib
+
         data = "test config"
         h = hashlib.sha256(data.encode()).hexdigest()
         assert len(h) == 64, f"Expected SHA-256 (64 chars), got {len(h)} chars"
 
     def test_scoring_engine_bitwise_identical_runs(self):
         """Running the scoring engine twice with identical inputs produces identical scores."""
-        from datetime import datetime, timezone
-        from miie.schemas.models import DetectorResults, MetricDataFrame, WindowDefinition
+        from datetime import date, datetime, timezone
+
         from miie.processing.scoring.engine import ScoringEngine
-        from datetime import date
+        from miie.schemas.models import (
+            DetectorResults,
+            MetricDataFrame,
+            WindowDefinition,
+        )
 
         engine = ScoringEngine()
 
         windows = [
-            WindowDefinition(window_id="w01", start_date=date(2023, 1, 1), end_date=date(2023, 3, 31), commits=50, strategy="fixed"),
-            WindowDefinition(window_id="w02", start_date=date(2023, 4, 1), end_date=date(2023, 6, 30), commits=45, strategy="fixed"),
+            WindowDefinition(
+                window_id="w01",
+                start_date=date(2023, 1, 1),
+                end_date=date(2023, 3, 31),
+                commits=50,
+                strategy="fixed",
+            ),
+            WindowDefinition(
+                window_id="w02",
+                start_date=date(2023, 4, 1),
+                end_date=date(2023, 6, 30),
+                commits=45,
+                strategy="fixed",
+            ),
         ]
 
         detector_outputs = {

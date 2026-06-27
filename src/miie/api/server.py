@@ -5,25 +5,30 @@ Implements the 6 frozen endpoints per TFS §14.3.
 
 from __future__ import annotations
 
+import uvicorn
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import JSONResponse
-import uvicorn
 
 from .. import __version__
+from .dependencies import (
+    _run_analyze_job,
+    _run_benchmark_job,
+    get_job_store,
+    get_uptime,
+)
 from .models import (
     AnalyzeRequest,
     BenchmarkRequest,
     ExplainRequest,
+    ExplainResponse,
     ExportRequest,
     ExportResponse,
-    ExplainResponse,
     HealthResponse,
     JobAccepted,
     JobCompletedResponse,
     JobStatusResponse,
     ProblemDetail,
 )
-from .dependencies import get_job_store, get_uptime, _run_analyze_job, _run_benchmark_job
 
 app = FastAPI(
     title="MIIE API",
@@ -38,16 +43,14 @@ app = FastAPI(
 @app.exception_handler(HTTPException)
 async def http_exception_handler(request: Request, exc: HTTPException):
     body = ProblemDetail(
-        type=f"https://miie.dev/errors/{exc.detail.get('error_code', 'unknown')}"
-        if isinstance(exc.detail, dict)
-        else f"https://miie.dev/errors/http-{exc.status_code}",
-        title=exc.detail.get("title", "Error")
-        if isinstance(exc.detail, dict)
-        else str(exc.detail),
+        type=(
+            f"https://miie.dev/errors/{exc.detail.get('error_code', 'unknown')}"
+            if isinstance(exc.detail, dict)
+            else f"https://miie.dev/errors/http-{exc.status_code}"
+        ),
+        title=(exc.detail.get("title", "Error") if isinstance(exc.detail, dict) else str(exc.detail)),
         status=exc.status_code,
-        detail=exc.detail.get("detail", str(exc.detail))
-        if isinstance(exc.detail, dict)
-        else str(exc.detail),
+        detail=(exc.detail.get("detail", str(exc.detail)) if isinstance(exc.detail, dict) else str(exc.detail)),
         instance=str(request.url.path),
     )
     return JSONResponse(status_code=exc.status_code, content=body.model_dump())
@@ -126,11 +129,15 @@ def get_job_status(job_id: str):
         error = job.get("error", {})
         raise HTTPException(
             status_code=500,
-            detail=error if error else {
-                "error_code": "JOB-FAILED",
-                "title": "Job Failed",
-                "detail": "The job encountered an error.",
-            },
+            detail=(
+                error
+                if error
+                else {
+                    "error_code": "JOB-FAILED",
+                    "title": "Job Failed",
+                    "detail": "The job encountered an error.",
+                }
+            ),
         )
 
     # running / created / queued
@@ -222,7 +229,7 @@ def explain(request: ExplainRequest):
     result = job.get("result", {})
     return ExplainResponse(
         explanation=f"Analysis of repository {result.get('repo_id', 'unknown')} completed. "
-                    f"Overall integrity: {result.get('integrity_overall', 0.0):.4f}.",
+        f"Overall integrity: {result.get('integrity_overall', 0.0):.4f}.",
         rule_fired="default",
         evidence_refs=[],
         metric=request.metric or "all",

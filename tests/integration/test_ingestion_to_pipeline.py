@@ -3,26 +3,27 @@ Integration Tests for MIIE v1.0 Pipeline with Real Ingestion Engine
 Tests the orchestration pipeline with real RepositoryIngestionEngine and mock implementations for other engines.
 """
 
-import pytest
 import subprocess
-from pathlib import Path
 from datetime import datetime, timedelta
+from pathlib import Path
 
+import pytest
+
+from miie.contracts.errors import IngestionError
 from miie.orchestration.pipeline import AnalysisPipeline
 from miie.processing.ingestion import RepositoryIngestionEngine
-from miie.contracts.errors import IngestionError
+from miie.schemas.models import BenchmarkRun
 from tests.fixtures.mock_services import (
-    MockExtractionEngine,
-    MockSegmentationEngine,
+    MockBenchmarkEngine,
     MockDetectorEngine,
-    MockScoringEngine,
+    MockEvaluationEngine,
     MockEvidenceEngine,
     MockExplanationEngine,
+    MockExtractionEngine,
     MockReportGenerator,
-    MockBenchmarkEngine,
-    MockEvaluationEngine
+    MockScoringEngine,
+    MockSegmentationEngine,
 )
-from miie.schemas.models import BenchmarkRun
 
 
 class TestAnalysisPipelineWithRealIngestion:
@@ -45,7 +46,7 @@ class TestAnalysisPipelineWithRealIngestion:
             "explanation": MockExplanationEngine(),
             "report_generator": MockReportGenerator(),
             "benchmark": MockBenchmarkEngine(),
-            "evaluation": MockEvaluationEngine()
+            "evaluation": MockEvaluationEngine(),
         }
 
     @pytest.fixture
@@ -57,7 +58,11 @@ class TestAnalysisPipelineWithRealIngestion:
         # Initialize git repo
         subprocess.run(["git", "init"], cwd=repo_path, check=True, capture_output=True)
         subprocess.run(["git", "config", "user.name", "Test User"], cwd=repo_path, check=True)
-        subprocess.run(["git", "config", "user.email", "test@example.com"], cwd=repo_path, check=True)
+        subprocess.run(
+            ["git", "config", "user.email", "test@example.com"],
+            cwd=repo_path,
+            check=True,
+        )
 
         # Add initial commit
         (repo_path / "README.md").write_text("# Test Repository\n")
@@ -84,7 +89,7 @@ class TestAnalysisPipelineWithRealIngestion:
             explanation_engine=mock_engines["explanation"],
             report_generator=mock_engines["report_generator"],
             benchmark_engine=mock_engines["benchmark"],
-            evaluation_engine=mock_engines["evaluation"]
+            evaluation_engine=mock_engines["evaluation"],
         )
 
         assert pipeline.ingestion_engine is not None
@@ -110,7 +115,7 @@ class TestAnalysisPipelineWithRealIngestion:
             scoring_engine=mock_engines["scoring"],
             evidence_engine=mock_engines["evidence"],
             explanation_engine=mock_engines["explanation"],
-            report_generator=mock_engines["report_generator"]
+            report_generator=mock_engines["report_generator"],
         )
 
         repo_path = sample_repo
@@ -118,11 +123,7 @@ class TestAnalysisPipelineWithRealIngestion:
         output_dir = Path("./tmp_output_ingestion")
 
         # Act
-        result = pipeline.run_analysis(
-            repo_path=repo_path,
-            metric_list=metric_list,
-            output_dir=output_dir
-        )
+        result = pipeline.run_analysis(repo_path=repo_path, metric_list=metric_list, output_dir=output_dir)
 
         # Assert
         assert result is not None
@@ -166,7 +167,7 @@ class TestAnalysisPipelineWithRealIngestion:
             scoring_engine=mock_engines["scoring"],
             evidence_engine=mock_engines["evidence"],
             explanation_engine=mock_engines["explanation"],
-            report_generator=mock_engines["report_generator"]
+            report_generator=mock_engines["report_generator"],
         )
 
         repo_path = sample_repo
@@ -184,7 +185,7 @@ class TestAnalysisPipelineWithRealIngestion:
             exclude_bots=True,
             segmentation_strategy="commit",
             segmentation_size=1,
-            output_dir=output_dir
+            output_dir=output_dir,
         )
 
         # Assert
@@ -208,7 +209,7 @@ class TestAnalysisPipelineWithRealIngestion:
             explanation_engine=mock_engines["explanation"],
             report_generator=mock_engines["report_generator"],
             benchmark_engine=mock_engines["benchmark"],
-            evaluation_engine=mock_engines["evaluation"]
+            evaluation_engine=mock_engines["evaluation"],
         )
 
         suite_id = "suite-001"
@@ -216,11 +217,7 @@ class TestAnalysisPipelineWithRealIngestion:
         config = {"threshold": 0.05}
 
         # Act
-        benchmark_run = pipeline.run_benchmark(
-            suite_id=suite_id,
-            detector_ids=detector_ids,
-            config=config
-        )
+        benchmark_run = pipeline.run_benchmark(suite_id=suite_id, detector_ids=detector_ids, config=config)
 
         # Assert
         assert benchmark_run is not None
@@ -242,20 +239,14 @@ class TestAnalysisPipelineWithRealIngestion:
             explanation_engine=mock_engines["explanation"],
             report_generator=mock_engines["report_generator"],
             benchmark_engine=mock_engines["benchmark"],
-            evaluation_engine=mock_engines["evaluation"]
+            evaluation_engine=mock_engines["evaluation"],
         )
 
-        benchmark_run = BenchmarkRun(
-            predictions={"D-01": [0.8, 0.75, 0.82]},
-            metadata={}
-        )
+        benchmark_run = BenchmarkRun(predictions={"D-01": [0.8, 0.75, 0.82]}, metadata={})
         ground_truth = {"D-01": [0.78, 0.76, 0.80]}
 
         # Act
-        evaluation_result = pipeline.evaluate_benchmark(
-            benchmark_run=benchmark_run,
-            ground_truth=ground_truth
-        )
+        evaluation_result = pipeline.evaluate_benchmark(benchmark_run=benchmark_run, ground_truth=ground_truth)
 
         # Assert
         assert evaluation_result is not None
@@ -273,7 +264,7 @@ class TestAnalysisPipelineWithRealIngestion:
             scoring_engine=mock_engines["scoring"],
             evidence_engine=mock_engines["evidence"],
             explanation_engine=mock_engines["explanation"],
-            report_generator=mock_engines["report_generator"]
+            report_generator=mock_engines["report_generator"],
             # No benchmark_engine or evaluation_engine
         )
 
@@ -284,12 +275,17 @@ class TestAnalysisPipelineWithRealIngestion:
         # Should still be able to run analysis
         # We need a sample repo for this test with at least 10 commits
         import tempfile
+
         with tempfile.TemporaryDirectory() as tmpdir:
             repo_path = Path(tmpdir) / "test-repo"
             repo_path.mkdir()
             subprocess.run(["git", "init"], cwd=repo_path, check=True, capture_output=True)
             subprocess.run(["git", "config", "user.name", "Test User"], cwd=repo_path, check=True)
-            subprocess.run(["git", "config", "user.email", "test@example.com"], cwd=repo_path, check=True)
+            subprocess.run(
+                ["git", "config", "user.email", "test@example.com"],
+                cwd=repo_path,
+                check=True,
+            )
             # Add initial commit
             (repo_path / "README.md").write_text("# Test\n")
             subprocess.run(["git", "add", "README.md"], cwd=repo_path, check=True)
@@ -303,7 +299,7 @@ class TestAnalysisPipelineWithRealIngestion:
             result = pipeline.run_analysis(
                 repo_path=str(repo_path),
                 metric_list=["M-01"],
-                output_dir=Path("./tmp_output")
+                output_dir=Path("./tmp_output"),
             )
             assert result is not None
 
@@ -312,10 +308,7 @@ class TestAnalysisPipelineWithRealIngestion:
             pipeline.run_benchmark("suite", ["D-01"], {})
 
         with pytest.raises(RuntimeError, match="Evaluation engine not available"):
-            pipeline.evaluate_benchmark(
-                BenchmarkRun(predictions={}, metadata={}),
-                {}
-            )
+            pipeline.evaluate_benchmark(BenchmarkRun(predictions={}, metadata={}), {})
 
     def test_error_propagation_ingestion_failure(self, mock_engines):
         """Test that IngestionError from real ingestion engine propagates as ACS error."""
@@ -328,7 +321,7 @@ class TestAnalysisPipelineWithRealIngestion:
             scoring_engine=mock_engines["scoring"],
             evidence_engine=mock_engines["evidence"],
             explanation_engine=mock_engines["explanation"],
-            report_generator=mock_engines["report_generator"]
+            report_generator=mock_engines["report_generator"],
         )
 
         # Use a non-existent repository path
@@ -339,14 +332,14 @@ class TestAnalysisPipelineWithRealIngestion:
             pipeline.run_analysis(
                 repo_path=non_existent_path,
                 metric_list=["M-01"],
-                output_dir=Path("./tmp_output")
+                output_dir=Path("./tmp_output"),
             )
 
         # Verify it's an ACS error (IngestionError is a MIIEError)
         assert isinstance(exc_info.value, IngestionError)
         assert exc_info.value.error_code == "INGESTION-ERROR"
         # Check that the error message contains the repository path (may be resolved to absolute)
-        assert non_existent_path.replace('/', '\\') in exc_info.value.message
+        assert non_existent_path.replace("/", "\\") in exc_info.value.message
 
 
 if __name__ == "__main__":

@@ -1,8 +1,8 @@
 """Tests for MIIE package structure validation."""
 
-import os
-import pytest
 from pathlib import Path
+
+import pytest
 
 # Root directory of the project
 ROOT_DIR = Path(__file__).parent.parent.parent
@@ -22,12 +22,14 @@ EXPECTED_PACKAGES = {
     "common",
     "utils",
     "config",
-    "api"
+    "api",
 }
+
 
 def test_src_miie_exists():
     """Test that src/miie directory exists."""
     assert SRC_DIR.exists() and SRC_DIR.is_dir(), f"Source directory {SRC_DIR} does not exist"
+
 
 def test_all_expected_packages_exist():
     """Test that all expected packages exist as directories with __init__.py."""
@@ -44,14 +46,16 @@ def test_all_expected_packages_exist():
 
     assert not missing_packages, f"Missing or incomplete packages: {', '.join(missing_packages)}"
 
+
 def test_no_unexpected_packages():
     """Test that no unexpected packages exist in src/miie."""
-    actual_packages = {d.name for d in SRC_DIR.iterdir()
-                      if d.is_dir() and (d / "__init__.py").exists()
-                      and not d.name.startswith("__")}
+    actual_packages = {
+        d.name for d in SRC_DIR.iterdir() if d.is_dir() and (d / "__init__.py").exists() and not d.name.startswith("__")
+    }
 
     unexpected = actual_packages - EXPECTED_PACKAGES
     assert not unexpected, f"Unexpected packages found: {', '.join(unexpected)}"
+
 
 def test_package_init_files():
     """Test that all package __init__.py files are valid Python files."""
@@ -63,8 +67,10 @@ def test_package_init_files():
         content = init_file.read_text().strip()
         assert content, f"__init__.py is empty for package {package}"
         # Should contain at least a docstring or comment
-        assert ('"""' in content or "'''" in content or "#" in content), \
-            f"__init__.py appears to be missing documentation for package {package}"
+        assert (
+            '"""' in content or "'''" in content or "#" in content
+        ), f"__init__.py appears to be missing documentation for package {package}"
+
 
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])

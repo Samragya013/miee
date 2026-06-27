@@ -33,15 +33,14 @@ from miie.schemas.models import (
     StateObject,
     StateTransition,
     SyntheticRepositoryMetadata,
-    WarningItem,
     WindowDefinition,
 )
 from miie.schemas.serialization import json_dumps, json_loads
 
-
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
+
 
 def _make_repo(**overrides):
     defaults = dict(
@@ -157,6 +156,7 @@ def _make_run_metadata(**overrides):
 # AnalysisResult (BSD §12)
 # ===================================================================
 
+
 class TestRunMetadata:
     def test_valid_construction(self):
         rm = _make_run_metadata()
@@ -267,6 +267,7 @@ class TestAnalysisResult:
 # ===================================================================
 # BenchmarkDataset (BSD §13)
 # ===================================================================
+
 
 class TestSyntheticRepositoryMetadata:
     def test_valid_construction(self):
@@ -514,6 +515,7 @@ class TestBenchmarkDataset:
 # Configuration (BSD §17)
 # ===================================================================
 
+
 class TestDetectorConfig:
     def test_valid_construction(self):
         dc = DetectorConfig()
@@ -638,6 +640,7 @@ class TestConfiguration:
 # JobManifest (BSD §18)
 # ===================================================================
 
+
 class TestJobManifest:
     def test_valid_construction(self):
         jm = JobManifest(
@@ -736,7 +739,14 @@ class TestJobManifest:
             assert jm.job_type == jtype
 
     def test_all_valid_statuses(self):
-        for status in ("created", "queued", "running", "completed", "failed", "cancelled"):
+        for status in (
+            "created",
+            "queued",
+            "running",
+            "completed",
+            "failed",
+            "cancelled",
+        ):
             jm = JobManifest(
                 job_id="j1",
                 job_type="analyze",
@@ -781,6 +791,7 @@ class TestJobManifest:
 # StateObject (BSD §19)
 # ===================================================================
 
+
 class TestStateTransition:
     def test_valid_construction(self):
         st = StateTransition(
@@ -811,7 +822,14 @@ class TestStateTransition:
             StateTransition(status="running", timestamp="2020-01-01T00:00:00Z", progress=2.0)
 
     def test_all_valid_statuses(self):
-        for status in ("created", "queued", "running", "completed", "failed", "cancelled"):
+        for status in (
+            "created",
+            "queued",
+            "running",
+            "completed",
+            "failed",
+            "cancelled",
+        ):
             st = StateTransition(status=status, timestamp="2020-01-01T00:00:00Z")
             assert st.status == status
 
@@ -922,14 +940,23 @@ class TestStateObject:
             "job_id": so.job_id,
             "current_status": so.current_status,
             "history": [
-                {"status": t.status, "timestamp": t.timestamp, "stage": t.stage, "progress": t.progress}
+                {
+                    "status": t.status,
+                    "timestamp": t.timestamp,
+                    "stage": t.stage,
+                    "progress": t.progress,
+                }
                 for t in so.history
             ],
-            "recovery_metadata": {
-                "last_completed_stage": so.recovery_metadata.last_completed_stage,
-                "checkpoint_path": so.recovery_metadata.checkpoint_path,
-                "retry_count": so.recovery_metadata.retry_count,
-            } if so.recovery_metadata else None,
+            "recovery_metadata": (
+                {
+                    "last_completed_stage": so.recovery_metadata.last_completed_stage,
+                    "checkpoint_path": so.recovery_metadata.checkpoint_path,
+                    "retry_count": so.recovery_metadata.retry_count,
+                }
+                if so.recovery_metadata
+                else None
+            ),
         }
         j1 = json_dumps(d)
         parsed = json_loads(j1)

@@ -3,7 +3,12 @@ Tests for the metric registry.
 """
 
 import pytest
-from miie.schemas.metric_registry import METRIC_REGISTRY, validate_metric_ids, MetricInfo
+
+from miie.schemas.metric_registry import (
+    METRIC_REGISTRY,
+    MetricInfo,
+    validate_metric_ids,
+)
 
 
 def test_metric_registry_contains_frozen_metrics():
@@ -25,12 +30,14 @@ def test_metric_registry_is_frozen():
     assert isinstance(METRIC_REGISTRY, frozenset)
     # Attempt to modify should fail
     with pytest.raises(AttributeError):
-        METRIC_REGISTRY.add(MetricInfo(
-            metric_id="M-08",
-            name="Test Metric",
-            description="Test description",
-            extraction_status="unavailable"
-        ))
+        METRIC_REGISTRY.add(
+            MetricInfo(
+                metric_id="M-08",
+                name="Test Metric",
+                description="Test description",
+                extraction_status="unavailable",
+            )
+        )
 
 
 def test_validate_metric_ids_valid():

@@ -2,20 +2,21 @@
 
 Tests the complete pipeline from MetricDataFrame through detector framework to scoring.
 """
-import pytest
-from miie.processing.extraction import MetricExtractionEngine
-from miie.processing.detection.registry import DetectorRegistry
+
+import datetime
+
 from miie.processing.detection.dispatcher import DetectorDispatcherEngine
-from miie.processing.detection.runner import DetectorRunner
 from miie.processing.detection.mock_detectors import (
-    MockDistributionDriftDetector,
     MockCorrelationBreakdownDetector,
-    MockThresholdCompressionDetector
+    MockDistributionDriftDetector,
+    MockThresholdCompressionDetector,
 )
+from miie.processing.detection.registry import DetectorRegistry
+from miie.processing.detection.runner import DetectorRunner
+from miie.processing.extraction import MetricExtractionEngine
 from miie.processing.scoring.engine import ScoringEngine
 from miie.processing.scoring.mock_scoring import MockScoringEngine
 from miie.schemas.models import MetricDataFrame
-import datetime
 
 
 class TestExtractionToDetectionToScoringFlow:
@@ -54,9 +55,9 @@ class TestExtractionToDetectionToScoringFlow:
             timestamp=datetime.datetime.now(datetime.timezone.utc),
             metrics={
                 "M-02": {"default": [10.0, 12.0, 11.0, 9.0, 13.0]},  # Commit Frequency
-                "M-06": {"default": [5.0, 8.0, 6.0, 4.0, 7.0]}       # Code Churn
+                "M-06": {"default": [5.0, 8.0, 6.0, 4.0, 7.0]},  # Code Churn
                 # Note: M-01, M-03, M-04, M-05, M-07 would be None per missing data policy
-            }
+            },
         )
 
         # Verify we have the expected metrics from extraction
@@ -85,14 +86,14 @@ class TestExtractionToDetectionToScoringFlow:
         score_package = self.scoring_engine.compute_integrity_score(
             detector_results=detection_results,
             metric_dataframe=extracted_metrics,
-            windows=windows  # Empty windows for simplicity in this test
+            windows=windows,  # Empty windows for simplicity in this test
         )
 
         # Verify scoring results
-        assert isinstance(score_package, dict) or hasattr(score_package, 'integrity')
+        assert isinstance(score_package, dict) or hasattr(score_package, "integrity")
 
         # If it's a ScorePackage object
-        if hasattr(score_package, 'integrity'):
+        if hasattr(score_package, "integrity"):
             integrity = score_package.integrity
             confidence = score_package.confidence
 
@@ -130,8 +131,8 @@ class TestExtractionToDetectionToScoringFlow:
             timestamp=datetime.datetime.now(datetime.timezone.utc),
             metrics={
                 "M-02": {"default": [8.0, 9.0, 7.0]},  # Commit Frequency
-                "M-06": {"default": [3.0, 4.0, 2.0]}   # Code Churn
-            }
+                "M-06": {"default": [3.0, 4.0, 2.0]},  # Code Churn
+            },
         )
 
         # Process through detector framework
@@ -143,11 +144,11 @@ class TestExtractionToDetectionToScoringFlow:
         score_package = self.mock_scoring_engine.compute_integrity_score(
             detector_results=detection_results,
             metric_dataframe=extracted_metrics,
-            windows=windows
+            windows=windows,
         )
 
         # Verify we get the expected mock scores
-        if hasattr(score_package, 'integrity'):
+        if hasattr(score_package, "integrity"):
             integrity = score_package.integrity
             confidence = score_package.confidence
 
@@ -171,7 +172,7 @@ class TestExtractionToDetectionToScoringFlow:
             repo_id="test-repo",
             run_id="test-run-789",
             timestamp=datetime.datetime.now(datetime.timezone.utc),
-            metrics={}  # No metrics
+            metrics={},  # No metrics
         )
 
         # Process through detector framework (will still produce outputs from mock detectors)
@@ -182,13 +183,13 @@ class TestExtractionToDetectionToScoringFlow:
         score_package = self.scoring_engine.compute_integrity_score(
             detector_results=detection_results,
             metric_dataframe=extracted_metrics,
-            windows=windows
+            windows=windows,
         )
 
         # Should still produce valid ScorePackage structure
-        assert hasattr(score_package, 'integrity') or isinstance(score_package, dict)
-        if hasattr(score_package, 'integrity'):
-            assert hasattr(score_package, 'confidence')
+        assert hasattr(score_package, "integrity") or isinstance(score_package, dict)
+        if hasattr(score_package, "integrity"):
+            assert hasattr(score_package, "confidence")
             assert isinstance(score_package.integrity, dict)
             assert isinstance(score_package.confidence, dict)
             assert "overall" in score_package.integrity

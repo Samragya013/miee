@@ -11,7 +11,6 @@ from __future__ import annotations
 import hashlib
 import json
 from dataclasses import dataclass, field
-from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
@@ -82,15 +81,11 @@ class Config:
     metrics: List[str] = field(default_factory=lambda: ["M-02", "M-06"])
     window_strategy: str = "time"
     window_size: int = 90
-    detectors: List[str] = field(
-        default_factory=lambda: ["D-01", "D-02", "D-03"]
-    )
+    detectors: List[str] = field(default_factory=lambda: ["D-01", "D-02", "D-03"])
     output_formats: List[str] = field(default_factory=lambda: ["json", "md"])
     exclude_bots: bool = False
     thresholds: Dict[str, float] = field(default_factory=dict)
-    detector_weights: Dict[str, float] = field(
-        default_factory=lambda: dict(DEFAULT_DETECTOR_WEIGHTS)
-    )
+    detector_weights: Dict[str, float] = field(default_factory=lambda: dict(DEFAULT_DETECTOR_WEIGHTS))
     seed: int = 42
     output_dir: str = "./output"
     verbose: bool = False
@@ -102,6 +97,7 @@ class Config:
 # ---------------------------------------------------------------------------
 # Validation helpers
 # ---------------------------------------------------------------------------
+
 
 def _validate_metrics(metrics: List[str]) -> None:
     """Raise ConfigError if any metric ID is invalid."""
@@ -192,6 +188,7 @@ def _validate_config_dict(data: Dict[str, Any]) -> None:
 # Deterministic JSON serialisation + hashing
 # ---------------------------------------------------------------------------
 
+
 def _canonical_json(data: Dict[str, Any]) -> str:
     """Return sorted-key JSON with no extra whitespace."""
     return json.dumps(data, sort_keys=True, separators=(",", ":"), default=str)
@@ -206,14 +203,14 @@ def _compute_config_hash(data: Dict[str, Any]) -> str:
 # YAML / JSON loading
 # ---------------------------------------------------------------------------
 
+
 def _safe_load_yaml(path: Path) -> Dict[str, Any]:
     """Load a YAML file using the safe loader only."""
     try:
         import yaml
     except ImportError as exc:
         raise ConfigError(
-            "pyyaml is required to load YAML config files. "
-            "Install it with: pip install pyyaml"
+            "pyyaml is required to load YAML config files. " "Install it with: pip install pyyaml"
         ) from exc
 
     with open(path, "r", encoding="utf-8") as fh:
@@ -258,6 +255,7 @@ def _load_file(path: Path) -> Dict[str, Any]:
 # ---------------------------------------------------------------------------
 # Public API
 # ---------------------------------------------------------------------------
+
 
 class ConfigLoader:
     """Load, validate, merge, and freeze MIIE configuration.
@@ -331,9 +329,7 @@ class ConfigLoader:
                 output_formats=merged.get("output_formats", ["json", "md"]),
                 exclude_bots=merged.get("exclude_bots", False),
                 thresholds=merged.get("thresholds", {}),
-                detector_weights=merged.get(
-                    "detector_weights", dict(DEFAULT_DETECTOR_WEIGHTS)
-                ),
+                detector_weights=merged.get("detector_weights", dict(DEFAULT_DETECTOR_WEIGHTS)),
                 seed=merged.get("seed", 42),
                 output_dir=merged.get("output_dir", "./output"),
                 verbose=merged.get("verbose", False),

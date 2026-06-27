@@ -1,10 +1,11 @@
 """Tests for Git URL parser and cloner utilities."""
 
-import pytest
-from unittest.mock import patch, MagicMock
 from pathlib import Path
+from unittest.mock import MagicMock, patch
 
-from miie.utils.git import GitURLParser, GitCloner
+import pytest
+
+from miie.utils.git import GitCloner, GitURLParser
 
 
 # ---------------------------------------------------------------------------
@@ -14,26 +15,32 @@ class TestGitURLParser:
     """Tests for GitURLParser.parse and is_github_url."""
 
     # --- Valid HTTPS URLs ---
-    @pytest.mark.parametrize("url, expected_owner, expected_repo", [
-        ("https://github.com/owner/repo", "owner", "repo"),
-        ("https://github.com/pallets/flask", "pallets", "flask"),
-        ("https://github.com/owner/repo.git", "owner", "repo"),
-        ("https://www.github.com/owner/repo", "owner", "repo"),
-        ("http://github.com/owner/repo", "owner", "repo"),
-        ("https://github.com/owner/my-repo-name", "owner", "my-repo-name"),
-        ("https://github.com/owner/repo.git", "owner", "repo"),
-        ("  https://github.com/owner/repo  ", "owner", "repo"),  # whitespace
-    ])
+    @pytest.mark.parametrize(
+        "url, expected_owner, expected_repo",
+        [
+            ("https://github.com/owner/repo", "owner", "repo"),
+            ("https://github.com/pallets/flask", "pallets", "flask"),
+            ("https://github.com/owner/repo.git", "owner", "repo"),
+            ("https://www.github.com/owner/repo", "owner", "repo"),
+            ("http://github.com/owner/repo", "owner", "repo"),
+            ("https://github.com/owner/my-repo-name", "owner", "my-repo-name"),
+            ("https://github.com/owner/repo.git", "owner", "repo"),
+            ("  https://github.com/owner/repo  ", "owner", "repo"),  # whitespace
+        ],
+    )
     def test_parse_valid_https(self, url, expected_owner, expected_repo):
         owner, repo = GitURLParser.parse(url)
         assert owner == expected_owner
         assert repo == expected_repo
 
     # --- Valid SSH URLs ---
-    @pytest.mark.parametrize("url, expected_owner, expected_repo", [
-        ("git@github.com:owner/repo.git", "owner", "repo"),
-        ("ssh://git@github.com/owner/repo.git", "owner", "repo"),
-    ])
+    @pytest.mark.parametrize(
+        "url, expected_owner, expected_repo",
+        [
+            ("git@github.com:owner/repo.git", "owner", "repo"),
+            ("ssh://git@github.com/owner/repo.git", "owner", "repo"),
+        ],
+    )
     def test_parse_valid_ssh(self, url, expected_owner, expected_repo):
         owner, repo = GitURLParser.parse(url)
         assert owner == expected_owner
@@ -46,37 +53,46 @@ class TestGitURLParser:
         assert repo == "repo"
 
     # --- Invalid URLs ---
-    @pytest.mark.parametrize("url", [
-        "not-a-url",
-        "https://gitlab.com/owner/repo",
-        "https://bitbucket.org/owner/repo",
-        "",
-        "ftp://github.com/owner/repo",
-        "https://github.com/",
-        "https://github.com/owner/",
-        "https://github.com/owner/repo/extra",
-        "https://github.com//repo",
-    ])
+    @pytest.mark.parametrize(
+        "url",
+        [
+            "not-a-url",
+            "https://gitlab.com/owner/repo",
+            "https://bitbucket.org/owner/repo",
+            "",
+            "ftp://github.com/owner/repo",
+            "https://github.com/",
+            "https://github.com/owner/",
+            "https://github.com/owner/repo/extra",
+            "https://github.com//repo",
+        ],
+    )
     def test_parse_invalid_raises(self, url):
         with pytest.raises(ValueError):
             GitURLParser.parse(url)
 
     # --- is_github_url ---
-    @pytest.mark.parametrize("url", [
-        "https://github.com/owner/repo",
-        "git@github.com:owner/repo.git",
-        "ssh://git@github.com/owner/repo.git",
-        "https://www.github.com/owner/repo",
-    ])
+    @pytest.mark.parametrize(
+        "url",
+        [
+            "https://github.com/owner/repo",
+            "git@github.com:owner/repo.git",
+            "ssh://git@github.com/owner/repo.git",
+            "https://www.github.com/owner/repo",
+        ],
+    )
     def test_is_github_url_true(self, url):
         assert GitURLParser.is_github_url(url) is True
 
-    @pytest.mark.parametrize("url", [
-        "https://gitlab.com/owner/repo",
-        "not-a-url",
-        "",
-        "https://example.com/github.com/owner/repo",
-    ])
+    @pytest.mark.parametrize(
+        "url",
+        [
+            "https://gitlab.com/owner/repo",
+            "not-a-url",
+            "",
+            "https://example.com/github.com/owner/repo",
+        ],
+    )
     def test_is_github_url_false(self, url):
         assert GitURLParser.is_github_url(url) is False
 
@@ -113,7 +129,10 @@ class TestGitCloner:
                 mock_path.exists.return_value = False
 
                 try:
-                    cloner.clone("https://github.com/owner/repo", target_dir=Path("/tmp/test_clone"))
+                    cloner.clone(
+                        "https://github.com/owner/repo",
+                        target_dir=Path("/tmp/test_clone"),
+                    )
                 except Exception:
                     pass  # We just want to inspect the call args
 
@@ -139,7 +158,10 @@ class TestGitCloner:
                 mock_path.exists.return_value = False
 
                 try:
-                    cloner.clone("https://github.com/owner/repo", target_dir=Path("/tmp/test_clone"))
+                    cloner.clone(
+                        "https://github.com/owner/repo",
+                        target_dir=Path("/tmp/test_clone"),
+                    )
                 except Exception:
                     pass
 
@@ -165,7 +187,10 @@ class TestGitCloner:
                 mock_path.exists.return_value = False
 
                 try:
-                    cloner.clone("https://github.com/owner/repo", target_dir=Path("/tmp/test_clone"))
+                    cloner.clone(
+                        "https://github.com/owner/repo",
+                        target_dir=Path("/tmp/test_clone"),
+                    )
                 except Exception:
                     pass
 
@@ -187,9 +212,8 @@ class TestGitCloner:
     def test_clone_failure_raises_runtime_error(self, mock_run):
         """Clone failure should raise RuntimeError."""
         from subprocess import CalledProcessError
-        mock_run.side_effect = CalledProcessError(
-            128, "git", stderr="fatal: repository not found"
-        )
+
+        mock_run.side_effect = CalledProcessError(128, "git", stderr="fatal: repository not found")
         cloner = GitCloner()
 
         with pytest.raises(RuntimeError, match="Failed to clone"):
@@ -198,7 +222,6 @@ class TestGitCloner:
     def test_cleanup_temp_dir(self):
         """_cleanup_temp_dir should remove directory if it exists."""
         import tempfile
-        import os
 
         temp_dir = Path(tempfile.mkdtemp(prefix="miie_test_cleanup_"))
         (temp_dir / "test_file.txt").write_text("test")

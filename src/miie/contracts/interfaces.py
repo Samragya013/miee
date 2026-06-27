@@ -4,24 +4,22 @@ Defines the interface contracts for all MIIE v1.0 modules.
 Implements ACS Section 3: Internal Module Interfaces (INT-01 through INT-18)
 """
 
-from typing import Protocol, runtime_checkable, List, Dict, Any, Optional
 from datetime import datetime
 from pathlib import Path
+from typing import Any, Dict, List, Optional, Protocol, runtime_checkable
 
 # Import schema models for type hints
 from miie.schemas.models import (
-    RepositoryContext,
-    MetricDataFrame,
-    WindowDefinition,
+    BenchmarkRun,
     DetectorResults,
-    ScorePackage,
+    EvaluationResult,
     EvidencePackage,
     ExplanationReport,
+    MetricDataFrame,
     ReportOutput,
-    BenchmarkRun,
-    EvaluationResult,
-    GroundTruthInput,
-    Annotation
+    RepositoryContext,
+    ScorePackage,
+    WindowDefinition,
 )
 
 
@@ -29,8 +27,13 @@ from miie.schemas.models import (
 class IIngestionEngine(Protocol):
     """INT-01: Repository Ingestion Engine"""
 
-    def ingest(self, repo_path: str, cache_dir: Optional[Path] = None,
-               keep_cache: bool = False, shallow_depth: Optional[int] = None) -> RepositoryContext:
+    def ingest(
+        self,
+        repo_path: str,
+        cache_dir: Optional[Path] = None,
+        keep_cache: bool = False,
+        shallow_depth: Optional[int] = None,
+    ) -> RepositoryContext:
         """Ingest repository and extract context.
 
         Args:
@@ -60,9 +63,14 @@ class IIngestionEngine(Protocol):
 class IExtractionEngine(Protocol):
     """INT-02: Metric Extraction Engine"""
 
-    def extract(self, context: RepositoryContext, metric_list: List[str],
-                since: Optional[datetime] = None, until: Optional[datetime] = None,
-                exclude_bots: bool = False) -> MetricDataFrame:
+    def extract(
+        self,
+        context: RepositoryContext,
+        metric_list: List[str],
+        since: Optional[datetime] = None,
+        until: Optional[datetime] = None,
+        exclude_bots: bool = False,
+    ) -> MetricDataFrame:
         """Extract metrics from repository.
 
         Args:
@@ -82,8 +90,13 @@ class IExtractionEngine(Protocol):
 class ISegmentationEngine(Protocol):
     """INT-03: Window Segmentation Engine"""
 
-    def segment(self, metric_dataframe: MetricDataFrame, strategy: str,
-                size: int, custom_boundaries: Optional[List[tuple[datetime, datetime]]] = None) -> List[WindowDefinition]:
+    def segment(
+        self,
+        metric_dataframe: MetricDataFrame,
+        strategy: str,
+        size: int,
+        custom_boundaries: Optional[List[tuple[datetime, datetime]]] = None,
+    ) -> List[WindowDefinition]:
         """Segment metric data into analysis windows.
 
         Args:
@@ -102,9 +115,13 @@ class ISegmentationEngine(Protocol):
 class IDetectorEngine(Protocol):
     """INT-04: Detector Engine"""
 
-    def invoke(self, metric_dataframe: MetricDataFrame, windows: List[WindowDefinition],
-               detector_config: Optional[Dict[str, Dict[str, Any]]] = None,
-               enabled_detectors: Optional[List[str]] = None) -> DetectorResults:
+    def invoke(
+        self,
+        metric_dataframe: MetricDataFrame,
+        windows: List[WindowDefinition],
+        detector_config: Optional[Dict[str, Dict[str, Any]]] = None,
+        enabled_detectors: Optional[List[str]] = None,
+    ) -> DetectorResults:
         """Invoke detectors on segmented metric data.
 
         Args:
@@ -123,10 +140,13 @@ class IDetectorEngine(Protocol):
 class IScoringEngine(Protocol):
     """INT-05: Scoring Engine"""
 
-    def compute_integrity_score(self, detector_results: DetectorResults,
-                                metric_dataframe: MetricDataFrame,
-                                windows: List[WindowDefinition],
-                                detector_weights: Optional[Dict[str, float]] = None) -> ScorePackage:
+    def compute_integrity_score(
+        self,
+        detector_results: DetectorResults,
+        metric_dataframe: MetricDataFrame,
+        windows: List[WindowDefinition],
+        detector_weights: Optional[Dict[str, float]] = None,
+    ) -> ScorePackage:
         """Compute integrity and confidence scores.
 
         Args:
@@ -145,10 +165,15 @@ class IScoringEngine(Protocol):
 class IEvidenceEngine(Protocol):
     """INT-06: Evidence Generation Engine"""
 
-    def generate(self, repository_context: RepositoryContext,
-                 metric_dataframe: MetricDataFrame, windows: List[WindowDefinition],
-                 detector_results: DetectorResults, score_package: ScorePackage,
-                 configuration: Dict[str, Any]) -> EvidencePackage:
+    def generate(
+        self,
+        repository_context: RepositoryContext,
+        metric_dataframe: MetricDataFrame,
+        windows: List[WindowDefinition],
+        detector_results: DetectorResults,
+        score_package: ScorePackage,
+        configuration: Dict[str, Any],
+    ) -> EvidencePackage:
         """Generate traceable evidence package.
 
         Args:
@@ -169,9 +194,13 @@ class IEvidenceEngine(Protocol):
 class IExplanationEngine(Protocol):
     """INT-07: Explanation Generation Engine"""
 
-    def generate(self, evidence_package: EvidencePackage,
-                 score_package: ScorePackage, metric_filter: Optional[str] = None,
-                 detector_filter: Optional[str] = None) -> ExplanationReport:
+    def generate(
+        self,
+        evidence_package: EvidencePackage,
+        score_package: ScorePackage,
+        metric_filter: Optional[str] = None,
+        detector_filter: Optional[str] = None,
+    ) -> ExplanationReport:
         """Generate explanation report from evidence and scores.
 
         Args:
@@ -190,8 +219,13 @@ class IExplanationEngine(Protocol):
 class IBenchmarkEngine(Protocol):
     """INT-09: Benchmark Execution Engine"""
 
-    def execute(self, suite_id: str, detector_ids: List[str],
-                config: Dict[str, Any], seed: int = 42) -> BenchmarkRun:
+    def execute(
+        self,
+        suite_id: str,
+        detector_ids: List[str],
+        config: Dict[str, Any],
+        seed: int = 42,
+    ) -> BenchmarkRun:
         """Execute benchmark suite.
 
         Args:
@@ -210,8 +244,7 @@ class IBenchmarkEngine(Protocol):
 class IEvaluationEngine(Protocol):
     """INT-10: Evaluation Engine"""
 
-    def evaluate(self, benchmark_run: BenchmarkRun,
-                 ground_truth: Dict[str, Any]) -> EvaluationResult:
+    def evaluate(self, benchmark_run: BenchmarkRun, ground_truth: Dict[str, Any]) -> EvaluationResult:
         """Evaluate benchmark results against ground truth.
 
         Args:
@@ -228,8 +261,12 @@ class IEvaluationEngine(Protocol):
 class IReportGenerator(Protocol):
     """INT-08: Report Generation Engine"""
 
-    def generate(self, analysis_result: Dict[str, Any],
-                 output_formats: List[str], output_dir: Path) -> ReportOutput:
+    def generate(
+        self,
+        analysis_result: Dict[str, Any],
+        output_formats: List[str],
+        output_dir: Path,
+    ) -> ReportOutput:
         """Generate analysis report in specified formats.
 
         Args:
@@ -247,8 +284,7 @@ class IReportGenerator(Protocol):
 class IDataExporter(Protocol):
     """INT-16: Data Export Engine"""
 
-    def export(self, data: Dict[str, Any], formats: List[str],
-               output_dir: Path) -> Dict[str, Path]:
+    def export(self, data: Dict[str, Any], formats: List[str], output_dir: Path) -> Dict[str, Path]:
         """Export analysis data in specified formats.
 
         Args:
@@ -266,8 +302,13 @@ class IDataExporter(Protocol):
 class IDatasetGenerator(Protocol):
     """INT-17: Dataset Generation Engine"""
 
-    def generate(self, dataset_type: str, count: int,
-                 output_dir: Path, seed: Optional[int] = None) -> List[Path]:
+    def generate(
+        self,
+        dataset_type: str,
+        count: int,
+        output_dir: Path,
+        seed: Optional[int] = None,
+    ) -> List[Path]:
         """Generate synthetic datasets for testing.
 
         Args:

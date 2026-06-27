@@ -2,11 +2,13 @@
 Threshold Compression Detector implementation for MIIE v1.0.
 Implements D-03 detector per TFS Section 5.3.
 """
+
+from typing import List, Tuple
+
 import numpy as np
-from typing import Dict, List, Tuple, Optional, Union
+
 from miie.processing.detection.base import BaseDetector
 from miie.schemas.models import DetectorResult, MetricDataFrame
-import itertools
 
 
 class ThresholdCompressionDetector(BaseDetector):
@@ -21,7 +23,7 @@ class ThresholdCompressionDetector(BaseDetector):
         super().__init__(
             detector_id="D-03",
             detector_name="Threshold Compression Detector",
-            supported_metrics=[f"M-{i:02d}" for i in range(1, 8)]  # M-01 through M-07
+            supported_metrics=[f"M-{i:02d}" for i in range(1, 8)],  # M-01 through M-07
         )
 
         # Detection thresholds from TFS Section 5.3
@@ -31,7 +33,20 @@ class ThresholdCompressionDetector(BaseDetector):
         self.dip_test_random_seed = 42
 
         # Auto-threshold detection parameters from TFS Section 5.3
-        self.auto_threshold_candidates = [1, 5, 10, 20, 25, 50, 75, 80, 90, 95, 100, 1000]
+        self.auto_threshold_candidates = [
+            1,
+            5,
+            10,
+            20,
+            25,
+            50,
+            75,
+            80,
+            90,
+            95,
+            100,
+            1000,
+        ]
         self.auto_threshold_percentiles = [10, 25, 50, 75, 90]
 
     def validate_input(self, metric_dataframe: MetricDataFrame) -> bool:
@@ -61,10 +76,7 @@ class ThresholdCompressionDetector(BaseDetector):
         detector_outputs = {}
 
         # Get available metrics that we support
-        available_metrics = [
-            m for m in self.supported_metrics
-            if m in metric_dataframe.metrics
-        ]
+        available_metrics = [m for m in self.supported_metrics if m in metric_dataframe.metrics]
 
         if not available_metrics:
             # No metrics available for compression analysis
@@ -77,15 +89,12 @@ class ThresholdCompressionDetector(BaseDetector):
                 "excess_mass_z_scores": {},
                 "dip_test_statistics": {},
                 "dip_test_p_values": {},
-                "windows_analyzed": []
+                "windows_analyzed": [],
             }
             return DetectorResult(detector_outputs=detector_outputs)
 
         # Get all window IDs (assuming all metrics have same windows)
-        window_sets = [
-            set(metric_dataframe.metrics[m].keys())
-            for m in available_metrics
-        ]
+        window_sets = [set(metric_dataframe.metrics[m].keys()) for m in available_metrics]
         if not window_sets:
             window_ids = []
         else:
@@ -93,10 +102,10 @@ class ThresholdCompressionDetector(BaseDetector):
 
         # Initialize results storage
         compression_events = []
-        thresholds_used = {}      # metric -> [thresholds]
-        excess_mass_z_scores = {} # (metric, threshold, window) -> z-score
+        thresholds_used = {}  # metric -> [thresholds]
+        excess_mass_z_scores = {}  # (metric, threshold, window) -> z-score
         dip_test_statistics = {}  # (metric, threshold, window) -> dip stat
-        dip_test_p_values = {}    # (metric, threshold, window) -> dip p-value
+        dip_test_p_values = {}  # (metric, threshold, window) -> dip p-value
 
         # Set random seed for dip test bootstrap
         rng = np.random.default_rng(self.dip_test_random_seed)
@@ -104,9 +113,7 @@ class ThresholdCompressionDetector(BaseDetector):
         # Process each metric
         processed_windows = set()
         for metric in available_metrics:
-            metric_thresholds = self._get_thresholds_for_metric(
-                metric_dataframe, metric
-            )
+            metric_thresholds = self._get_thresholds_for_metric(metric_dataframe, metric)
             thresholds_used[metric] = metric_thresholds
 
             if not metric_thresholds:
@@ -138,7 +145,7 @@ class ThresholdCompressionDetector(BaseDetector):
                     dip_stat, dip_p = self._dip_test(
                         vals,
                         bootstrap_samples=self.dip_test_bootstrap_samples,
-                        random_seed=self.dip_test_random_seed
+                        random_seed=self.dip_test_random_seed,
                     )
                     dip_test_statistics[(metric, threshold, window_id)] = float(dip_stat)
                     dip_test_p_values[(metric, threshold, window_id)] = float(dip_p)
@@ -159,19 +166,21 @@ class ThresholdCompressionDetector(BaseDetector):
 
                     if excess_mass_flag and (multimodal_flag or p_hat > 0.5):
                         # Compression detected
-                        compression_events.append({
-                            "metric": metric,
-                            "threshold": threshold,
-                            "window": window_id,
-                            "compression_detected": True,
-                            "compression_index": float(p_hat),  # Per TFS: compression_index = p_hat
-                            "excess_mass_z_score": float(z_score),
-                            "dip_test_statistic": float(dip_stat),
-                            "dip_test_p_value": float(dip_p),
-                            "epsilon": float(epsilon),
-                            "sample_size": len(vals),
-                            "hypothesized_cause": self._infer_cause(metric, threshold)  # Rule-based
-                        })
+                        compression_events.append(
+                            {
+                                "metric": metric,
+                                "threshold": threshold,
+                                "window": window_id,
+                                "compression_detected": True,
+                                "compression_index": float(p_hat),  # Per TFS: compression_index = p_hat
+                                "excess_mass_z_score": float(z_score),
+                                "dip_test_statistic": float(dip_stat),
+                                "dip_test_p_value": float(dip_p),
+                                "epsilon": float(epsilon),
+                                "sample_size": len(vals),
+                                "hypothesized_cause": self._infer_cause(metric, threshold),  # Rule-based
+                            }
+                        )
 
         # Determine overall compression detection
         compression_detected = len(compression_events) > 0
@@ -187,32 +196,16 @@ class ThresholdCompressionDetector(BaseDetector):
             "compression_index": compression_index,
             "metrics_analyzed": available_metrics,
             "compression_events": compression_events,
-            "thresholds_used": {
-                m: thresholds
-                for m, thresholds in thresholds_used.items()
-            },
-            "excess_mass_z_scores": {
-                f"{m}_{t}_{w}": z
-                for (m, t, w), z in excess_mass_z_scores.items()
-            },
-            "dip_test_statistics": {
-                f"{m}_{t}_{w}": stat
-                for (m, t, w), stat in dip_test_statistics.items()
-            },
-            "dip_test_p_values": {
-                f"{m}_{t}_{w}": p
-                for (m, t, w), p in dip_test_p_values.items()
-            },
-            "windows_analyzed": sorted(list(processed_windows))
+            "thresholds_used": {m: thresholds for m, thresholds in thresholds_used.items()},
+            "excess_mass_z_scores": {f"{m}_{t}_{w}": z for (m, t, w), z in excess_mass_z_scores.items()},
+            "dip_test_statistics": {f"{m}_{t}_{w}": stat for (m, t, w), stat in dip_test_statistics.items()},
+            "dip_test_p_values": {f"{m}_{t}_{w}": p for (m, t, w), p in dip_test_p_values.items()},
+            "windows_analyzed": sorted(list(processed_windows)),
         }
 
         return DetectorResult(detector_outputs=detector_outputs)
 
-    def _get_thresholds_for_metric(
-        self,
-        metric_dataframe: MetricDataFrame,
-        metric: str
-    ) -> List[float]:
+    def _get_thresholds_for_metric(self, metric_dataframe: MetricDataFrame, metric: str) -> List[float]:
         """
         Get thresholds for a metric: explicit thresholds (from config) + auto-thresholds.
         For now, we only implement auto-threshold detection as explicit thresholds
@@ -281,7 +274,7 @@ class ThresholdCompressionDetector(BaseDetector):
             if threshold == min_val:  # which equals max_val
                 # All values are exactly at the threshold -> perfect compression
                 # Return a large z-score to indicate significance
-                return float('inf')
+                return float("inf")
             else:
                 # threshold is not the constant value
                 return 0.0
@@ -310,12 +303,7 @@ class ThresholdCompressionDetector(BaseDetector):
 
         return float(z)
 
-    def _dip_test(
-        self,
-        vals: List[float],
-        bootstrap_samples: int = 1000,
-        random_seed: int = 42
-    ) -> Tuple[float, float]:
+    def _dip_test(self, vals: List[float], bootstrap_samples: int = 1000, random_seed: int = 42) -> Tuple[float, float]:
         """
         Compute Hartigans' Dip test statistic and p-value via bootstrap.
         Per TFS Section 5.3:
@@ -333,7 +321,7 @@ class ThresholdCompressionDetector(BaseDetector):
         # Compute empirical CDF
         sorted_vals = np.sort(vals)
         # Empirical CDF at each sorted value: i/n
-        ecdf = np.arange(1, n+1) / n
+        ecdf = np.arange(1, n + 1) / n
 
         # Compute dip statistic: minimum (over unimodal F) of sup_x |F_n(x) - F(x)|
         # We'll use the approximation: dip statistic = max |ecdf(x) - ucdf(x)|
@@ -362,7 +350,7 @@ class ThresholdCompressionDetector(BaseDetector):
             # Generate bootstrap sample from uniform distribution [min_val, max_val]
             bootstrap_sample = rng.uniform(min_val, max_val, n)
             bootstrap_sample_sorted = np.sort(bootstrap_sample)
-            bootstrap_ecdf = np.arange(1, n+1) / n
+            bootstrap_ecdf = np.arange(1, n + 1) / n
             bootstrap_ucdf = (bootstrap_sample_sorted - min_val) / (max_val - min_val)
             bootstrap_ucdf = np.clip(bootstrap_ucdf, 0.0, 1.0)
             bootstrap_dip = np.max(np.abs(bootstrap_ecdf - bootstrap_ucdf))

@@ -7,18 +7,18 @@ from pathlib import Path
 import pytest
 
 from miie.config.loader import (
+    DEFAULT_DETECTOR_WEIGHTS,
     Config,
     ConfigError,
     ConfigLoader,
     _canonical_json,
     _compute_config_hash,
-    DEFAULT_DETECTOR_WEIGHTS,
 )
-
 
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
+
 
 def _write_yaml(path: Path, content: str) -> Path:
     """Write a YAML string to *path* and return it."""
@@ -35,6 +35,7 @@ def _write_json(path: Path, data: dict) -> Path:
 # ---------------------------------------------------------------------------
 # Fixtures
 # ---------------------------------------------------------------------------
+
 
 @pytest.fixture
 def loader():
@@ -87,6 +88,7 @@ def json_config(tmp_path):
 # 1. Load from YAML file
 # ---------------------------------------------------------------------------
 
+
 class TestLoadYAML:
     def test_loads_yaml_file(self, loader, yaml_config):
         config = loader.load(config_path=yaml_config)
@@ -113,6 +115,7 @@ class TestLoadYAML:
 # 2. Load from JSON file
 # ---------------------------------------------------------------------------
 
+
 class TestLoadJSON:
     def test_loads_json_file(self, loader, json_config):
         config = loader.load(config_path=json_config)
@@ -130,6 +133,7 @@ class TestLoadJSON:
 # ---------------------------------------------------------------------------
 # 3. CLI overrides merge correctly
 # ---------------------------------------------------------------------------
+
 
 class TestCLIOverrideMerge:
     def test_overrides_take_precedence(self, loader, yaml_config):
@@ -164,6 +168,7 @@ class TestCLIOverrideMerge:
 # 4. Invalid config raises ConfigError
 # ---------------------------------------------------------------------------
 
+
 class TestInvalidConfig:
     def test_invalid_metric_id(self, loader):
         with pytest.raises(ConfigError, match="Invalid metric ID"):
@@ -171,9 +176,7 @@ class TestInvalidConfig:
 
     def test_invalid_window_strategy(self, loader):
         with pytest.raises(ConfigError, match="Invalid window_strategy"):
-            loader.load(
-                overrides={"repo": "/r", "window_strategy": "invalid"}
-            )
+            loader.load(overrides={"repo": "/r", "window_strategy": "invalid"})
 
     def test_invalid_detector_id(self, loader):
         with pytest.raises(ConfigError, match="Invalid detector ID"):
@@ -181,15 +184,11 @@ class TestInvalidConfig:
 
     def test_invalid_output_format(self, loader):
         with pytest.raises(ConfigError, match="Invalid output format"):
-            loader.load(
-                overrides={"repo": "/r", "output_formats": ["pdf"]}
-            )
+            loader.load(overrides={"repo": "/r", "output_formats": ["pdf"]})
 
     def test_invalid_detector_weight_key(self, loader):
         with pytest.raises(ConfigError, match="Invalid detector_weights"):
-            loader.load(
-                overrides={"repo": "/r", "detector_weights": {"D-99": 0.5}}
-            )
+            loader.load(overrides={"repo": "/r", "detector_weights": {"D-99": 0.5}})
 
     def test_invalid_window_size(self, loader):
         with pytest.raises(ConfigError, match="positive integer"):
@@ -226,6 +225,7 @@ class TestInvalidConfig:
 # 5. Config hash is deterministic
 # ---------------------------------------------------------------------------
 
+
 class TestDeterministicHash:
     def test_same_input_same_hash(self, loader):
         overrides = {"repo": "/r", "seed": 42, "metrics": ["M-02", "M-06"]}
@@ -254,6 +254,7 @@ class TestDeterministicHash:
 # 6. Missing required field raises error
 # ---------------------------------------------------------------------------
 
+
 class TestMissingRequiredField:
     def test_missing_repo_raises(self, loader):
         with pytest.raises(ConfigError, match="Required field 'repo'"):
@@ -271,6 +272,7 @@ class TestMissingRequiredField:
 # ---------------------------------------------------------------------------
 # 7. Default values applied correctly
 # ---------------------------------------------------------------------------
+
 
 class TestDefaults:
     def test_defaults_when_no_file_or_overrides(self, loader):
@@ -304,6 +306,7 @@ class TestDefaults:
 # 8. Config is frozen (immutable)
 # ---------------------------------------------------------------------------
 
+
 class TestFrozenConfig:
     def test_cannot_mutate_fields(self, loader):
         config = loader.load(overrides={"repo": "/r"})
@@ -325,6 +328,7 @@ class TestFrozenConfig:
 # 9. "all" keyword accepted for metrics and detectors
 # ---------------------------------------------------------------------------
 
+
 class TestAllKeyword:
     def test_metrics_all_accepted(self, loader):
         config = loader.load(overrides={"repo": "/r", "metrics": ["all"]})
@@ -332,6 +336,4 @@ class TestAllKeyword:
 
     def test_invalid_keyword_rejected(self, loader):
         with pytest.raises(ConfigError, match="Invalid metric ID"):
-            loader.load(
-                overrides={"repo": "/r", "metrics": ["M-08"]}
-            )
+            loader.load(overrides={"repo": "/r", "metrics": ["M-08"]})

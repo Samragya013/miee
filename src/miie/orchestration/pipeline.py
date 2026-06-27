@@ -3,34 +3,23 @@ MIIE v1.0 Orchestration Pipeline
 Implements the pipeline controller for orchestrating analysis engines.
 """
 
-from typing import Optional, Dict, Any, List
-from pathlib import Path
 from datetime import datetime
+from pathlib import Path
+from typing import Any, Dict, List, Optional
 
 from miie.contracts.interfaces import (
-    IIngestionEngine,
-    IExtractionEngine,
-    ISegmentationEngine,
+    IBenchmarkEngine,
     IDetectorEngine,
-    IScoringEngine,
+    IEvaluationEngine,
     IEvidenceEngine,
     IExplanationEngine,
+    IExtractionEngine,
+    IIngestionEngine,
     IReportGenerator,
-    IBenchmarkEngine,
-    IEvaluationEngine
+    IScoringEngine,
+    ISegmentationEngine,
 )
-from miie.schemas.models import (
-    RepositoryContext,
-    MetricDataFrame,
-    WindowDefinition,
-    DetectorResults,
-    ScorePackage,
-    EvidencePackage,
-    ExplanationReport,
-    ReportOutput,
-    BenchmarkRun,
-    EvaluationResult
-)
+from miie.schemas.models import BenchmarkRun, EvaluationResult
 
 
 class AnalysisPipeline:
@@ -47,7 +36,7 @@ class AnalysisPipeline:
         explanation_engine: IExplanationEngine,
         report_generator: IReportGenerator,
         benchmark_engine: Optional[IBenchmarkEngine] = None,
-        evaluation_engine: Optional[IEvaluationEngine] = None
+        evaluation_engine: Optional[IEvaluationEngine] = None,
     ):
         """Initialize pipeline with engine implementations.
 
@@ -90,7 +79,7 @@ class AnalysisPipeline:
         enabled_detectors: Optional[List[str]] = None,
         detector_weights: Optional[Dict[str, float]] = None,
         output_formats: List[str] = None,
-        output_dir: Optional[Path] = None
+        output_dir: Optional[Path] = None,
     ) -> Dict[str, Any]:
         """Run complete analysis pipeline.
 
@@ -119,7 +108,7 @@ class AnalysisPipeline:
             repo_path=repo_path,
             cache_dir=cache_dir,
             keep_cache=keep_cache,
-            shallow_depth=shallow_depth
+            shallow_depth=shallow_depth,
         )
 
         # Validate repository context
@@ -132,14 +121,14 @@ class AnalysisPipeline:
             metric_list=metric_list,
             since=since,
             until=until,
-            exclude_bots=exclude_bots
+            exclude_bots=exclude_bots,
         )
 
         # Step 3: Segmentation
         windows = self.segmentation_engine.segment(
             metric_dataframe=metric_dataframe,
             strategy=segmentation_strategy,
-            size=segmentation_size
+            size=segmentation_size,
         )
 
         # AFD §Step 8: Minimum window gate
@@ -154,9 +143,8 @@ class AnalysisPipeline:
                 "evidence_package": None,
                 "explanation_report": None,
                 "report_output": None,
-                "error": f"Insufficient windows: {len(windows)} (need ≥2). "
-                        "Adjust window_size or time range.",
-                "exit_code": 3
+                "error": f"Insufficient windows: {len(windows)} (need ≥2). " "Adjust window_size or time range.",
+                "exit_code": 3,
             }
 
         # Step 3b: Re-extract per-window data for accurate confidence calculation
@@ -168,7 +156,7 @@ class AnalysisPipeline:
             since=since,
             until=until,
             exclude_bots=exclude_bots,
-            windows=windows
+            windows=windows,
         )
 
         # Step 4: Detection
@@ -176,7 +164,7 @@ class AnalysisPipeline:
             metric_dataframe=metric_dataframe,
             windows=windows,
             detector_config=detector_config,
-            enabled_detectors=enabled_detectors
+            enabled_detectors=enabled_detectors,
         )
 
         # Step 5: Scoring
@@ -184,7 +172,7 @@ class AnalysisPipeline:
             detector_results=detector_results,
             metric_dataframe=metric_dataframe,
             windows=windows,
-            detector_weights=detector_weights
+            detector_weights=detector_weights,
         )
 
         # Step 6: Evidence Generation
@@ -200,14 +188,13 @@ class AnalysisPipeline:
                 "until": until,
                 "exclude_bots": exclude_bots,
                 "segmentation_strategy": segmentation_strategy,
-                "segmentation_size": segmentation_size
-            }
+                "segmentation_size": segmentation_size,
+            },
         )
 
         # Step 7: Explanation Generation
         explanation_report = self.explanation_engine.generate(
-            evidence_package=evidence_package,
-            score_package=score_package
+            evidence_package=evidence_package, score_package=score_package
         )
 
         # Step 8: Report Generation
@@ -218,13 +205,13 @@ class AnalysisPipeline:
             "detector_results": detector_results,
             "score_package": score_package,
             "evidence_package": evidence_package,
-            "explanation_report": explanation_report
+            "explanation_report": explanation_report,
         }
 
         report_output = self.report_generator.generate(
             analysis_result=analysis_results,
             output_formats=output_formats or ["json", "md"],
-            output_dir=output_dir or Path("./output")
+            output_dir=output_dir or Path("./output"),
         )
 
         # Return all results
@@ -236,7 +223,7 @@ class AnalysisPipeline:
             "score_package": score_package,
             "evidence_package": evidence_package,
             "explanation_report": explanation_report,
-            "report_output": report_output
+            "report_output": report_output,
         }
 
     def run_benchmark(
@@ -244,7 +231,7 @@ class AnalysisPipeline:
         suite_id: str,
         detector_ids: List[str],
         config: Dict[str, Any],
-        seed: int = 42
+        seed: int = 42,
     ) -> BenchmarkRun:
         """Run benchmark suite (if benchmark engine available).
 
@@ -260,18 +247,9 @@ class AnalysisPipeline:
         if self.benchmark_engine is None:
             raise RuntimeError("Benchmark engine not available")
 
-        return self.benchmark_engine.execute(
-            suite_id=suite_id,
-            detector_ids=detector_ids,
-            config=config,
-            seed=seed
-        )
+        return self.benchmark_engine.execute(suite_id=suite_id, detector_ids=detector_ids, config=config, seed=seed)
 
-    def evaluate_benchmark(
-        self,
-        benchmark_run: BenchmarkRun,
-        ground_truth: Dict[str, Any]
-    ) -> EvaluationResult:
+    def evaluate_benchmark(self, benchmark_run: BenchmarkRun, ground_truth: Dict[str, Any]) -> EvaluationResult:
         """Evaluate benchmark results (if evaluation engine available).
 
         Args:
@@ -284,7 +262,4 @@ class AnalysisPipeline:
         if self.evaluation_engine is None:
             raise RuntimeError("Evaluation engine not available")
 
-        return self.evaluation_engine.evaluate(
-            benchmark_run=benchmark_run,
-            ground_truth=ground_truth
-        )
+        return self.evaluation_engine.evaluate(benchmark_run=benchmark_run, ground_truth=ground_truth)

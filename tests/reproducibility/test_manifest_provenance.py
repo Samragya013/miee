@@ -1,22 +1,17 @@
 """Tests for manifest provenance completeness (BSD §20)."""
 
-import json
 import hashlib
+import json
 import os
-import tempfile
-from pathlib import Path
-
-import pytest
 
 from miie.utils.hashing import (
     compute_config_hash,
-    compute_file_hash,
     compute_dependency_hash,
+    compute_file_hash,
     get_git_commit,
     get_platform_info,
     get_python_version,
 )
-
 
 REQUIRED_MANIFEST_FIELDS = [
     "manifest_version",
@@ -151,8 +146,7 @@ class TestManifestProvenance:
                 # Checksums in manifest should match re-computed checksums
                 if fmt_name in checksums:
                     assert checksums[fmt_name] == expected, (
-                        f"Checksum mismatch for {fmt_name}: "
-                        f"manifest={checksums[fmt_name]}, actual={expected}"
+                        f"Checksum mismatch for {fmt_name}: " f"manifest={checksums[fmt_name]}, actual={expected}"
                     )
 
 
@@ -186,9 +180,7 @@ class TestDependencyHash:
     """Test dependency hash computation."""
 
     def test_dependency_hash_matches_poetry_lock(self):
-        lock_path = os.path.join(
-            os.path.dirname(__file__), '..', '..', 'poetry.lock'
-        )
+        lock_path = os.path.join(os.path.dirname(__file__), "..", "..", "poetry.lock")
         lock_path = os.path.normpath(lock_path)
         if os.path.exists(lock_path):
             expected = compute_file_hash(lock_path)
@@ -243,11 +235,13 @@ class TestPlatformInfo:
     def test_platform_contains_system(self):
         info = get_platform_info()
         import platform
+
         assert platform.system() in info
 
     def test_platform_contains_machine(self):
         info = get_platform_info()
         import platform
+
         assert platform.machine() in info
 
 
@@ -256,6 +250,7 @@ class TestPythonVersion:
 
     def test_python_version_format(self):
         import sys
+
         ver = get_python_version()
         expected = f"{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}"
         assert ver == expected

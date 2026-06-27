@@ -1,16 +1,12 @@
 """Tests for benchmarks/ground_truth/ground_truth.py."""
+
 from __future__ import annotations
 
 import json
-import tempfile
-from pathlib import Path
 
 import pytest
 
-from benchmarks.ground_truth.ground_truth import (
-    GroundTruthDataset,
-    GroundTruthEntry,
-)
+from benchmarks.ground_truth.ground_truth import GroundTruthDataset, GroundTruthEntry
 
 
 class TestGroundTruthEntry:
@@ -26,26 +22,42 @@ class TestGroundTruthEntry:
         assert entry.expected_metrics == []
 
     def test_validate_severity_range_valid(self):
-        entry = GroundTruthEntry(candidate_id="c001", anomaly_type="burst",
-                                 severity_min=0.2, severity_max=0.8)
+        entry = GroundTruthEntry(
+            candidate_id="c001",
+            anomaly_type="burst",
+            severity_min=0.2,
+            severity_max=0.8,
+        )
         assert entry.validate_severity_range() is True
 
     def test_validate_severity_range_inverted(self):
-        entry = GroundTruthEntry(candidate_id="c001", anomaly_type="burst",
-                                 severity_min=0.8, severity_max=0.2)
+        entry = GroundTruthEntry(
+            candidate_id="c001",
+            anomaly_type="burst",
+            severity_min=0.8,
+            severity_max=0.2,
+        )
         assert entry.validate_severity_range() is False
 
     def test_validate_severity_range_out_of_bounds(self):
-        entry = GroundTruthEntry(candidate_id="c001", anomaly_type="burst",
-                                 severity_min=-0.1, severity_max=0.5)
+        entry = GroundTruthEntry(
+            candidate_id="c001",
+            anomaly_type="burst",
+            severity_min=-0.1,
+            severity_max=0.5,
+        )
         assert entry.validate_severity_range() is False
 
     def test_to_dict(self):
-        entry = GroundTruthEntry(candidate_id="c001", anomaly_type="burst",
-                                 severity_min=0.2, severity_max=0.8,
-                                 expected_detectors=["d01"],
-                                 expected_metrics=["m01"],
-                                 notes="test note")
+        entry = GroundTruthEntry(
+            candidate_id="c001",
+            anomaly_type="burst",
+            severity_min=0.2,
+            severity_max=0.8,
+            expected_detectors=["d01"],
+            expected_metrics=["m01"],
+            notes="test note",
+        )
         d = entry.to_dict()
         assert d["candidate_id"] == "c001"
         assert d["anomaly_type"] == "burst"
@@ -62,10 +74,18 @@ class TestGroundTruthDataset:
     def _make_dataset(self, entries=None):
         if entries is None:
             entries = [
-                GroundTruthEntry(candidate_id="c001", anomaly_type="burst",
-                                 severity_min=0.3, severity_max=0.7),
-                GroundTruthEntry(candidate_id="c002", anomaly_type="decline",
-                                 severity_min=0.1, severity_max=0.9),
+                GroundTruthEntry(
+                    candidate_id="c001",
+                    anomaly_type="burst",
+                    severity_min=0.3,
+                    severity_max=0.7,
+                ),
+                GroundTruthEntry(
+                    candidate_id="c002",
+                    anomaly_type="decline",
+                    severity_min=0.1,
+                    severity_max=0.9,
+                ),
             ]
         return GroundTruthDataset(entries=entries)
 
@@ -73,10 +93,18 @@ class TestGroundTruthDataset:
         data = {
             "version": "1.0.0",
             "entries": [
-                {"candidate_id": "c001", "anomaly_type": "burst",
-                 "severity_min": 0.3, "severity_max": 0.7},
-                {"candidate_id": "c002", "anomaly_type": "decline",
-                 "severity_min": 0.1, "severity_max": 0.9},
+                {
+                    "candidate_id": "c001",
+                    "anomaly_type": "burst",
+                    "severity_min": 0.3,
+                    "severity_max": 0.7,
+                },
+                {
+                    "candidate_id": "c002",
+                    "anomaly_type": "decline",
+                    "severity_min": 0.1,
+                    "severity_max": 0.9,
+                },
             ],
         }
         p = tmp_path / "gt.json"
@@ -134,8 +162,12 @@ class TestGroundTruthDataset:
 
     def test_validate_invalid_severity(self):
         entries = [
-            GroundTruthEntry(candidate_id="c001", anomaly_type="burst",
-                             severity_min=0.9, severity_max=0.1),
+            GroundTruthEntry(
+                candidate_id="c001",
+                anomaly_type="burst",
+                severity_min=0.9,
+                severity_max=0.1,
+            ),
         ]
         ds = self._make_dataset(entries)
         errors = ds.validate()

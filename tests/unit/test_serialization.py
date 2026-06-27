@@ -2,19 +2,13 @@
 Tests for deterministic serialization utilities.
 """
 
-import pytest
-
-from miie.schemas.serialization import json_dumps, json_loads, deterministic_dict
+from miie.schemas.serialization import deterministic_dict, json_dumps, json_loads
 
 
 def test_json_dumps_deterministic_ordering():
     """Test that json_dumps produces deterministic key ordering."""
     # Dictionary with intentionally non-sorted keys
-    data = {
-        "zebra": 1,
-        "apple": 2,
-        "banana": 3
-    }
+    data = {"zebra": 1, "apple": 2, "banana": 3}
 
     json_str = json_dumps(data)
     # Should be sorted: apple, banana, zebra
@@ -42,14 +36,7 @@ def test_json_loads_roundtrip():
 
 def test_deterministic_dict():
     """Test deterministic_dict function."""
-    data = {
-        "zebra": 1,
-        "apple": {
-            "dog": 2,
-            "cat": 3
-        },
-        "banana": [{"x": 1}, {"y": 2}]
-    }
+    data = {"zebra": 1, "apple": {"dog": 2, "cat": 3}, "banana": [{"x": 1}, {"y": 2}]}
 
     result = deterministic_dict(data)
 
@@ -81,9 +68,7 @@ def test_json_dumps_preserves_data():
         "boolean": True,
         "null": None,
         "list": [1, 2, 3],
-        "nested": {
-            "inner": "value"
-        }
+        "nested": {"inner": "value"},
     }
 
     json_str = json_dumps(original)

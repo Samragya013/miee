@@ -3,8 +3,8 @@ Metric Registry for MIIE v1.0.
 Defines the frozen set of metrics with their metadata.
 """
 
-from typing import Dict, List, Optional, FrozenSet
-from dataclasses import dataclass, field
+from dataclasses import dataclass
+from typing import FrozenSet, List, Optional
 
 
 @dataclass(frozen=True)
@@ -12,6 +12,7 @@ class MetricInfo:
     """
     Information about a MIIE v1.0 metric.
     """
+
     metric_id: str
     name: str
     description: str
@@ -21,64 +22,66 @@ class MetricInfo:
 
 
 # Frozen metric registry - contains all MIIE v1.0 metrics with metadata
-METRIC_REGISTRY: FrozenSet[MetricInfo] = frozenset([
-    MetricInfo(
-        metric_id="M-01",
-        name="Code Coverage",
-        description="Percentage of code covered by automated tests",
-        extraction_status="implemented",
-        data_source="Coverage artifacts (coverage.xml, lcov.info, .coverage)",
-        unit="percentage"
-    ),
-    MetricInfo(
-        metric_id="M-02",
-        name="Commit Frequency",
-        description="Number of commits per time period",
-        extraction_status="implemented",
-        data_source="Git history",
-        unit="commits"
-    ),
-    MetricInfo(
-        metric_id="M-03",
-        name="Review Participation",
-        description="Number of developers participating in code reviews",
-        extraction_status="implemented",
-        data_source="Pull request export JSON (--pr-export)",
-        unit="count"
-    ),
-    MetricInfo(
-        metric_id="M-04",
-        name="Review Latency",
-        description="Average time to complete code reviews",
-        extraction_status="implemented",
-        data_source="Pull request export JSON (--pr-export)",
-        unit="time (hours)"
-    ),
-    MetricInfo(
-        metric_id="M-05",
-        name="Issue Resolution Time",
-        description="Average time to resolve issues",
-        extraction_status="implemented",
-        data_source="Issue export JSON (--issue-export)",
-        unit="time (days)"
-    ),
-    MetricInfo(
-        metric_id="M-06",
-        name="Code Churn",
-        description="Lines of code added and deleted",
-        extraction_status="implemented",
-        data_source="Git history",
-        unit="lines"
-    ),
-    MetricInfo(
-        metric_id="M-07",
-        name="Cyclomatic Complexity",
-        description="Measure of code complexity based on control flow",
-        extraction_status="implemented",
-        data_source="Static analysis tools (lizard or radon)",
-        unit="score"
-    )
-])
+METRIC_REGISTRY: FrozenSet[MetricInfo] = frozenset(
+    [
+        MetricInfo(
+            metric_id="M-01",
+            name="Code Coverage",
+            description="Percentage of code covered by automated tests",
+            extraction_status="implemented",
+            data_source="Coverage artifacts (coverage.xml, lcov.info, .coverage)",
+            unit="percentage",
+        ),
+        MetricInfo(
+            metric_id="M-02",
+            name="Commit Frequency",
+            description="Number of commits per time period",
+            extraction_status="implemented",
+            data_source="Git history",
+            unit="commits",
+        ),
+        MetricInfo(
+            metric_id="M-03",
+            name="Review Participation",
+            description="Number of developers participating in code reviews",
+            extraction_status="implemented",
+            data_source="Pull request export JSON (--pr-export)",
+            unit="count",
+        ),
+        MetricInfo(
+            metric_id="M-04",
+            name="Review Latency",
+            description="Average time to complete code reviews",
+            extraction_status="implemented",
+            data_source="Pull request export JSON (--pr-export)",
+            unit="time (hours)",
+        ),
+        MetricInfo(
+            metric_id="M-05",
+            name="Issue Resolution Time",
+            description="Average time to resolve issues",
+            extraction_status="implemented",
+            data_source="Issue export JSON (--issue-export)",
+            unit="time (days)",
+        ),
+        MetricInfo(
+            metric_id="M-06",
+            name="Code Churn",
+            description="Lines of code added and deleted",
+            extraction_status="implemented",
+            data_source="Git history",
+            unit="lines",
+        ),
+        MetricInfo(
+            metric_id="M-07",
+            name="Cyclomatic Complexity",
+            description="Measure of code complexity based on control flow",
+            extraction_status="implemented",
+            data_source="Static analysis tools (lizard or radon)",
+            unit="score",
+        ),
+    ]
+)
 
 
 def get_metric_info(metric_id: str) -> Optional[MetricInfo]:
@@ -115,8 +118,7 @@ def validate_metric_ids(metric_list: List[str]) -> List[str]:
 
     if invalid_metrics:
         raise ValueError(
-            f"Invalid metric IDs: {invalid_metrics}. "
-            f"Must be from frozen registry: {sorted(valid_metric_ids)}"
+            f"Invalid metric IDs: {invalid_metrics}. " f"Must be from frozen registry: {sorted(valid_metric_ids)}"
         )
 
     return invalid_metrics

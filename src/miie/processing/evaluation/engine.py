@@ -2,16 +2,17 @@
 
 Implements the IEvaluationEngine interface for evaluating benchmark results against ground truth.
 """
-from typing import Dict, Any, List, Union
-from miie.schemas.models import EvaluationResult
+
+from typing import Any, Dict
+
 from miie.contracts.interfaces import IEvaluationEngine
+from miie.schemas.models import EvaluationResult
 
 
 class EvaluationEngine(IEvaluationEngine):
     """Evaluation Engine implementation that evaluates benchmark results against ground truth."""
 
-    def evaluate(self, benchmark_run: 'BenchmarkRun',
-                 ground_truth: Dict[str, Any]) -> EvaluationResult:
+    def evaluate(self, benchmark_run: "BenchmarkRun", ground_truth: Dict[str, Any]) -> EvaluationResult:
         """Evaluate benchmark results against ground truth.
 
         Args:
@@ -34,14 +35,14 @@ class EvaluationEngine(IEvaluationEngine):
         # Process each detector's predictions
         for detector_id, pred_values in predictions.items():
             # Skip non-detector entries (like suite_summary)
-            if not isinstance(pred_values, dict) or 'accuracy' not in pred_values:
+            if not isinstance(pred_values, dict) or "accuracy" not in pred_values:
                 continue
 
             # Extract metrics
-            accuracy = float(pred_values.get('accuracy', 0.0))
-            precision = float(pred_values.get('precision', 0.0))
-            recall = float(pred_values.get('recall', 0.0))
-            f1_score = float(pred_values.get('f1_score', 0.0))
+            accuracy = float(pred_values.get("accuracy", 0.0))
+            precision = float(pred_values.get("precision", 0.0))
+            recall = float(pred_values.get("recall", 0.0))
+            f1_score = float(pred_values.get("f1_score", 0.0))
 
             # Only include if we have valid predictions (not default zeros from missing data)
             if accuracy > 0.0 or precision > 0.0 or recall > 0.0:
@@ -72,17 +73,13 @@ class EvaluationEngine(IEvaluationEngine):
             accuracy=avg_accuracy,
             precision=avg_precision,
             recall=avg_recall,
-            f1_score=avg_f1
+            f1_score=avg_f1,
         )
+
+
 class MockEvaluationEngine:
     """Mock evaluation engine that returns deterministic evaluation result."""
 
-    def evaluate(self, benchmark_run: 'BenchmarkRun',
-                 ground_truth: Dict[str, Any]) -> EvaluationResult:
+    def evaluate(self, benchmark_run: "BenchmarkRun", ground_truth: Dict[str, Any]) -> EvaluationResult:
         """Return a fixed EvaluationResult for testing."""
-        return EvaluationResult(
-            accuracy=0.82,
-            precision=0.78,
-            recall=0.80,
-            f1_score=0.79
-        )
+        return EvaluationResult(accuracy=0.82, precision=0.78, recall=0.80, f1_score=0.79)

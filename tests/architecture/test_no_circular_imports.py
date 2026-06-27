@@ -7,6 +7,7 @@ from pathlib import Path
 ROOT_DIR = Path(__file__).parent.parent.parent
 SRC_DIR = ROOT_DIR / "src" / "miie"
 
+
 def test_import_graph_has_no_cycles():
     """Test that the import dependency graph has no circular dependencies."""
     # Add src to Python path so we can import modules
@@ -27,7 +28,18 @@ def test_import_graph_has_no_cycles():
         except ValueError:
             continue
 
-        if package not in {"interface", "orchestration", "processing", "benchmark", "storage", "detection", "contracts", "schemas", "reporting", "common"}:
+        if package not in {
+            "interface",
+            "orchestration",
+            "processing",
+            "benchmark",
+            "storage",
+            "detection",
+            "contracts",
+            "schemas",
+            "reporting",
+            "common",
+        }:
             continue
 
         if package not in package_deps:
@@ -37,16 +49,16 @@ def test_import_graph_has_no_cycles():
         try:
             content = py_file.read_text(encoding="utf-8")
             # Simple approach: look for import patterns
-            lines = content.split('\n')
+            lines = content.split("\n")
             for line in lines:
                 line = line.strip()
-                if line.startswith('import ') or line.startswith('from '):
+                if line.startswith("import ") or line.startswith("from "):
                     # Extract module name
-                    if line.startswith('import '):
-                        modules = line[7:].split(',')
+                    if line.startswith("import "):
+                        modules = line[7:].split(",")
                     else:  # from ...
-                        if ' import ' in line:
-                            module_part = line.split(' import ')[0]
+                        if " import " in line:
+                            module_part = line.split(" import ")[0]
                             modules = [module_part[5:]]  # Remove 'from '
                         else:
                             continue
@@ -91,20 +103,84 @@ def test_import_graph_has_no_cycles():
         remaining_nodes = [package for package in in_degree if in_degree[package] > 0]
         assert False, f"Circular dependencies detected involving packages: {', '.join(remaining_nodes)}"
 
+
 def test_layer_isolation():
     """Test that layers maintain proper isolation as defined in TRD."""
     # Define which packages should NOT import from which other packages
     forbidden_imports = {
-        "interface": {"processing", "benchmark", "storage", "detection", "contracts", "schemas", "reporting"},
+        "interface": {
+            "processing",
+            "benchmark",
+            "storage",
+            "detection",
+            "contracts",
+            "schemas",
+            "reporting",
+        },
         "orchestration": {"interface"},  # Should not depend on interface (wrong direction)
-        "processing": {"interface", "orchestration"},  # Should not depend on outer layers
-        "benchmark": {"interface", "orchestration"},  # Should not depend on outer layers
-        "storage": {"interface", "orchestration", "processing", "benchmark", "detection", "contracts", "schemas", "reporting"},
-        "detection": {"interface", "orchestration", "processing", "benchmark", "storage"},
-        "contracts": {"interface", "orchestration", "processing", "benchmark", "storage", "detection", "reporting"},
-        "schemas": {"interface", "orchestration", "processing", "benchmark", "storage", "detection", "contracts", "reporting"},
-        "reporting": {"interface", "orchestration", "processing", "benchmark", "storage", "detection"},
-        "common": {"interface", "orchestration", "processing", "benchmark", "storage", "detection", "contracts", "schemas", "reporting"}
+        "processing": {
+            "interface",
+            "orchestration",
+        },  # Should not depend on outer layers
+        "benchmark": {
+            "interface",
+            "orchestration",
+        },  # Should not depend on outer layers
+        "storage": {
+            "interface",
+            "orchestration",
+            "processing",
+            "benchmark",
+            "detection",
+            "contracts",
+            "schemas",
+            "reporting",
+        },
+        "detection": {
+            "interface",
+            "orchestration",
+            "processing",
+            "benchmark",
+            "storage",
+        },
+        "contracts": {
+            "interface",
+            "orchestration",
+            "processing",
+            "benchmark",
+            "storage",
+            "detection",
+            "reporting",
+        },
+        "schemas": {
+            "interface",
+            "orchestration",
+            "processing",
+            "benchmark",
+            "storage",
+            "detection",
+            "contracts",
+            "reporting",
+        },
+        "reporting": {
+            "interface",
+            "orchestration",
+            "processing",
+            "benchmark",
+            "storage",
+            "detection",
+        },
+        "common": {
+            "interface",
+            "orchestration",
+            "processing",
+            "benchmark",
+            "storage",
+            "detection",
+            "contracts",
+            "schemas",
+            "reporting",
+        },
     }
 
     violations = []
@@ -124,31 +200,31 @@ def test_layer_isolation():
 
         try:
             content = py_file.read_text(encoding="utf-8")
-            lines = content.split('\n')
+            lines = content.split("\n")
 
             for line_num, line in enumerate(lines, 1):
                 stripped = line.strip()
-                if stripped.startswith('import ') or stripped.startswith('from '):
+                if stripped.startswith("import ") or stripped.startswith("from "):
                     # Extract imported modules
-                    if stripped.startswith('import '):
-                        imported = stripped[7:].split(',')
-                    elif ' import ' in stripped:
-                        imported = [stripped.split(' import ')[0][5:]]  # Remove 'from '
+                    if stripped.startswith("import "):
+                        imported = stripped[7:].split(",")
+                    elif " import " in stripped:
+                        imported = [stripped.split(" import ")[0][5:]]  # Remove 'from '
                     else:
                         continue
 
                     for imp in imported:
                         imp = imp.strip()
                         # Handle aliases like "import module as alias"
-                        if ' as ' in imp:
-                            imp = imp.split(' as ')[0].strip()
+                        if " as " in imp:
+                            imp = imp.split(" as ")[0].strip()
                         # Handle multiple imports like "import a, b"
-                        if ',' in imp:
+                        if "," in imp:
                             # This is simplified - in reality we'd parse better
-                            for sub_imp in imp.split(','):
+                            for sub_imp in imp.split(","):
                                 sub_imp = sub_imp.strip()
-                                if ' as ' in sub_imp:
-                                    sub_imp = sub_imp.split(' as ')[0].strip()
+                                if " as " in sub_imp:
+                                    sub_imp = sub_imp.split(" as ")[0].strip()
                                 if sub_imp in forbidden_imports[package]:
                                     violations.append(
                                         f"{py_file.relative_to(ROOT_DIR)}:{line_num}: "
@@ -164,6 +240,8 @@ def test_layer_isolation():
 
     assert not violations, f"Layer isolation violations:\n" + "\n".join(violations)
 
+
 if __name__ == "__main__":
     import pytest
+
     pytest.main([__file__, "-v"])

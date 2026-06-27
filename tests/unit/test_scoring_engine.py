@@ -1,12 +1,18 @@
 """Tests for ScoringEngine implementation."""
+
 import datetime
-from pathlib import Path
 
 from miie.processing.scoring.engine import ScoringEngine
-from miie.processing.scoring.mock_scoring import MockScoringEngine, MockZeroScoringEngine, MockPerfectScoringEngine
+from miie.processing.scoring.mock_scoring import (
+    MockPerfectScoringEngine,
+    MockScoringEngine,
+    MockZeroScoringEngine,
+)
 from miie.schemas.models import (
-    DetectorResults, MetricDataFrame, WindowDefinition, ScorePackage,
-    RepositoryContext
+    DetectorResults,
+    MetricDataFrame,
+    ScorePackage,
+    WindowDefinition,
 )
 
 
@@ -26,7 +32,7 @@ def test_mock_scoring_engine_returns_expected_structure():
         repo_id="test",
         run_id="test_run",
         timestamp=datetime.datetime.now(datetime.timezone.utc),
-        metrics={"M-02": {"w01": [1.0, 2.0, 3.0]}}
+        metrics={"M-02": {"w01": [1.0, 2.0, 3.0]}},
     )
     windows = [
         WindowDefinition(
@@ -34,14 +40,14 @@ def test_mock_scoring_engine_returns_expected_structure():
             start_date=datetime.datetime(2020, 1, 1, tzinfo=datetime.timezone.utc).date(),
             end_date=datetime.datetime(2020, 1, 31, tzinfo=datetime.timezone.utc).date(),
             commits=1,
-            strategy="fixed_size"
+            strategy="fixed_size",
         )
     ]
 
     score_package = engine.compute_integrity_score(
         detector_results=detector_results,
         metric_dataframe=metric_dataframe,
-        windows=windows
+        windows=windows,
     )
 
     # Check that we get a ScorePackage
@@ -50,23 +56,23 @@ def test_mock_scoring_engine_returns_expected_structure():
     # Check integrity structure
     assert "integrity" in score_package.__dict__
     assert "confidence" in score_package.__dict__
-    assert hasattr(score_package, 'timestamp')
-    assert hasattr(score_package, 'config_hash')
-    assert hasattr(score_package, 'formula_version')
+    assert hasattr(score_package, "timestamp")
+    assert hasattr(score_package, "config_hash")
+    assert hasattr(score_package, "formula_version")
 
     integrity = score_package.integrity
     confidence = score_package.confidence
 
     # Check integrity has required fields
-    assert hasattr(integrity, 'overall')
-    assert hasattr(integrity, 'per_metric')
+    assert hasattr(integrity, "overall")
+    assert hasattr(integrity, "per_metric")
     assert isinstance(integrity.overall, (int, float))
     assert 0.0 <= integrity.overall <= 1.0
     assert isinstance(integrity.per_metric, dict)
 
     # Check confidence has required fields
-    assert hasattr(confidence, 'overall')
-    assert hasattr(confidence, 'factors')
+    assert hasattr(confidence, "overall")
+    assert hasattr(confidence, "factors")
     assert isinstance(confidence.overall, (int, float))
     assert 0.0 <= confidence.overall <= 1.0
     assert isinstance(confidence.factors, dict)
@@ -87,11 +93,13 @@ def test_scoring_engine_with_actual_implementation():
     engine = ScoringEngine()
 
     # Create inputs similar to what would come from pipeline
-    detector_results = DetectorResults(detector_outputs={
-        "D-01": {"some_output": "value"},
-        "D-02": {"another_output": "value"},
-        "D-03": {"third_output": "value"}
-    })
+    detector_results = DetectorResults(
+        detector_outputs={
+            "D-01": {"some_output": "value"},
+            "D-02": {"another_output": "value"},
+            "D-03": {"third_output": "value"},
+        }
+    )
 
     metric_dataframe = MetricDataFrame(
         repo_id="test-repo",
@@ -100,8 +108,8 @@ def test_scoring_engine_with_actual_implementation():
         metrics={
             "M-01": {"w01": [10.0, 12.0, 11.0], "w02": [9.0, 13.0, 10.0]},
             "M-02": {"w01": [5.0, 6.0, 5.5], "w02": [4.0, 7.0, 5.0]},
-            "M-03": {"w01": [0.8, 0.9, 0.85], "w02": [0.7, 1.0, 0.8]}
-        }
+            "M-03": {"w01": [0.8, 0.9, 0.85], "w02": [0.7, 1.0, 0.8]},
+        },
     )
 
     windows = [
@@ -110,28 +118,28 @@ def test_scoring_engine_with_actual_implementation():
             start_date=datetime.datetime(2020, 1, 1, tzinfo=datetime.timezone.utc).date(),
             end_date=datetime.datetime(2020, 1, 31, tzinfo=datetime.timezone.utc).date(),
             commits=10,
-            strategy="fixed_size"
+            strategy="fixed_size",
         ),
         WindowDefinition(
             window_id="w01",
             start_date=datetime.datetime(2020, 2, 1, tzinfo=datetime.timezone.utc).date(),
             end_date=datetime.datetime(2020, 2, 29, tzinfo=datetime.timezone.utc).date(),
             commits=10,
-            strategy="fixed_size"
-        )
+            strategy="fixed_size",
+        ),
     ]
 
     score_package = engine.compute_integrity_score(
         detector_results=detector_results,
         metric_dataframe=metric_dataframe,
-        windows=windows
+        windows=windows,
     )
 
     # Validate the structure
     assert isinstance(score_package, ScorePackage)
-    assert hasattr(score_package, 'timestamp')
-    assert hasattr(score_package, 'config_hash')
-    assert hasattr(score_package, 'formula_version')
+    assert hasattr(score_package, "timestamp")
+    assert hasattr(score_package, "config_hash")
+    assert hasattr(score_package, "formula_version")
 
     # Check integrity
     integrity = score_package.integrity
@@ -152,7 +160,13 @@ def test_scoring_engine_with_actual_implementation():
     assert isinstance(confidence["overall"], (int, float))
     assert 0.0 <= confidence["overall"] <= 1.0
 
-    expected_factors = ["sample_size", "variance", "missing_data", "window_balance", "detector_success"]
+    expected_factors = [
+        "sample_size",
+        "variance",
+        "missing_data",
+        "window_balance",
+        "detector_success",
+    ]
     for factor in expected_factors:
         assert factor in confidence["factors"]
         assert isinstance(confidence["factors"][factor], (int, float))
@@ -172,7 +186,7 @@ def test_scoring_engine_validation_error_handling():
         repo_id="test",
         run_id="test_run",
         timestamp=datetime.datetime.now(datetime.timezone.utc),
-        metrics={}
+        metrics={},
     )
     windows = []
 
@@ -180,7 +194,7 @@ def test_scoring_engine_validation_error_handling():
     score_package = engine.compute_integrity_score(
         detector_results=detector_results,
         metric_dataframe=metric_dataframe,
-        windows=windows
+        windows=windows,
     )
 
     assert isinstance(score_package, ScorePackage)
@@ -198,7 +212,7 @@ def test_mock_scoring_engines():
         repo_id="test",
         run_id="test_run",
         timestamp=datetime.datetime.now(datetime.timezone.utc),
-        metrics={}
+        metrics={},
     )
     windows = []
 
@@ -207,7 +221,13 @@ def test_mock_scoring_engines():
     assert zero_scores.confidence.overall == 0.0
     assert len(zero_scores.integrity.per_metric) == 0
     # Check that all five confidence factors are present with zero values
-    expected_factors = ["sample_size", "variance", "missing_data", "window_balance", "detector_success"]
+    expected_factors = [
+        "sample_size",
+        "variance",
+        "missing_data",
+        "window_balance",
+        "detector_success",
+    ]
     assert len(zero_scores.confidence.factors) == 5
     for factor in expected_factors:
         assert hasattr(zero_scores.confidence.factors, factor) or factor in zero_scores.confidence.factors
@@ -219,7 +239,7 @@ def test_mock_scoring_engines():
         repo_id="test",
         run_id="test_run",
         timestamp=datetime.datetime.now(datetime.timezone.utc),
-        metrics={"M-01": {"w01": [1.0]}, "M-02": {"w01": [2.0]}}
+        metrics={"M-01": {"w01": [1.0]}, "M-02": {"w01": [2.0]}},
     )
 
     perfect_scores = perfect_engine.compute_integrity_score(detector_results, metric_dataframe_with_data, windows)

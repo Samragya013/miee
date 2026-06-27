@@ -1,16 +1,10 @@
 """Tests for benchmarks/runners/__init__.py."""
+
 from __future__ import annotations
 
 import json
-from pathlib import Path
 
-import pytest
-
-from benchmarks.runners import (
-    BenchmarkRunConfig,
-    BenchmarkRunResult,
-    BenchmarkRunner,
-)
+from benchmarks.runners import BenchmarkRunConfig, BenchmarkRunner, BenchmarkRunResult
 
 
 class TestBenchmarkRunConfig:

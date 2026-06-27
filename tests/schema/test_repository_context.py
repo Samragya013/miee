@@ -23,7 +23,7 @@ def test_repository_context_creation():
         contributor_count=5,
         is_shallow=False,
         is_fork=False,
-        language_distribution={"Python": 10000, "JavaScript": 5000}
+        language_distribution={"Python": 10000, "JavaScript": 5000},
     )
 
     assert ctx.repo_id == "repo_001"
@@ -45,7 +45,7 @@ def test_repository_context_serialization():
         last_commit_date=datetime.datetime(2020, 6, 30, tzinfo=datetime.timezone.utc),
         contributor_count=3,
         is_shallow=True,
-        is_fork=True
+        is_fork=True,
     )
 
     # Convert to dict for JSON serialization (excluding Path which isn't JSON serializable)
@@ -55,12 +55,12 @@ def test_repository_context_serialization():
         "is_remote": ctx.is_remote,
         "remote_url": ctx.remote_url,
         "total_commits": ctx.total_commits,
-        "first_commit_date": ctx.first_commit_date.isoformat() if ctx.first_commit_date else None,
-        "last_commit_date": ctx.last_commit_date.isoformat() if ctx.last_commit_date else None,
+        "first_commit_date": (ctx.first_commit_date.isoformat() if ctx.first_commit_date else None),
+        "last_commit_date": (ctx.last_commit_date.isoformat() if ctx.last_commit_date else None),
         "contributor_count": ctx.contributor_count,
         "is_shallow": ctx.is_shallow,
         "is_fork": ctx.is_fork,
-        "language_distribution": ctx.language_distribution
+        "language_distribution": ctx.language_distribution,
     }
 
     # Serialize
@@ -86,7 +86,7 @@ def test_repository_context_invalid_total_commits():
             last_commit_date=datetime.datetime(2020, 12, 31, tzinfo=datetime.timezone.utc),
             contributor_count=5,
             is_shallow=False,
-            is_fork=False
+            is_fork=False,
         )
 
 
@@ -102,7 +102,7 @@ def test_repository_context_invalid_contributor_count():
             last_commit_date=datetime.datetime(2020, 12, 31, tzinfo=datetime.timezone.utc),
             contributor_count=0,  # Less than minimum 1
             is_shallow=False,
-            is_fork=False
+            is_fork=False,
         )
 
 
@@ -117,7 +117,7 @@ def test_repository_context_optional_fields():
         last_commit_date=datetime.datetime(2020, 12, 31, tzinfo=datetime.timezone.utc),
         contributor_count=5,
         is_shallow=False,
-        is_fork=False
+        is_fork=False,
         # language_distribution defaults to None
     )
 

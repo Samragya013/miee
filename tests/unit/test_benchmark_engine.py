@@ -1,7 +1,6 @@
 """Unit tests for BenchmarkEngine implementation."""
+
 from miie.processing.benchmark.engine import BenchmarkEngine
-from miie.schemas.models import BenchmarkRun
-import datetime
 
 
 def test_benchmark_engine_creation():
@@ -21,8 +20,8 @@ def test_benchmark_engine_execute_returns_expected_structure():
     benchmark_run = engine.execute(suite_id, detector_ids, config, seed)
 
     assert benchmark_run is not None
-    assert hasattr(benchmark_run, 'predictions')
-    assert hasattr(benchmark_run, 'metadata')
+    assert hasattr(benchmark_run, "predictions")
+    assert hasattr(benchmark_run, "metadata")
     assert isinstance(benchmark_run.predictions, dict)
     assert isinstance(benchmark_run.metadata, dict)
 
@@ -32,7 +31,13 @@ def test_benchmark_engine_execute_returns_expected_structure():
         detector_predictions = benchmark_run.predictions[detector_id]
         assert isinstance(detector_predictions, dict)
         # Check for expected metrics
-        expected_metrics = ["accuracy", "precision", "recall", "f1_score", "processing_time_ms"]
+        expected_metrics = [
+            "accuracy",
+            "precision",
+            "recall",
+            "f1_score",
+            "processing_time_ms",
+        ]
         for metric in expected_metrics:
             assert metric in detector_predictions
             # Check that values are reasonable

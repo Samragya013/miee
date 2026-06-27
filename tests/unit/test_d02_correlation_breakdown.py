@@ -1,13 +1,16 @@
 """
 Unit tests for D02 Correlation Breakdown Detector.
 """
+
+import datetime
+
 import numpy as np
 import pytest
+
 from miie.processing.detection.correlation_breakdown_detector import (
-    CorrelationBreakdownDetector
+    CorrelationBreakdownDetector,
 )
 from miie.schemas.models import MetricDataFrame
-import datetime
 
 
 class TestCorrelationBreakdownDetector:
@@ -27,14 +30,14 @@ class TestCorrelationBreakdownDetector:
                 "M-02": {  # Commit Frequency
                     "w00": [10, 12, 11, 13, 12, 11, 10, 12, 13, 11],  # 10 observations
                     "w01": [10, 12, 11, 13, 12, 11, 10, 12, 13, 11],  # Same as w00
-                    "w02": [11, 9, 12, 8, 13, 7, 14, 6, 15, 5]       # Inverse trend
+                    "w02": [11, 9, 12, 8, 13, 7, 14, 6, 15, 5],  # Inverse trend
                 },
                 "M-06": {  # Code Churn
-                    "w00": [5, 6, 4, 7, 5, 6, 4, 7, 5, 6],          # 10 observations
-                    "w01": [5, 6, 4, 7, 5, 6, 4, 7, 5, 6],          # Same as w00
-                    "w02": [4, 6, 5, 7, 3, 8, 2, 9, 1, 10]         # Inverse trend
-                }
-            }
+                    "w00": [5, 6, 4, 7, 5, 6, 4, 7, 5, 6],  # 10 observations
+                    "w01": [5, 6, 4, 7, 5, 6, 4, 7, 5, 6],  # Same as w00
+                    "w02": [4, 6, 5, 7, 3, 8, 2, 9, 1, 10],  # Inverse trend
+                },
+            },
         )
 
         # Create test metric dataframe with insufficient data
@@ -43,13 +46,9 @@ class TestCorrelationBreakdownDetector:
             run_id="test-run",
             timestamp=datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
             metrics={
-                "M-02": {
-                    "w00": [1, 2, 3]  # Only 3 observations (<10 required)
-                },
-                "M-06": {
-                    "w00": [1, 2, 3]  # Only 3 observations
-                }
-            }
+                "M-02": {"w00": [1, 2, 3]},  # Only 3 observations (<10 required)
+                "M-06": {"w00": [1, 2, 3]},  # Only 3 observations
+            },
         )
 
         # Create test metric dataframe with only one metric
@@ -60,10 +59,10 @@ class TestCorrelationBreakdownDetector:
             metrics={
                 "M-02": {
                     "w00": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
-                    "w01": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+                    "w01": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
                 }
                 # M-06 missing
-            }
+            },
         )
 
     def test_detector_initialization(self):
@@ -93,8 +92,9 @@ class TestCorrelationBreakdownDetector:
         """Test that execute returns a DetectorResult."""
         result = self.detector.execute(self.test_metric_dataframe)
         from miie.schemas.models import DetectorResult
+
         assert isinstance(result, DetectorResult)
-        assert hasattr(result, 'detector_outputs')
+        assert hasattr(result, "detector_outputs")
         assert self.detector.get_detector_id() in result.detector_outputs
 
     def test_execute_output_structure(self):
@@ -188,13 +188,13 @@ class TestCorrelationBreakdownDetector:
             assert pair_key in output2["pearson_trajectories"]
             assert np.allclose(
                 output1["pearson_trajectories"][pair_key],
-                output2["pearson_trajectories"][pair_key]
+                output2["pearson_trajectories"][pair_key],
             )
         for pair_key in output1["spearman_trajectories"]:
             assert pair_key in output2["spearman_trajectories"]
             assert np.allclose(
                 output1["spearman_trajectories"][pair_key],
-                output2["spearman_trajectories"][pair_key]
+                output2["spearman_trajectories"][pair_key],
             )
 
     def test_execute_with_no_metrics(self):
@@ -203,7 +203,7 @@ class TestCorrelationBreakdownDetector:
             repo_id="test-repo",
             run_id="test-run",
             timestamp=datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
-            metrics={}
+            metrics={},
         )
         result = self.detector.execute(empty_dataframe)
         detector_output = result.detector_outputs[self.detector.get_detector_id()]
@@ -212,6 +212,7 @@ class TestCorrelationBreakdownDetector:
         assert detector_output["breakdown_type"] is None
         assert detector_output["metric_pairs_analyzed"] == []
         assert len(detector_output["breakdown_events"]) == 0
+
 
 if __name__ == "__main__":
     pytest.main([__file__])

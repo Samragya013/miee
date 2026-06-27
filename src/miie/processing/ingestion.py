@@ -1,12 +1,12 @@
-from miie.contracts.interfaces import IIngestionEngine
-from miie.contracts.errors import IngestionError
-from miie.schemas.models import RepositoryContext
-from typing import Optional, Union
-from pathlib import Path
-import subprocess
 import datetime
-import os
-from miie.utils.git import GitURLParser, GitCloner
+import subprocess
+from pathlib import Path
+from typing import Optional, Union
+
+from miie.contracts.errors import IngestionError
+from miie.contracts.interfaces import IIngestionEngine
+from miie.schemas.models import RepositoryContext
+from miie.utils.git import GitCloner, GitURLParser
 
 
 def validate_repository(repo_path: Union[str, Path]) -> None:
@@ -98,7 +98,7 @@ class RepositoryIngestionEngine(IIngestionEngine):
         repo_path: str,
         cache_dir: Optional[Path] = None,
         keep_cache: bool = False,
-        shallow_depth: Optional[int] = None
+        shallow_depth: Optional[int] = None,
     ) -> RepositoryContext:
         """
         Ingest repository metadata and return a RepositoryContext object.
@@ -164,16 +164,12 @@ class RepositoryIngestionEngine(IIngestionEngine):
                 contributor_count=contributor_count,
                 is_shallow=is_shallow,
                 is_fork=is_fork,
-                language_distribution=language_distribution
+                language_distribution=language_distribution,
             )
         except ValueError as e:
             raise IngestionError(f"Invalid repository context: {e}")
 
-    def _clone_from_url(
-        self,
-        url: str,
-        shallow_depth: Optional[int] = None
-    ) -> Path:
+    def _clone_from_url(self, url: str, shallow_depth: Optional[int] = None) -> Path:
         """
         Clone a GitHub repository from a URL.
 
@@ -189,6 +185,7 @@ class RepositoryIngestionEngine(IIngestionEngine):
         """
         # Create a temporary directory for cloning
         import tempfile
+
         temp_dir = Path(tempfile.mkdtemp(prefix="miie_clone_"))
 
         # Clone the repository
@@ -200,6 +197,7 @@ class RepositoryIngestionEngine(IIngestionEngine):
             # Clean up temp dir if it exists
             if temp_dir.exists():
                 import shutil
+
                 shutil.rmtree(temp_dir)
             raise IngestionError(f"Failed to clone repository from {url}: {e}")
 
@@ -232,6 +230,7 @@ class RepositoryIngestionEngine(IIngestionEngine):
             A string ID (using SHA256 hash of the absolute path).
         """
         import hashlib
+
         absolute_path = str(repo_path.resolve())
         return hashlib.sha256(absolute_path.encode()).hexdigest()
 
@@ -265,13 +264,13 @@ class RepositoryIngestionEngine(IIngestionEngine):
         try:
             # Run git rev-list --count HEAD
             result = subprocess.run(
-                ['git', 'rev-list', '--count', 'HEAD'],
+                ["git", "rev-list", "--count", "HEAD"],
                 cwd=repo_path,
                 capture_output=True,
                 text=True,
-                encoding='utf-8',
-                errors='replace',
-                check=True
+                encoding="utf-8",
+                errors="replace",
+                check=True,
             )
             count_str = result.stdout.strip()
             return int(count_str)
@@ -294,15 +293,15 @@ class RepositoryIngestionEngine(IIngestionEngine):
         try:
             # Get the timestamp of the first commit (oldest)
             result = subprocess.run(
-                ['git', 'log', '--reverse', '--format=%at', 'HEAD'],
+                ["git", "log", "--reverse", "--format=%at", "HEAD"],
                 cwd=repo_path,
                 capture_output=True,
                 text=True,
-                encoding='utf-8',
-                errors='replace',
-                check=True
+                encoding="utf-8",
+                errors="replace",
+                check=True,
             )
-            timestamp_str = result.stdout.strip().split('\n')[0] if result.stdout.strip() else None
+            timestamp_str = result.stdout.strip().split("\n")[0] if result.stdout.strip() else None
             if timestamp_str is None:
                 return None
             timestamp = int(timestamp_str)
@@ -324,13 +323,13 @@ class RepositoryIngestionEngine(IIngestionEngine):
         """
         try:
             result = subprocess.run(
-                ['git', 'log', '-1', '--format=%at'],
+                ["git", "log", "-1", "--format=%at"],
                 cwd=repo_path,
                 capture_output=True,
                 text=True,
-                encoding='utf-8',
-                errors='replace',
-                check=True
+                encoding="utf-8",
+                errors="replace",
+                check=True,
             )
             timestamp_str = result.stdout.strip()
             if not timestamp_str:
@@ -357,16 +356,16 @@ class RepositoryIngestionEngine(IIngestionEngine):
         try:
             # Use git shortlog to get commit counts per contributor, then count lines
             result = subprocess.run(
-                ['git', 'shortlog', '-sn', '--all'],
+                ["git", "shortlog", "-sn", "--all"],
                 cwd=repo_path,
                 capture_output=True,
                 text=True,
-                encoding='utf-8',
-                errors='replace',
-                check=True
+                encoding="utf-8",
+                errors="replace",
+                check=True,
             )
             # Each line is a contributor, empty output means 0
-            lines = [line for line in result.stdout.strip().split('\n') if line]
+            lines = [line for line in result.stdout.strip().split("\n") if line]
             return len(lines)
         except subprocess.CalledProcessError as e:
             raise IngestionError(f"Failed to get contributor count: {e.stderr.strip()}")
@@ -382,8 +381,8 @@ class RepositoryIngestionEngine(IIngestionEngine):
         Returns:
             True if shallow clone, False otherwise.
         """
-        git_dir = repo_path / '.git'
-        shallow_file = git_dir / 'shallow'
+        git_dir = repo_path / ".git"
+        shallow_file = git_dir / "shallow"
         return shallow_file.exists()
 
     @staticmethod

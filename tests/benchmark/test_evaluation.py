@@ -1,6 +1,8 @@
 """Unit tests for EvaluationEngine."""
-import pytest
+
 from unittest.mock import Mock
+
+import pytest
 
 from miie.benchmark.evaluation import EvaluationEngine
 from miie.schemas.models import BenchmarkRun, EvaluationResult
@@ -22,48 +24,33 @@ class TestEvaluationEngine:
                 "accuracy": 0.8,
                 "precision": 0.75,
                 "recall": 0.7,
-                "f1_score": 0.72
+                "f1_score": 0.72,
             },
-            "suite_summary": {
-                "suite_id": "B-01",
-                "detectors_benchmarked": 1
-            }
+            "suite_summary": {"suite_id": "B-01", "detectors_benchmarked": 1},
         }
 
         # Create mock ground truth
-        ground_truth = {
-            "labels": [1, 0, 1, 1, 0, 0, 1, 0]
-        }
+        ground_truth = {"labels": [1, 0, 1, 1, 0, 0, 1, 0]}
 
         result = self.engine.evaluate(benchmark_run, ground_truth)
 
         assert isinstance(result, EvaluationResult)
-        assert hasattr(result, 'accuracy')
-        assert hasattr(result, 'precision')
-        assert hasattr(result, 'recall')
-        assert hasattr(result, 'f1_score')
+        assert hasattr(result, "accuracy")
+        assert hasattr(result, "precision")
+        assert hasattr(result, "recall")
+        assert hasattr(result, "f1_score")
 
     def test_evaluate_with_perfect_predictions(self):
         """Test evaluation with perfect predictions."""
         # Create benchmark run with perfect accuracy
         benchmark_run = Mock(spec=BenchmarkRun)
         benchmark_run.predictions = {
-            "D-01": {
-                "accuracy": 1.0,
-                "precision": 1.0,
-                "recall": 1.0,
-                "f1_score": 1.0
-            },
-            "suite_summary": {
-                "suite_id": "B-01",
-                "detectors_benchmarked": 1
-            }
+            "D-01": {"accuracy": 1.0, "precision": 1.0, "recall": 1.0, "f1_score": 1.0},
+            "suite_summary": {"suite_id": "B-01", "detectors_benchmarked": 1},
         }
 
         # Ground truth with known labels
-        ground_truth = {
-            "labels": [1, 0, 1, 1, 0, 0, 1, 0]
-        }
+        ground_truth = {"labels": [1, 0, 1, 1, 0, 0, 1, 0]}
 
         result = self.engine.evaluate(benchmark_run, ground_truth)
 
@@ -78,16 +65,9 @@ class TestEvaluationEngine:
         """Test evaluation with no predictions."""
         # Create benchmark run with no predictions
         benchmark_run = Mock(spec=BenchmarkRun)
-        benchmark_run.predictions = {
-            "suite_summary": {
-                "suite_id": "B-01",
-                "detectors_benchmarked": 0
-            }
-        }
+        benchmark_run.predictions = {"suite_summary": {"suite_id": "B-01", "detectors_benchmarked": 0}}
 
-        ground_truth = {
-            "labels": [1, 0, 1, 0]
-        }
+        ground_truth = {"labels": [1, 0, 1, 0]}
 
         result = self.engine.evaluate(benchmark_run, ground_truth)
 
@@ -106,18 +86,13 @@ class TestEvaluationEngine:
                 "accuracy": 0.8,
                 "precision": 0.7,
                 "recall": 0.6,
-                "f1_score": 0.65
+                "f1_score": 0.65,
             },
-            "suite_summary": {
-                "suite_id": "B-01",
-                "detectors_benchmarked": 1
-            }
+            "suite_summary": {"suite_id": "B-01", "detectors_benchmarked": 1},
         }
 
         # Empty ground truth
-        ground_truth = {
-            "labels": []
-        }
+        ground_truth = {"labels": []}
 
         result = self.engine.evaluate(benchmark_run, ground_truth)
 
@@ -270,26 +245,27 @@ class TestEvaluationEngine:
                 "accuracy": 0.8,
                 "precision": 0.75,
                 "recall": 0.7,
-                "f1_score": 0.72
+                "f1_score": 0.72,
             },
-            "suite_summary": {
-                "suite_id": "B-01",
-                "detectors_benchmarked": 1
-            }
+            "suite_summary": {"suite_id": "B-01", "detectors_benchmarked": 1},
         }
 
         # Create mock ground truth
-        ground_truth = {
-            "labels": [1, 0, 1, 1, 0, 0, 1, 0, 1, 0]
-        }
+        ground_truth = {"labels": [1, 0, 1, 1, 0, 0, 1, 0, 1, 0]}
 
         result = self.engine.evaluate_with_extended_metrics(benchmark_run, ground_truth)
 
         # Check that all expected metrics are present
         expected_keys = {
-            "accuracy", "precision", "recall", "f1_score",
-            "auc_roc", "auc_pr", "fpr", "fnr",
-            "confusion_matrix"
+            "accuracy",
+            "precision",
+            "recall",
+            "f1_score",
+            "auc_roc",
+            "auc_pr",
+            "fpr",
+            "fnr",
+            "confusion_matrix",
         }
         assert set(result.keys()) == expected_keys
 

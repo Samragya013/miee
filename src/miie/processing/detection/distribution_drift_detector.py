@@ -2,11 +2,13 @@
 Distribution Drift Detector implementation for MIIE v1.0.
 Implements D-01 detector per TFS Section 5.1.
 """
+
+from typing import List, Optional, Tuple
+
 import numpy as np
-from typing import Dict, List, Tuple, Optional
+
 from miie.processing.detection.base import BaseDetector
 from miie.schemas.models import DetectorResult, MetricDataFrame
-import itertools
 
 
 class DistributionDriftDetector(BaseDetector):
@@ -21,7 +23,7 @@ class DistributionDriftDetector(BaseDetector):
         super().__init__(
             detector_id="D-01",
             detector_name="Distribution Drift Detector",
-            supported_metrics=[f"M-{i:02d}" for i in range(1, 8)]  # M-01 through M-07
+            supported_metrics=[f"M-{i:02d}" for i in range(1, 8)],  # M-01 through M-07
         )
 
         # Detection thresholds from TFS Section 5.1
@@ -55,10 +57,7 @@ class DistributionDriftDetector(BaseDetector):
         detector_outputs = {}
 
         # Get available metrics that we support
-        available_metrics = [
-            m for m in self.supported_metrics
-            if m in metric_dataframe.metrics
-        ]
+        available_metrics = [m for m in self.supported_metrics if m in metric_dataframe.metrics]
 
         if not available_metrics:
             # No metrics available for drift analysis
@@ -70,16 +69,13 @@ class DistributionDriftDetector(BaseDetector):
                 "ks_statistics": {},
                 "psi_values": {},
                 "drift_directions": {},
-                "window_pairs_analyzed": []
+                "window_pairs_analyzed": [],
             }
             return DetectorResult(detector_outputs=detector_outputs)
 
         # Get all window IDs (assuming all metrics have same windows)
         # We'll take the union of all window IDs across metrics
-        window_sets = [
-            set(metric_dataframe.metrics[m].keys())
-            for m in available_metrics
-        ]
+        window_sets = [set(metric_dataframe.metrics[m].keys()) for m in available_metrics]
         if not window_sets:
             window_ids = []
         else:
@@ -88,7 +84,7 @@ class DistributionDriftDetector(BaseDetector):
         # Initialize results storage
         drift_events = []
         ks_statistics = {}  # (metric, window_pair) -> KS statistic
-        psi_values = {}     # (metric, window_pair) -> PSI value
+        psi_values = {}  # (metric, window_pair) -> PSI value
         drift_directions = {}  # (metric, window_pair) -> direction string
 
         # Process each metric
@@ -106,7 +102,7 @@ class DistributionDriftDetector(BaseDetector):
             # Process consecutive window pairs (W_i, W_{i+1})
             for i in range(len(metric_windows) - 1):
                 window_start = metric_windows[i]
-                window_end = metric_windows[i+1]
+                window_end = metric_windows[i + 1]
 
                 # Get metric values for the two windows
                 vals_start = metric_dataframe.metrics[metric].get(window_start, [])
@@ -129,22 +125,22 @@ class DistributionDriftDetector(BaseDetector):
                 drift_detected = (ks_p_value < self.ks_p_value_threshold) or (psi_value > self.psi_threshold)
                 direction = None
                 if drift_detected:
-                    direction = self._classify_drift_direction(
-                        vals_start, vals_end, ks_statistic, psi_value
-                    )
+                    direction = self._classify_drift_direction(vals_start, vals_end, ks_statistic, psi_value)
                     metric_directions[f"{window_start}_{window_end}"] = direction
 
                     # Add drift event
-                    drift_events.append({
-                        "metric": metric,
-                        "window_pair": [window_start, window_end],
-                        "drift_detected": True,
-                        "ks_statistic": float(ks_statistic),
-                        "ks_p_value": float(ks_p_value),
-                        "psi_value": float(psi_value),
-                        "direction": direction,
-                        "sample_sizes": [len(vals_start), len(vals_end)]
-                    })
+                    drift_events.append(
+                        {
+                            "metric": metric,
+                            "window_pair": [window_start, window_end],
+                            "drift_detected": True,
+                            "ks_statistic": float(ks_statistic),
+                            "ks_p_value": float(ks_p_value),
+                            "psi_value": float(psi_value),
+                            "direction": direction,
+                            "sample_sizes": [len(vals_start), len(vals_end)],
+                        }
+                    )
 
             ks_statistics[metric] = metric_ks
             psi_values[metric] = metric_psi
@@ -159,7 +155,7 @@ class DistributionDriftDetector(BaseDetector):
             ks_vals = [event["ks_statistic"] for event in drift_events]
             # Normalize: KS statistic is in [0,1], but TFS says to normalize by capping at 0.5
             # So: if KS <= 0.5, magnitude = KS/0.5; if KS > 0.5, magnitude = 1.0
-            normalized_ks = [min(1.0, ks/0.5) for ks in ks_vals]
+            normalized_ks = [min(1.0, ks / 0.5) for ks in ks_vals]
             drift_magnitude = float(np.mean(normalized_ks))
 
         # Prepare final output
@@ -168,25 +164,12 @@ class DistributionDriftDetector(BaseDetector):
             "drift_magnitude": drift_magnitude,
             "metrics_analyzed": available_metrics,
             "drift_events": drift_events,
-            "ks_statistics": {
-                f"{m}_{wp}": ks
-                for m, ks_dict in ks_statistics.items()
-                for wp, ks in ks_dict.items()
-            },
-            "psi_values": {
-                f"{m}_{wp}": psi
-                for m, psi_dict in psi_values.items()
-                for wp, psi in psi_dict.items()
-            },
+            "ks_statistics": {f"{m}_{wp}": ks for m, ks_dict in ks_statistics.items() for wp, ks in ks_dict.items()},
+            "psi_values": {f"{m}_{wp}": psi for m, psi_dict in psi_values.items() for wp, psi in psi_dict.items()},
             "drift_directions": {
-                f"{m}_{wp}": direction
-                for m, dir_dict in drift_directions.items()
-                for wp, direction in dir_dict.items()
+                f"{m}_{wp}": direction for m, dir_dict in drift_directions.items() for wp, direction in dir_dict.items()
             },
-            "window_pairs_analyzed": [
-                [window_ids[i], window_ids[i+1]]
-                for i in range(len(window_ids)-1)
-            ]
+            "window_pairs_analyzed": [[window_ids[i], window_ids[i + 1]] for i in range(len(window_ids) - 1)],
         }
 
         return DetectorResult(detector_outputs=detector_outputs)
@@ -210,8 +193,8 @@ class DistributionDriftDetector(BaseDetector):
         all_values = np.unique(all_values)
 
         # Compute empirical CDFs
-        cdf1 = np.searchsorted(data1_sorted, all_values, side='right') / n1
-        cdf2 = np.searchsorted(data2_sorted, all_values, side='right') / n2
+        cdf1 = np.searchsorted(data1_sorted, all_values, side="right") / n1
+        cdf2 = np.searchsorted(data2_sorted, all_values, side="right") / n2
 
         # KS statistic is the maximum absolute difference
         ks_statistic = np.max(np.abs(cdf1 - cdf2))
@@ -221,7 +204,7 @@ class DistributionDriftDetector(BaseDetector):
         # where n_eff = n1 * n2 / (n1 + n2)
         n_eff = (n1 * n2) / (n1 + n2)
         if n_eff > 0:
-            ks_p_value = 2 * np.exp(-2 * ks_statistic ** 2 * n_eff)
+            ks_p_value = 2 * np.exp(-2 * ks_statistic**2 * n_eff)
             # Cap at [0, 1]
             ks_p_value = max(0.0, min(1.0, ks_p_value))
         else:
@@ -272,7 +255,7 @@ class DistributionDriftDetector(BaseDetector):
         vals_start: List[float],
         vals_end: List[float],
         ks_statistic: float,
-        psi_value: float
+        psi_value: float,
     ) -> Optional[str]:
         """
         Classify drift direction based on TFS Section 5.1 logic.

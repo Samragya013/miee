@@ -21,15 +21,17 @@ Exit codes (AFD §9.2, TFS §13.7):
     4 - Benchmark failure
 """
 
-import sys
 import json as _json
-import click
+import sys
+from datetime import datetime
 from pathlib import Path
-from datetime import datetime, timezone
+
+import click
 
 # Load .env file before anything else (secrets never in code)
 try:
     from dotenv import load_dotenv
+
     load_dotenv()
 except ImportError:
     pass  # python-dotenv not installed; rely on shell env vars only
@@ -39,12 +41,23 @@ from . import __version__
 
 @click.group()
 @click.version_option(version=__version__)
-@click.option("--config", "-c", "config_file", type=click.Path(exists=True),
-              default=None, help="Path to configuration file (YAML/JSON).")
-@click.option("--output", "-o", "global_output", type=click.Path(),
-              default=None, help="Global output directory.")
-@click.option("--verbose", "-V", is_flag=True, default=False,
-              help="Enable verbose output.")
+@click.option(
+    "--config",
+    "-c",
+    "config_file",
+    type=click.Path(exists=True),
+    default=None,
+    help="Path to configuration file (YAML/JSON).",
+)
+@click.option(
+    "--output",
+    "-o",
+    "global_output",
+    type=click.Path(),
+    default=None,
+    help="Global output directory.",
+)
+@click.option("--verbose", "-V", is_flag=True, default=False, help="Enable verbose output.")
 @click.pass_context
 def cli(ctx, config_file, global_output, verbose):
     """Measurement Integrity Intelligence Engine (MIIE)."""
@@ -59,36 +72,103 @@ def cli(ctx, config_file, global_output, verbose):
 # ---------------------------------------------------------------------------
 @cli.command()
 @click.argument("repo_path", type=str)
-@click.option("--metrics", "-m", multiple=True, default=["M-02", "M-06"],
-               help="Metric IDs to extract (repeatable). Default: M-02 M-06")
-@click.option("--detectors", "-d", multiple=True, default=["D-01", "D-02", "D-03"],
-               help="Detector IDs to enable (repeatable). Default: D-01 D-02 D-03")
-@click.option("--output-dir", "-o", default="./output", help="Output directory for reports. Default: ./output")
-@click.option("--window-strategy", "-w", default="time",
-               type=click.Choice(["time", "commit", "release", "custom"]),
-               help="Window segmentation strategy. Default: time")
-@click.option("--window-size", "-s", default=7, type=int,
-               help="Window size in days/commits. Default: 7")
+@click.option(
+    "--metrics",
+    "-m",
+    multiple=True,
+    default=["M-02", "M-06"],
+    help="Metric IDs to extract (repeatable). Default: M-02 M-06",
+)
+@click.option(
+    "--detectors",
+    "-d",
+    multiple=True,
+    default=["D-01", "D-02", "D-03"],
+    help="Detector IDs to enable (repeatable). Default: D-01 D-02 D-03",
+)
+@click.option(
+    "--output-dir",
+    "-o",
+    default="./output",
+    help="Output directory for reports. Default: ./output",
+)
+@click.option(
+    "--window-strategy",
+    "-w",
+    default="time",
+    type=click.Choice(["time", "commit", "release", "custom"]),
+    help="Window segmentation strategy. Default: time",
+)
+@click.option(
+    "--window-size",
+    "-s",
+    default=7,
+    type=int,
+    help="Window size in days/commits. Default: 7",
+)
 @click.option("--since", default=None, help="Extract metrics since (ISO 8601)")
 @click.option("--until", default=None, help="Extract metrics until (ISO 8601)")
 @click.option("--exclude-bots", is_flag=True, help="Exclude bot-generated commits")
-@click.option("--thresholds", default=None, type=str,
-               help="Custom detector thresholds as JSON string, e.g. '{\"D-01\": {\"alpha\": 0.05}}'")
-@click.option("--dry-run", is_flag=True,
-               help="Validate inputs and show plan without executing the pipeline")
+@click.option(
+    "--thresholds",
+    default=None,
+    type=str,
+    help='Custom detector thresholds as JSON string, e.g. \'{"D-01": {"alpha": 0.05}}\'',
+)
+@click.option(
+    "--dry-run",
+    is_flag=True,
+    help="Validate inputs and show plan without executing the pipeline",
+)
 @click.option("--seed", default=42, type=int, help="Random seed for reproducibility. Default: 42")
-@click.option("--format", "-f", "formats", multiple=True, default=["json"],
-              type=click.Choice(["json", "md", "csv"]),
-              help="Output format(s). Default: json")
-@click.option("--auth-token", default=None, type=str,
-              help="GitHub personal access token for private repos. Falls back to GITHUB_TOKEN env var.")
-@click.option("--forensic", is_flag=True, default=False,
-              help="Include full evidence package in output (advanced users).")
-@click.option("--verbose", "-V", is_flag=True, default=False,
-              help="Show detector IDs and timing details.")
+@click.option(
+    "--format",
+    "-f",
+    "formats",
+    multiple=True,
+    default=["json"],
+    type=click.Choice(["json", "md", "csv"]),
+    help="Output format(s). Default: json",
+)
+@click.option(
+    "--auth-token",
+    default=None,
+    type=str,
+    help="GitHub personal access token for private repos. Falls back to GITHUB_TOKEN env var.",
+)
+@click.option(
+    "--forensic",
+    is_flag=True,
+    default=False,
+    help="Include full evidence package in output (advanced users).",
+)
+@click.option(
+    "--verbose",
+    "-V",
+    is_flag=True,
+    default=False,
+    help="Show detector IDs and timing details.",
+)
 @click.pass_context
-def analyze(ctx, repo_path, metrics, detectors, output_dir, window_strategy,
-             window_size, since, until, exclude_bots, thresholds, dry_run, seed, formats, auth_token, forensic, verbose):
+def analyze(
+    ctx,
+    repo_path,
+    metrics,
+    detectors,
+    output_dir,
+    window_strategy,
+    window_size,
+    since,
+    until,
+    exclude_bots,
+    thresholds,
+    dry_run,
+    seed,
+    formats,
+    auth_token,
+    forensic,
+    verbose,
+):
     """Run the full analysis pipeline on a repository.
 
     Example:
@@ -99,8 +179,7 @@ def analyze(ctx, repo_path, metrics, detectors, output_dir, window_strategy,
         miie analyze ./my-repo --verbose
         miie analyze ./my-repo --forensic --format json --format md
     """
-    from .contracts.validators import validate_cli_analyze_inputs, ValidationError
-    from .schemas.serialization import json_dumps
+    from .contracts.validators import ValidationError, validate_cli_analyze_inputs
     from .utils.git import GitURLParser
 
     # Parse thresholds JSON
@@ -155,15 +234,17 @@ def analyze(ctx, repo_path, metrics, detectors, output_dir, window_strategy,
         return
 
     # --- Full pipeline execution with progress ---
-    import time
-    from . import __version__
-
     # Resolve auth token: CLI arg > env var
     import os
+    import time
+
+    from . import __version__
+
     resolved_token = auth_token or os.environ.get("GITHUB_TOKEN")
 
     # Detect if URL for clone messaging
     from .utils.git import GitURLParser
+
     is_url = GitURLParser.is_github_url(repo_path)
     display_name = repo_path if is_url else str(Path(repo_path).resolve())
 
@@ -191,39 +272,38 @@ def analyze(ctx, repo_path, metrics, detectors, output_dir, window_strategy,
     click.echo("")
     click.echo(f"  Repository:  {display_name}")
 
-    from .processing.ingestion import RepositoryIngestionEngine
-    from .processing.extraction import MetricExtractionEngine
-    from .processing.segmentation import WindowSegmentationEngine
-    from .processing.detection.dispatcher import DetectorDispatcherEngine
-    from .processing.detection.registry import DetectorRegistry
-    from .processing.detection.distribution_drift_detector import DistributionDriftDetector
-    from .processing.detection.correlation_breakdown_detector import CorrelationBreakdownDetector
-    from .processing.detection.threshold_compression_detector import ThresholdCompressionDetector
-    from .processing.scoring.engine import ScoringEngine
-    from .processing.evidence import EvidenceEngine
-    from .processing.explanation.engine import ExplanationEngine
-    from .processing.reporting.engine import ReportGenerator
-
     # Wrap entire pipeline in try/except for clean error handling (exit 2)
     try:
         _run_pipeline(
-            repo_path=repo_path, display_name=display_name, is_url=is_url,
-            resolved_token=resolved_token, metrics=metrics, since=since, until=until,
-            exclude_bots=exclude_bots, window_strategy=window_strategy,
-            window_size=window_size, detectors=detectors, thresholds=thresholds,
-            formats=formats, output_dir=output_dir, verbose=verbose, forensic=forensic,
-            _progress_start=_progress_start, _progress_complete=_progress_complete,
-            _progress_action=_progress_action, _timings=_timings,
-            total_stages=total_stages, __version__=__version__,
+            repo_path=repo_path,
+            display_name=display_name,
+            is_url=is_url,
+            resolved_token=resolved_token,
+            metrics=metrics,
+            since=since,
+            until=until,
+            exclude_bots=exclude_bots,
+            window_strategy=window_strategy,
+            window_size=window_size,
+            detectors=detectors,
+            thresholds=thresholds,
+            formats=formats,
+            output_dir=output_dir,
+            verbose=verbose,
+            forensic=forensic,
+            _progress_start=_progress_start,
+            _progress_complete=_progress_complete,
+            _progress_action=_progress_action,
+            _timings=_timings,
+            total_stages=total_stages,
+            __version__=__version__,
         )
     except Exception as exc:
         click.echo(f"\n[SYSTEM-ERROR] {exc}", err=True)
         try:
             partial_path = Path(output_dir) / "partial_results.json"
             partial_path.parent.mkdir(parents=True, exist_ok=True)
-            partial_path.write_text(_json.dumps(
-                {"error": str(exc), "partial": True}, default=str, indent=2
-            ))
+            partial_path.write_text(_json.dumps({"error": str(exc), "partial": True}, default=str, indent=2))
             click.echo(f"Partial results saved to {partial_path}", err=True)
         except Exception:
             pass
@@ -249,26 +329,50 @@ def _filter_sensitive_fields(obj):
 
 
 def _run_pipeline(
-    repo_path, display_name, is_url, resolved_token, metrics, since, until,
-    exclude_bots, window_strategy, window_size, detectors, thresholds,
-    formats, output_dir, verbose, forensic,
-    _progress_start, _progress_complete, _progress_action, _timings,
-    total_stages, __version__,
+    repo_path,
+    display_name,
+    is_url,
+    resolved_token,
+    metrics,
+    since,
+    until,
+    exclude_bots,
+    window_strategy,
+    window_size,
+    detectors,
+    thresholds,
+    formats,
+    output_dir,
+    verbose,
+    forensic,
+    _progress_start,
+    _progress_complete,
+    _progress_action,
+    _timings,
+    total_stages,
+    __version__,
 ):
     """Execute all pipeline stages with progress feedback."""
     import time
-    from .processing.ingestion import RepositoryIngestionEngine
-    from .processing.extraction import MetricExtractionEngine
-    from .processing.segmentation import WindowSegmentationEngine
+
+    from .processing.detection.correlation_breakdown_detector import (
+        CorrelationBreakdownDetector,
+    )
     from .processing.detection.dispatcher import DetectorDispatcherEngine
+    from .processing.detection.distribution_drift_detector import (
+        DistributionDriftDetector,
+    )
     from .processing.detection.registry import DetectorRegistry
-    from .processing.detection.distribution_drift_detector import DistributionDriftDetector
-    from .processing.detection.correlation_breakdown_detector import CorrelationBreakdownDetector
-    from .processing.detection.threshold_compression_detector import ThresholdCompressionDetector
-    from .processing.scoring.engine import ScoringEngine
+    from .processing.detection.threshold_compression_detector import (
+        ThresholdCompressionDetector,
+    )
     from .processing.evidence import EvidenceEngine
     from .processing.explanation.engine import ExplanationEngine
+    from .processing.extraction import MetricExtractionEngine
+    from .processing.ingestion import RepositoryIngestionEngine
     from .processing.reporting.engine import ReportGenerator
+    from .processing.scoring.engine import ScoringEngine
+    from .processing.segmentation import WindowSegmentationEngine
 
     # --- Stage 1: Acquisition ---
     t_total = time.perf_counter()
@@ -335,10 +439,7 @@ def _run_pipeline(
     # "total windows ≥ 2 (required for drift detection). If <2 valid windows: abort."
     if window_count < 2:
         _progress_complete(4, "Segmentation", t4)
-        error_msg = (
-            f"Insufficient windows: {window_count} (need ≥2). "
-            "Adjust --window-size or time range."
-        )
+        error_msg = f"Insufficient windows: {window_count} (need ≥2). " "Adjust --window-size or time range."
         if "json" in formats:
             click.echo(_json.dumps({"error": error_msg, "exit_code": 3}, indent=2))
         else:
@@ -428,7 +529,8 @@ def _run_pipeline(
 
     # --- Privacy filtering (default mode hides internal IDs) ---
     if not forensic:
-        from .schemas.serialization import json_dumps
+        pass
+
         # Serialize, filter, re-parse to remove sensitive fields
         serialized = report_generator._serialize_for_json(analysis_results)
         _filter_sensitive_fields(serialized)
@@ -470,11 +572,13 @@ def _run_pipeline(
 
     # --- Risk Classification (Phase 8) ---
     triggered_count = sum(
-        1 for det_id, det_data in detector_outputs.items()
-        if isinstance(det_data, dict) and (
-            det_data.get("drift_detected") or
-            det_data.get("breakdown_detected") or
-            det_data.get("compression_detected", False)
+        1
+        for det_id, det_data in detector_outputs.items()
+        if isinstance(det_data, dict)
+        and (
+            det_data.get("drift_detected")
+            or det_data.get("breakdown_detected")
+            or det_data.get("compression_detected", False)
         )
     )
     if triggered_count == 0:
@@ -510,7 +614,7 @@ def _run_pipeline(
     confidence_factors = {}
     if isinstance(confidence, dict):
         confidence_factors = confidence.get("factors", {})
-    elif hasattr(confidence, 'factors'):
+    elif hasattr(confidence, "factors"):
         confidence_factors = confidence.factors if isinstance(confidence.factors, dict) else {}
 
     sample_size_f = confidence_factors.get("sample_size", 1.0)
@@ -522,8 +626,7 @@ def _run_pipeline(
     confidence_reasons = []
     if sample_size_f < 0.5:
         confidence_reasons.append(
-            f"Only {len(windows)} analysis window(s) could be constructed "
-            f"(sample factor: {sample_size_f:.2f})"
+            f"Only {len(windows)} analysis window(s) could be constructed " f"(sample factor: {sample_size_f:.2f})"
         )
     if variance_f < 0.8:
         confidence_reasons.append("High variance in metric values across windows")
@@ -545,19 +648,14 @@ def _run_pipeline(
     # --- One-Sentence Summary (Phase 9) ---
     if triggered_count == 0 and integrity_overall >= 0.9:
         summary_sentence = (
-            "No evidence was found that repository metrics have become "
-            "distorted, unstable, or misleading."
+            "No evidence was found that repository metrics have become " "distorted, unstable, or misleading."
         )
     elif triggered_count == 0 and integrity_overall >= 0.7:
         summary_sentence = (
-            "Repository metrics appear generally stable with minor variations "
-            "that are within expected ranges."
+            "Repository metrics appear generally stable with minor variations " "that are within expected ranges."
         )
     elif triggered_count == 1:
-        summary_sentence = (
-            "One metric anomaly was detected, but overall measurement "
-            "integrity remains acceptable."
-        )
+        summary_sentence = "One metric anomaly was detected, but overall measurement " "integrity remains acceptable."
     else:
         summary_sentence = (
             "Multiple metric anomalies were detected. Manual investigation "
@@ -602,7 +700,11 @@ def _run_pipeline(
     for det_id in sorted(detector_outputs.keys()):
         det_data = detector_outputs[det_id]
         if isinstance(det_data, dict):
-            triggered = det_data.get("drift_detected") or det_data.get("breakdown_detected") or det_data.get("compression_detected", False)
+            triggered = (
+                det_data.get("drift_detected")
+                or det_data.get("breakdown_detected")
+                or det_data.get("compression_detected", False)
+            )
         else:
             triggered = False
 
@@ -677,10 +779,10 @@ def _run_pipeline(
         click.echo("  " + "-" * 40)
         click.echo(f"  Window Count:    {len(windows)}")
         for w in windows:
-            wid = getattr(w, 'window_id', '?')
-            sd = getattr(w, 'start_date', '?')
-            ed = getattr(w, 'end_date', '?')
-            clicks_count = getattr(w, 'commits', '?')
+            wid = getattr(w, "window_id", "?")
+            sd = getattr(w, "start_date", "?")
+            ed = getattr(w, "end_date", "?")
+            clicks_count = getattr(w, "commits", "?")
             click.echo(f"    {wid}: {sd} to {ed} ({clicks_count} commits)")
         click.echo(f"  Metrics:         {', '.join(metrics)}")
         click.echo(f"  Detectors:       {', '.join(detectors)}")
@@ -715,19 +817,23 @@ def _run_pipeline(
 @cli.command()
 @click.argument("repo_path", type=str)
 @click.option("--shallow", type=int, default=None, help="Shallow clone depth")
-@click.option("--auth-token", default=None, type=str,
-              help="GitHub personal access token for private repos. Falls back to GITHUB_TOKEN env var.")
+@click.option(
+    "--auth-token",
+    default=None,
+    type=str,
+    help="GitHub personal access token for private repos. Falls back to GITHUB_TOKEN env var.",
+)
 @click.pass_context
 def ingest(ctx, repo_path, shallow, auth_token):
     """Validate and ingest a repository (checks Git validity)."""
-    from .contracts.validators import validate_cli_ingest_inputs, ValidationError
+    from .contracts.validators import ValidationError, validate_cli_ingest_inputs
     from .utils.git import GitURLParser
 
     # Check if repo_path is a GitHub URL
     if GitURLParser.is_github_url(repo_path):
         click.echo(f"[INFO] GitHub URL detected: {repo_path}")
         click.echo(f"[INFO] Cloning repository...")
-    
+
     try:
         validate_cli_ingest_inputs(repo_path, shallow=shallow)
     except ValidationError as exc:
@@ -736,6 +842,7 @@ def ingest(ctx, repo_path, shallow, auth_token):
 
     # Resolve auth token: CLI arg > env var
     import os
+
     resolved_token = auth_token or os.environ.get("GITHUB_TOKEN")
 
     from .processing.ingestion import RepositoryIngestionEngine
@@ -758,13 +865,27 @@ def ingest(ctx, repo_path, shallow, auth_token):
 # ---------------------------------------------------------------------------
 @cli.command()
 @click.argument("repo_path", type=str)
-@click.option("--metrics", "-m", multiple=True, default=["M-02", "M-06"],
-               help="Metric IDs to extract (repeatable).")
-@click.option("--detectors", "-d", multiple=True, default=["D-01", "D-02", "D-03"],
-               help="Detector IDs to enable (repeatable).")
+@click.option(
+    "--metrics",
+    "-m",
+    multiple=True,
+    default=["M-02", "M-06"],
+    help="Metric IDs to extract (repeatable).",
+)
+@click.option(
+    "--detectors",
+    "-d",
+    multiple=True,
+    default=["D-01", "D-02", "D-03"],
+    help="Detector IDs to enable (repeatable).",
+)
 @click.option("--seed", default=42, type=int, help="Random seed.")
-@click.option("--auth-token", default=None, type=str,
-              help="GitHub personal access token for private repos. Falls back to GITHUB_TOKEN env var.")
+@click.option(
+    "--auth-token",
+    default=None,
+    type=str,
+    help="GitHub personal access token for private repos. Falls back to GITHUB_TOKEN env var.",
+)
 @click.pass_context
 def detect(ctx, repo_path, metrics, detectors, seed, auth_token):
     """Run detection on a repository (ingestion + extraction + detection only)."""
@@ -777,18 +898,26 @@ def detect(ctx, repo_path, metrics, detectors, seed, auth_token):
 
     # Resolve auth token: CLI arg > env var
     import os
+
     resolved_token = auth_token or os.environ.get("GITHUB_TOKEN")
 
-    from .processing.ingestion import RepositoryIngestionEngine
-    from .processing.extraction import MetricExtractionEngine
-    from .processing.segmentation import WindowSegmentationEngine
     from .processing.detection.dispatcher import DetectorDispatcherEngine
     from .processing.detection.registry import DetectorRegistry
+    from .processing.extraction import MetricExtractionEngine
+    from .processing.ingestion import RepositoryIngestionEngine
+    from .processing.segmentation import WindowSegmentationEngine
 
     registry = DetectorRegistry()
-    from .processing.detection.distribution_drift_detector import DistributionDriftDetector
-    from .processing.detection.correlation_breakdown_detector import CorrelationBreakdownDetector
-    from .processing.detection.threshold_compression_detector import ThresholdCompressionDetector
+    from .processing.detection.correlation_breakdown_detector import (
+        CorrelationBreakdownDetector,
+    )
+    from .processing.detection.distribution_drift_detector import (
+        DistributionDriftDetector,
+    )
+    from .processing.detection.threshold_compression_detector import (
+        ThresholdCompressionDetector,
+    )
+
     registry.register(DistributionDriftDetector())
     registry.register(CorrelationBreakdownDetector())
     registry.register(ThresholdCompressionDetector())
@@ -812,8 +941,13 @@ def detect(ctx, repo_path, metrics, detectors, seed, auth_token):
 # ---------------------------------------------------------------------------
 @cli.command()
 @click.option("--suite", "-s", required=True, help="Benchmark suite ID (e.g. B-01)")
-@click.option("--detectors", "-d", multiple=True, default=["D-01", "D-02", "D-03"],
-              help="Detector IDs to benchmark.")
+@click.option(
+    "--detectors",
+    "-d",
+    multiple=True,
+    default=["D-01", "D-02", "D-03"],
+    help="Detector IDs to benchmark.",
+)
 @click.option("--config", "-cfg", default=None, help="JSON config string.")
 @click.option("--seed", default=42, type=int, help="Random seed.")
 @click.pass_context
@@ -836,15 +970,25 @@ def benchmark(ctx, suite, detectors, config, seed):
 # miie evaluate
 # ---------------------------------------------------------------------------
 @cli.command()
-@click.option("--benchmark-json", "-b", required=True, type=click.Path(exists=True),
-              help="Path to BenchmarkRun JSON file.")
-@click.option("--ground-truth", "-g", required=True, type=click.Path(exists=True),
-              help="Path to ground truth JSON file.")
+@click.option(
+    "--benchmark-json",
+    "-b",
+    required=True,
+    type=click.Path(exists=True),
+    help="Path to BenchmarkRun JSON file.",
+)
+@click.option(
+    "--ground-truth",
+    "-g",
+    required=True,
+    type=click.Path(exists=True),
+    help="Path to ground truth JSON file.",
+)
 @click.pass_context
 def evaluate(ctx, benchmark_json, ground_truth):
     """Evaluate benchmark results against ground truth."""
-    from .schemas.models import BenchmarkRun
     from .processing.evaluation.engine import EvaluationEngine
+    from .schemas.models import BenchmarkRun
 
     click.echo(f"Evaluating benchmark ...")
     try:
@@ -852,7 +996,7 @@ def evaluate(ctx, benchmark_json, ground_truth):
             br_data = _json.load(f)
         benchmark_run = BenchmarkRun(
             predictions=br_data.get("predictions", {}),
-            metadata=br_data.get("metadata", {})
+            metadata=br_data.get("metadata", {}),
         )
         with open(ground_truth) as f:
             gt_data = _json.load(f)
@@ -878,19 +1022,26 @@ def evaluate(ctx, benchmark_json, ground_truth):
 @click.pass_context
 def explain(ctx, repo_path, metrics, metric_filter, detector_filter, seed):
     """Run analysis and generate explanation report."""
-    from .processing.ingestion import RepositoryIngestionEngine
-    from .processing.extraction import MetricExtractionEngine
-    from .processing.segmentation import WindowSegmentationEngine
     from .processing.detection.dispatcher import DetectorDispatcherEngine
     from .processing.detection.registry import DetectorRegistry
-    from .processing.scoring.engine import ScoringEngine
     from .processing.evidence import EvidenceEngine
     from .processing.explanation.engine import ExplanationEngine
+    from .processing.extraction import MetricExtractionEngine
+    from .processing.ingestion import RepositoryIngestionEngine
+    from .processing.scoring.engine import ScoringEngine
+    from .processing.segmentation import WindowSegmentationEngine
 
     registry = DetectorRegistry()
-    from .processing.detection.distribution_drift_detector import DistributionDriftDetector
-    from .processing.detection.correlation_breakdown_detector import CorrelationBreakdownDetector
-    from .processing.detection.threshold_compression_detector import ThresholdCompressionDetector
+    from .processing.detection.correlation_breakdown_detector import (
+        CorrelationBreakdownDetector,
+    )
+    from .processing.detection.distribution_drift_detector import (
+        DistributionDriftDetector,
+    )
+    from .processing.detection.threshold_compression_detector import (
+        ThresholdCompressionDetector,
+    )
+
     registry.register(DistributionDriftDetector())
     registry.register(CorrelationBreakdownDetector())
     registry.register(ThresholdCompressionDetector())
@@ -903,9 +1054,12 @@ def explain(ctx, repo_path, metrics, metric_filter, detector_filter, seed):
         det_results = DetectorDispatcherEngine(registry).invoke(mdf, wins)
         score_pkg = ScoringEngine().compute_integrity_score(det_results, mdf, wins)
         evidence = EvidenceEngine().generate(ctx_ingested, mdf, wins, det_results, score_pkg, {"seed": seed})
-        explanation = ExplanationEngine().generate(evidence, score_pkg,
-                                                   metric_filter=metric_filter,
-                                                   detector_filter=detector_filter)
+        explanation = ExplanationEngine().generate(
+            evidence,
+            score_pkg,
+            metric_filter=metric_filter,
+            detector_filter=detector_filter,
+        )
         click.echo(f"Explanation complete. {len(explanation.narratives)} narrative(s)")
         for i, n in enumerate(explanation.narratives, 1):
             click.echo(f"  {i}. {n}")
@@ -919,25 +1073,32 @@ def explain(ctx, repo_path, metrics, metric_filter, detector_filter, seed):
 # ---------------------------------------------------------------------------
 @cli.command()
 @click.argument("repo_path", type=click.Path(exists=True))
-@click.option("--formats", "-f", multiple=True, default=["json", "csv"],
-              help="Export formats.")
+@click.option("--formats", "-f", multiple=True, default=["json", "csv"], help="Export formats.")
 @click.option("--output-dir", "-o", type=click.Path(), default="./export")
 @click.option("--seed", default=42, type=int)
 @click.pass_context
 def export(ctx, repo_path, formats, output_dir, seed):
     """Run analysis and export results in specified formats."""
     from pathlib import Path as _P
-    from .processing.ingestion import RepositoryIngestionEngine
-    from .processing.extraction import MetricExtractionEngine
-    from .processing.segmentation import WindowSegmentationEngine
+
     from .processing.detection.dispatcher import DetectorDispatcherEngine
     from .processing.detection.registry import DetectorRegistry
+    from .processing.extraction import MetricExtractionEngine
+    from .processing.ingestion import RepositoryIngestionEngine
     from .processing.scoring.engine import ScoringEngine
+    from .processing.segmentation import WindowSegmentationEngine
 
     registry = DetectorRegistry()
-    from .processing.detection.distribution_drift_detector import DistributionDriftDetector
-    from .processing.detection.correlation_breakdown_detector import CorrelationBreakdownDetector
-    from .processing.detection.threshold_compression_detector import ThresholdCompressionDetector
+    from .processing.detection.correlation_breakdown_detector import (
+        CorrelationBreakdownDetector,
+    )
+    from .processing.detection.distribution_drift_detector import (
+        DistributionDriftDetector,
+    )
+    from .processing.detection.threshold_compression_detector import (
+        ThresholdCompressionDetector,
+    )
+
     registry.register(DistributionDriftDetector())
     registry.register(CorrelationBreakdownDetector())
     registry.register(ThresholdCompressionDetector())
@@ -980,8 +1141,13 @@ def export(ctx, repo_path, formats, output_dir, seed):
 # miie generate
 # ---------------------------------------------------------------------------
 @cli.command()
-@click.option("--type", "-t", "dataset_type", default="metric-drift",
-              help="Dataset type (metric-drift, correlation-breakdown, threshold-compression).")
+@click.option(
+    "--type",
+    "-t",
+    "dataset_type",
+    default="metric-drift",
+    help="Dataset type (metric-drift, correlation-breakdown, threshold-compression).",
+)
 @click.option("--count", "-n", default=5, type=int, help="Number of candidates to generate.")
 @click.option("--output-dir", "-o", type=click.Path(), default="./benchmarks/generated")
 @click.option("--seed", default=42, type=int)
@@ -989,6 +1155,7 @@ def export(ctx, repo_path, formats, output_dir, seed):
 def generate(ctx, dataset_type, count, output_dir, seed):
     """Generate synthetic benchmark candidates."""
     from pathlib import Path as _P
+
     from .benchmark.generator import BenchmarkDatasetGenerator
 
     click.echo(f"Generating {count} {dataset_type} candidates ...")
@@ -1013,15 +1180,21 @@ def status(ctx):
     click.echo(f"MIIE v{__version__}")
 
     engines = {
-        "IngestionEngine":    ("miie.processing.ingestion", "RepositoryIngestionEngine"),
-        "ExtractionEngine":   ("miie.processing.extraction", "MetricExtractionEngine"),
-        "SegmentationEngine": ("miie.processing.segmentation", "WindowSegmentationEngine"),
-        "ScoringEngine":      ("miie.processing.scoring.engine", "ScoringEngine"),
-        "EvidenceEngine":     ("miie.processing.evidence", "EvidenceEngine"),
-        "ExplanationEngine":  ("miie.processing.explanation.engine", "ExplanationEngine"),
-        "ReportGenerator":    ("miie.processing.reporting.engine", "ReportGenerator"),
-        "BenchmarkEngine":    ("miie.processing.benchmark.engine", "BenchmarkEngine"),
-        "EvaluationEngine":   ("miie.processing.evaluation.engine", "EvaluationEngine"),
+        "IngestionEngine": ("miie.processing.ingestion", "RepositoryIngestionEngine"),
+        "ExtractionEngine": ("miie.processing.extraction", "MetricExtractionEngine"),
+        "SegmentationEngine": (
+            "miie.processing.segmentation",
+            "WindowSegmentationEngine",
+        ),
+        "ScoringEngine": ("miie.processing.scoring.engine", "ScoringEngine"),
+        "EvidenceEngine": ("miie.processing.evidence", "EvidenceEngine"),
+        "ExplanationEngine": (
+            "miie.processing.explanation.engine",
+            "ExplanationEngine",
+        ),
+        "ReportGenerator": ("miie.processing.reporting.engine", "ReportGenerator"),
+        "BenchmarkEngine": ("miie.processing.benchmark.engine", "BenchmarkEngine"),
+        "EvaluationEngine": ("miie.processing.evaluation.engine", "EvaluationEngine"),
     }
 
     click.echo("Engine status:")
@@ -1035,12 +1208,23 @@ def status(ctx):
 
     click.echo("Detectors:")
     try:
+        from .processing.detection.correlation_breakdown_detector import (
+            CorrelationBreakdownDetector,
+        )
+        from .processing.detection.distribution_drift_detector import (
+            DistributionDriftDetector,
+        )
         from .processing.detection.registry import DetectorRegistry
-        from .processing.detection.distribution_drift_detector import DistributionDriftDetector
-        from .processing.detection.correlation_breakdown_detector import CorrelationBreakdownDetector
-        from .processing.detection.threshold_compression_detector import ThresholdCompressionDetector
+        from .processing.detection.threshold_compression_detector import (
+            ThresholdCompressionDetector,
+        )
+
         reg = DetectorRegistry()
-        for det_cls in [DistributionDriftDetector, CorrelationBreakdownDetector, ThresholdCompressionDetector]:
+        for det_cls in [
+            DistributionDriftDetector,
+            CorrelationBreakdownDetector,
+            ThresholdCompressionDetector,
+        ]:
             try:
                 reg.register(det_cls())
             except Exception:
@@ -1062,9 +1246,14 @@ def status(ctx):
 # ---------------------------------------------------------------------------
 @cli.command()
 @click.argument("target", type=click.Path(exists=True))
-@click.option("--type", "-t", "validate_type", default="config",
-              type=click.Choice(["config", "analysis", "benchmark", "manifest"]),
-              help="Type of artifact to validate. Default: config")
+@click.option(
+    "--type",
+    "-t",
+    "validate_type",
+    default="config",
+    type=click.Choice(["config", "analysis", "benchmark", "manifest"]),
+    help="Type of artifact to validate. Default: config",
+)
 @click.pass_context
 def validate(ctx, target, validate_type):
     """Validate a config file, analysis output, or benchmark artifact.
@@ -1094,6 +1283,7 @@ def validate(ctx, target, validate_type):
 def _validate_config(path: Path) -> None:
     """Validate a configuration file (YAML or JSON)."""
     import yaml
+
     content = path.read_text(encoding="utf-8")
     if path.suffix in (".yaml", ".yml"):
         data = yaml.safe_load(content)

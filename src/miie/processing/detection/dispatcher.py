@@ -3,11 +3,12 @@ Detector Dispatcher Engine Implementation.
 
 Implements the IDetectorEngine interface for invoking detectors on metric data.
 """
-from typing import Dict, Any, List, Optional
-from miie.schemas.models import MetricDataFrame, DetectorResults
-from miie.processing.detection.registry import DetectorRegistry
-from miie.processing.detection.base import BaseDetector
+
+from typing import Any, Dict, List, Optional
+
 from miie.contracts.interfaces import IDetectorEngine
+from miie.processing.detection.registry import DetectorRegistry
+from miie.schemas.models import DetectorResults, MetricDataFrame
 
 
 class DetectorDispatcherEngine(IDetectorEngine):
@@ -52,9 +53,13 @@ class DetectorDispatcherEngine(IDetectorEngine):
         # In future versions, this would implement more sophisticated dispatching logic
         return self._dispatch(metric_dataframe, windows, detector_config, enabled_detectors)
 
-    def _dispatch(self, metric_dataframe: MetricDataFrame, windows: List[object],
-                  detector_config: Optional[Dict[str, Dict[str, Any]]] = None,
-                  enabled_detectors: Optional[List[str]] = None) -> DetectorResults:
+    def _dispatch(
+        self,
+        metric_dataframe: MetricDataFrame,
+        windows: List[object],
+        detector_config: Optional[Dict[str, Dict[str, Any]]] = None,
+        enabled_detectors: Optional[List[str]] = None,
+    ) -> DetectorResults:
         """Dispatch metric data to all registered detectors.
 
         Args:
@@ -70,28 +75,40 @@ class DetectorDispatcherEngine(IDetectorEngine):
 
         # Determine which detectors to invoke
         if enabled_detectors is not None:
-            detector_items = [(det_id, self._registry.get(det_id)) for det_id in self._registry.get_registered_ids()
-                             if det_id in enabled_detectors and self._registry.get(det_id) is not None]
+            detector_items = [
+                (det_id, self._registry.get(det_id))
+                for det_id in self._registry.get_registered_ids()
+                if det_id in enabled_detectors and self._registry.get(det_id) is not None
+            ]
         else:
-            detector_items = [(det_id, self._registry.get(det_id)) for det_id in self._registry.get_registered_ids()
-                             if self._registry.get(det_id) is not None]
+            detector_items = [
+                (det_id, self._registry.get(det_id))
+                for det_id in self._registry.get_registered_ids()
+                if self._registry.get(det_id) is not None
+            ]
 
         # Invoke each registered detector
         for detector_id, detector in detector_items:
             try:
                 # Validate input metrics
-                if hasattr(detector, 'validate_input') and detector.validate_input(metric_dataframe):
+                if hasattr(detector, "validate_input") and detector.validate_input(metric_dataframe):
                     # Execute detector
                     detector_result = detector.execute(metric_dataframe)
                     # Extract detector outputs
-                    if hasattr(detector_result, 'detector_outputs'):
+                    if hasattr(detector_result, "detector_outputs"):
                         detector_outputs.update(detector_result.detector_outputs)
                     else:
                         # Fallback if detector doesn't return standard DetectorResult
-                        detector_outputs[detector_id] = {"status": "executed", "result": str(detector_result)}
+                        detector_outputs[detector_id] = {
+                            "status": "executed",
+                            "result": str(detector_result),
+                        }
                 else:
                     # Detector input validation failed
-                    detector_outputs[detector_id] = {"status": "skipped", "reason": "input validation failed"}
+                    detector_outputs[detector_id] = {
+                        "status": "skipped",
+                        "reason": "input validation failed",
+                    }
             except Exception as e:
                 # Detector execution failed
                 detector_outputs[detector_id] = {"status": "error", "reason": str(e)}

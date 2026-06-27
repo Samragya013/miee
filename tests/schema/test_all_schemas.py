@@ -7,50 +7,46 @@ Implements: ST-01..ST-10 (schema test coverage for output artifacts)
 """
 
 import datetime
-import pytest
 from pathlib import Path
-from dataclasses import FrozenInstanceError
+
+import pytest
 
 from miie.schemas.models import (
-    RepositoryContext,
-    MetricDataFrame,
-    WindowDefinition,
+    BenchmarkDataset,
+    BenchmarkRun,
+    ConfidenceScore,
+    Configuration,
+    ConfusionMatrix,
     D01Output,
     D02Output,
     D03Output,
+    DetectorConfig,
     DetectorResults,
-    IntegrityScore,
-    ConfidenceScore,
-    ScorePackage,
-    Provenance,
-    WarningItem,
+    EvaluationResult,
     EvidencePackage,
     Explanation,
     ExplanationReport,
-    BenchmarkRun,
-    ConfusionMatrix,
-    EvaluationResult,
-    ReportOutput,
-    GroundTruthLabel,
     GroundTruthInput,
-    Annotation,
-    RunMetadata,
-    AnalysisResult,
-    SyntheticRepositoryMetadata,
-    PathologyMetadata,
-    BenchmarkDataset,
-    DetectorConfig,
-    Configuration,
+    GroundTruthLabel,
+    IntegrityScore,
     JobManifest,
-    StateTransition,
+    MetricDataFrame,
+    PathologyMetadata,
+    Provenance,
     RecoveryMetadata,
+    RepositoryContext,
+    RunMetadata,
+    ScorePackage,
     StateObject,
+    StateTransition,
+    SyntheticRepositoryMetadata,
+    WindowDefinition,
 )
-
 
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
+
 
 def _utcnow():
     return datetime.datetime.now(datetime.timezone.utc)
@@ -238,47 +234,78 @@ class TestDetectorOutputSchemas:
     def test_d01_valid_directions(self):
         for direction in ("mean_shift", "variance_collapse", "shape_change"):
             out = D01Output(
-                ks_statistic=0.3, ks_p_value=0.01, psi_value=0.15,
-                direction=direction, severity=0.5, flagged=True,
+                ks_statistic=0.3,
+                ks_p_value=0.01,
+                psi_value=0.15,
+                direction=direction,
+                severity=0.5,
+                flagged=True,
             )
             assert out.direction == direction
 
     def test_d01_invalid_direction(self):
         with pytest.raises(ValueError, match="direction must be one of"):
             D01Output(
-                ks_statistic=0.3, ks_p_value=0.01, psi_value=0.15,
-                direction="invalid", severity=0.5, flagged=True,
+                ks_statistic=0.3,
+                ks_p_value=0.01,
+                psi_value=0.15,
+                direction="invalid",
+                severity=0.5,
+                flagged=True,
             )
 
     def test_d01_severity_bounds(self):
         with pytest.raises(ValueError, match="severity must be between"):
             D01Output(
-                ks_statistic=0.3, ks_p_value=0.01, psi_value=0.15,
-                direction="mean_shift", severity=1.5, flagged=True,
+                ks_statistic=0.3,
+                ks_p_value=0.01,
+                psi_value=0.15,
+                direction="mean_shift",
+                severity=1.5,
+                flagged=True,
             )
 
     def test_d02_valid_breakdown_types(self):
-        for btype in ("sudden_drop", "sign_reversal", "gradual_erosion", "confidence_exclusion"):
+        for btype in (
+            "sudden_drop",
+            "sign_reversal",
+            "gradual_erosion",
+            "confidence_exclusion",
+        ):
             out = D02Output(
-                pearson_r=0.5, spearman_r=0.4, fisher_z_ci=(0.3, 0.7),
-                breakdown_type=btype, delta_r=0.35, severity=0.6, flagged=True,
+                pearson_r=0.5,
+                spearman_r=0.4,
+                fisher_z_ci=(0.3, 0.7),
+                breakdown_type=btype,
+                delta_r=0.35,
+                severity=0.6,
+                flagged=True,
             )
             assert out.breakdown_type == btype
 
     def test_d02_none_breakdown_type(self):
         out = D02Output(
-            pearson_r=0.5, spearman_r=0.4, fisher_z_ci=(0.3, 0.7),
-            breakdown_type=None, delta_r=0.1, severity=0.1, flagged=False,
+            pearson_r=0.5,
+            spearman_r=0.4,
+            fisher_z_ci=(0.3, 0.7),
+            breakdown_type=None,
+            delta_r=0.1,
+            severity=0.1,
+            flagged=False,
         )
         assert out.breakdown_type is None
 
     def test_d03_severity_bounds(self):
         with pytest.raises(ValueError, match="severity must be between"):
             D03Output(
-                excess_mass_z=2.0, excess_mass_flag=True,
-                dip_test_p_value=0.01, multimodal_flag=True,
-                compression_index=0.4, threshold=50.0,
-                severity=-0.1, flagged=True,
+                excess_mass_z=2.0,
+                excess_mass_flag=True,
+                dip_test_p_value=0.01,
+                multimodal_flag=True,
+                compression_index=0.4,
+                threshold=50.0,
+                severity=-0.1,
+                flagged=True,
             )
 
 
@@ -296,6 +323,7 @@ class TestDetectorResultsSchema:
 
     def test_rejects_invalid_detector_id_in_legacy(self):
         from miie.schemas.models import DetectorResult as LegacyDetectorResult
+
         with pytest.raises(ValueError, match="Invalid detector ID"):
             LegacyDetectorResult(detector_outputs={"D-04": {}})
 
@@ -393,18 +421,26 @@ class TestExplanationReportSchema:
     def test_explanation_severity_valid(self):
         for sev in ("mild", "moderate", "severe"):
             exp = Explanation(
-                metric_id="M-01", detector_id="D-01",
-                narrative="test", severity=sev,
-                evidence_refs=[], confidence="high", rule_fired="R-01",
+                metric_id="M-01",
+                detector_id="D-01",
+                narrative="test",
+                severity=sev,
+                evidence_refs=[],
+                confidence="high",
+                rule_fired="R-01",
             )
             assert exp.severity == sev
 
     def test_explanation_severity_invalid(self):
         with pytest.raises(ValueError, match="severity must be one of"):
             Explanation(
-                metric_id="M-01", detector_id="D-01",
-                narrative="test", severity="critical",
-                evidence_refs=[], confidence="high", rule_fired="R-01",
+                metric_id="M-01",
+                detector_id="D-01",
+                narrative="test",
+                severity="critical",
+                evidence_refs=[],
+                confidence="high",
+                rule_fired="R-01",
             )
 
 
@@ -467,8 +503,10 @@ class TestConfigAndStateSchemas:
 
     def test_job_manifest_valid(self):
         jm = JobManifest(
-            job_id="test-uuid", job_type="analyze",
-            job_params={}, output_dir="/tmp",
+            job_id="test-uuid",
+            job_type="analyze",
+            job_params={},
+            output_dir="/tmp",
             created_at=_utcnow().isoformat(),
             status="created",
         )
@@ -477,8 +515,10 @@ class TestConfigAndStateSchemas:
     def test_job_manifest_invalid_type(self):
         with pytest.raises(ValueError, match="job_type must be one of"):
             JobManifest(
-                job_id="x", job_type="invalid",
-                job_params={}, output_dir="/tmp",
+                job_id="x",
+                job_type="invalid",
+                job_params={},
+                output_dir="/tmp",
                 created_at="2024-01-01T00:00:00Z",
                 status="created",
             )
@@ -486,8 +526,10 @@ class TestConfigAndStateSchemas:
     def test_job_manifest_invalid_status(self):
         with pytest.raises(ValueError, match="status must be one of"):
             JobManifest(
-                job_id="x", job_type="analyze",
-                job_params={}, output_dir="/tmp",
+                job_id="x",
+                job_type="analyze",
+                job_params={},
+                output_dir="/tmp",
                 created_at="2024-01-01T00:00:00Z",
                 status="pending",
             )
@@ -519,23 +561,29 @@ class TestGroundTruthSchema:
 
     def test_valid_label(self):
         lbl = GroundTruthLabel(
-            repo_id="repo_001", metric_id="M-01",
-            label=True, event_type="MDE-01",
+            repo_id="repo_001",
+            metric_id="M-01",
+            label=True,
+            event_type="MDE-01",
         )
         assert lbl.label is True
 
     def test_invalid_repo_id_pattern(self):
         with pytest.raises(ValueError, match="repo_id must match pattern"):
             GroundTruthLabel(
-                repo_id="bad_id", metric_id="M-01",
-                label=True, event_type="MDE-01",
+                repo_id="bad_id",
+                metric_id="M-01",
+                label=True,
+                event_type="MDE-01",
             )
 
     def test_invalid_event_type(self):
         with pytest.raises(ValueError, match="event_type must be one of"):
             GroundTruthLabel(
-                repo_id="repo_001", metric_id="M-01",
-                label=True, event_type="MDE-99",
+                repo_id="repo_001",
+                metric_id="M-01",
+                label=True,
+                event_type="MDE-99",
             )
 
     def test_ground_truth_input_valid(self):
@@ -548,32 +596,47 @@ class TestBenchmarkDatasetSchema:
 
     def test_valid_dataset(self):
         bd = BenchmarkDataset(
-            suite_id="B-01", version="1.0.0",
-            description="test", num_datasets=50,
-            metrics_included=["M-01"], detector_target="D-01",
-            window_strategy="time", window_size_days=90,
-            random_seed=42, pathology_ratio=0.3,
+            suite_id="B-01",
+            version="1.0.0",
+            description="test",
+            num_datasets=50,
+            metrics_included=["M-01"],
+            detector_target="D-01",
+            window_strategy="time",
+            window_size_days=90,
+            random_seed=42,
+            pathology_ratio=0.3,
         )
         assert bd.num_datasets == 50
 
     def test_empty_suite_id(self):
         with pytest.raises(ValueError, match="suite_id must not be empty"):
             BenchmarkDataset(
-                suite_id="", version="1.0",
-                description="x", num_datasets=1,
-                metrics_included=["M-01"], detector_target="D-01",
-                window_strategy="time", window_size_days=90,
-                random_seed=42, pathology_ratio=0.3,
+                suite_id="",
+                version="1.0",
+                description="x",
+                num_datasets=1,
+                metrics_included=["M-01"],
+                detector_target="D-01",
+                window_strategy="time",
+                window_size_days=90,
+                random_seed=42,
+                pathology_ratio=0.3,
             )
 
     def test_num_datasets_minimum(self):
         with pytest.raises(ValueError, match="num_datasets must be >= 1"):
             BenchmarkDataset(
-                suite_id="B-01", version="1.0",
-                description="x", num_datasets=0,
-                metrics_included=["M-01"], detector_target="D-01",
-                window_strategy="time", window_size_days=90,
-                random_seed=42, pathology_ratio=0.3,
+                suite_id="B-01",
+                version="1.0",
+                description="x",
+                num_datasets=0,
+                metrics_included=["M-01"],
+                detector_target="D-01",
+                window_strategy="time",
+                window_size_days=90,
+                random_seed=42,
+                pathology_ratio=0.3,
             )
 
 
@@ -582,23 +645,29 @@ class TestSyntheticRepositoryMetadataSchema:
 
     def test_valid(self):
         srm = SyntheticRepositoryMetadata(
-            repo_id="repo_001", category="real_world",
-            language="python", parameters={"duration_days": 365},
+            repo_id="repo_001",
+            category="real_world",
+            language="python",
+            parameters={"duration_days": 365},
         )
         assert srm.category == "real_world"
 
     def test_invalid_repo_id(self):
         with pytest.raises(ValueError, match="repo_id must match pattern"):
             SyntheticRepositoryMetadata(
-                repo_id="bad", category="real_world",
-                language="python", parameters={},
+                repo_id="bad",
+                category="real_world",
+                language="python",
+                parameters={},
             )
 
     def test_invalid_category(self):
         with pytest.raises(ValueError, match="category must be one of"):
             SyntheticRepositoryMetadata(
-                repo_id="repo_001", category="invalid",
-                language="python", parameters={},
+                repo_id="repo_001",
+                category="invalid",
+                language="python",
+                parameters={},
             )
 
 
@@ -607,23 +676,29 @@ class TestPathologyMetadataSchema:
 
     def test_valid(self):
         pm = PathologyMetadata(
-            event_type="MDE-01", metric_id="M-01",
-            target_window="w01", severity=0.5,
+            event_type="MDE-01",
+            metric_id="M-01",
+            target_window="w01",
+            severity=0.5,
         )
         assert pm.event_type == "MDE-01"
 
     def test_invalid_event_type(self):
         with pytest.raises(ValueError, match="event_type must be one of"):
             PathologyMetadata(
-                event_type="MDE-99", metric_id="M-01",
-                target_window="w01", severity=0.5,
+                event_type="MDE-99",
+                metric_id="M-01",
+                target_window="w01",
+                severity=0.5,
             )
 
     def test_severity_bounds(self):
         with pytest.raises(ValueError, match="severity must be between"):
             PathologyMetadata(
-                event_type="MDE-01", metric_id="M-01",
-                target_window="w01", severity=1.5,
+                event_type="MDE-01",
+                metric_id="M-01",
+                target_window="w01",
+                severity=1.5,
             )
 
 
@@ -632,14 +707,18 @@ class TestRunMetadataSchema:
 
     def test_valid(self):
         rm = RunMetadata(
-            duration_seconds=1.0, memory_peak_mb=100.0,
-            cpu_time_seconds=0.8, stage_timings={"ingest": 0.5},
+            duration_seconds=1.0,
+            memory_peak_mb=100.0,
+            cpu_time_seconds=0.8,
+            stage_timings={"ingest": 0.5},
         )
         assert rm.duration_seconds == 1.0
 
     def test_negative_duration(self):
         with pytest.raises(ValueError, match="duration_seconds must be >= 0"):
             RunMetadata(
-                duration_seconds=-1.0, memory_peak_mb=100.0,
-                cpu_time_seconds=0.8, stage_timings={},
+                duration_seconds=-1.0,
+                memory_peak_mb=100.0,
+                cpu_time_seconds=0.8,
+                stage_timings={},
             )

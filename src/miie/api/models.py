@@ -6,12 +6,13 @@ Mirrors the frozen schemas in ACS v1.0 §14 and TFS §14.3.
 from __future__ import annotations
 
 from typing import Any, Dict, List, Optional
-from pydantic import BaseModel, Field
 
+from pydantic import BaseModel, Field
 
 # ---------------------------------------------------------------------------
 # Request models
 # ---------------------------------------------------------------------------
+
 
 class AnalyzeRequest(BaseModel):
     """POST /v1/analyze request body (TFS §14.3)."""
@@ -26,9 +27,7 @@ class AnalyzeRequest(BaseModel):
     output_formats: List[str] = Field(default_factory=lambda: ["json", "md"])
     exclude_bots: bool = False
     thresholds: Dict[str, Any] = Field(default_factory=dict)
-    detector_weights: Dict[str, float] = Field(
-        default_factory=lambda: {"D-01": 0.40, "D-02": 0.35, "D-03": 0.25}
-    )
+    detector_weights: Dict[str, float] = Field(default_factory=lambda: {"D-01": 0.40, "D-02": 0.35, "D-03": 0.25})
     seed: int = 42
     output_dir: str = "./output"
 
@@ -63,6 +62,7 @@ class ExportRequest(BaseModel):
 # ---------------------------------------------------------------------------
 # Response models
 # ---------------------------------------------------------------------------
+
 
 class JobAccepted(BaseModel):
     """202 response for async job creation (TFS §14.3)."""
@@ -119,6 +119,7 @@ class ExplainResponse(BaseModel):
 # ---------------------------------------------------------------------------
 # RFC 7807 Problem Details
 # ---------------------------------------------------------------------------
+
 
 class ProblemDetail(BaseModel):
     """RFC 7807 Problem Details error response (ACS v1.0 §4.4, TFS §14.5)."""
