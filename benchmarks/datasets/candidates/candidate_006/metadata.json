@@ -1,0 +1,65 @@
+{
+  "repo_id": "repo_006",
+  "category": "medium_active",
+  "language": "python",
+  "parameters": {
+    "duration_days": 91,
+    "total_commits": 1368,
+    "contributors": 10,
+    "bot_ratio": 0.14,
+    "window_count": 8,
+    "window_size_days": 79
+  },
+  "windows": [
+    {
+      "window_id": "w01",
+      "start_date": "2026-03-19",
+      "end_date": "2026-03-30",
+      "commits": 171
+    },
+    {
+      "window_id": "w02",
+      "start_date": "2026-03-30",
+      "end_date": "2026-04-10",
+      "commits": 171
+    },
+    {
+      "window_id": "w03",
+      "start_date": "2026-04-10",
+      "end_date": "2026-04-21",
+      "commits": 171
+    },
+    {
+      "window_id": "w04",
+      "start_date": "2026-04-21",
+      "end_date": "2026-05-02",
+      "commits": 171
+    },
+    {
+      "window_id": "w05",
+      "start_date": "2026-05-02",
+      "end_date": "2026-05-13",
+      "commits": 171
+    },
+    {
+      "window_id": "w06",
+      "start_date": "2026-05-13",
+      "end_date": "2026-05-24",
+      "commits": 171
+    },
+    {
+      "window_id": "w07",
+      "start_date": "2026-05-24",
+      "end_date": "2026-06-04",
+      "commits": 171
+    },
+    {
+      "window_id": "w08",
+      "start_date": "2026-06-04",
+      "end_date": "2026-06-15",
+      "commits": 171
+    }
+  ],
+  "generation_seed": 3344331499,
+  "generation_timestamp": "2026-06-18T13:34:59Z"
+}

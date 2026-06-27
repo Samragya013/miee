@@ -42,3 +42,13 @@ Desktop.ini
 .env
 .env.*
 !.env.example
+
+# Archive temporary outputs
+archive/tmp_output*/
+archive/test_output*/
+archive/out/
+archive/memory/
+archive/*.log
+archive/*.txt
+archive/.coverage
+archive/*_loop.json

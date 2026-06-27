@@ -1,0 +1,59 @@
+{
+  "repo_id": "repo_010",
+  "category": "monotonic_growth",
+  "language": "javascript",
+  "parameters": {
+    "duration_days": 600,
+    "total_commits": 70,
+    "contributors": 22,
+    "bot_ratio": 0.16,
+    "window_count": 7,
+    "window_size_days": 80
+  },
+  "windows": [
+    {
+      "window_id": "w01",
+      "start_date": "2024-10-26",
+      "end_date": "2025-01-19",
+      "commits": 10
+    },
+    {
+      "window_id": "w02",
+      "start_date": "2025-01-19",
+      "end_date": "2025-04-14",
+      "commits": 10
+    },
+    {
+      "window_id": "w03",
+      "start_date": "2025-04-14",
+      "end_date": "2025-07-08",
+      "commits": 10
+    },
+    {
+      "window_id": "w04",
+      "start_date": "2025-07-08",
+      "end_date": "2025-10-01",
+      "commits": 10
+    },
+    {
+      "window_id": "w05",
+      "start_date": "2025-10-01",
+      "end_date": "2025-12-25",
+      "commits": 10
+    },
+    {
+      "window_id": "w06",
+      "start_date": "2025-12-25",
+      "end_date": "2026-03-20",
+      "commits": 10
+    },
+    {
+      "window_id": "w07",
+      "start_date": "2026-03-20",
+      "end_date": "2026-06-13",
+      "commits": 10
+    }
+  ],
+  "generation_seed": 3770710849,
+  "generation_timestamp": "2026-06-18T13:56:24Z"
+}

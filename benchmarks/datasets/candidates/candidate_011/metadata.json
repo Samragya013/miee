@@ -1,0 +1,59 @@
+{
+  "repo_id": "repo_011",
+  "category": "small_active",
+  "language": "typescript",
+  "parameters": {
+    "duration_days": 452,
+    "total_commits": 2079,
+    "contributors": 42,
+    "bot_ratio": 0.24,
+    "window_count": 7,
+    "window_size_days": 90
+  },
+  "windows": [
+    {
+      "window_id": "w01",
+      "start_date": "2025-03-23",
+      "end_date": "2025-05-26",
+      "commits": 297
+    },
+    {
+      "window_id": "w02",
+      "start_date": "2025-05-26",
+      "end_date": "2025-07-29",
+      "commits": 297
+    },
+    {
+      "window_id": "w03",
+      "start_date": "2025-07-29",
+      "end_date": "2025-10-01",
+      "commits": 297
+    },
+    {
+      "window_id": "w04",
+      "start_date": "2025-10-01",
+      "end_date": "2025-12-04",
+      "commits": 297
+    },
+    {
+      "window_id": "w05",
+      "start_date": "2025-12-04",
+      "end_date": "2026-02-06",
+      "commits": 297
+    },
+    {
+      "window_id": "w06",
+      "start_date": "2026-02-06",
+      "end_date": "2026-04-11",
+      "commits": 297
+    },
+    {
+      "window_id": "w07",
+      "start_date": "2026-04-11",
+      "end_date": "2026-06-14",
+      "commits": 297
+    }
+  ],
+  "generation_seed": 1143281683,
+  "generation_timestamp": "2026-06-18T13:56:47Z"
+}
