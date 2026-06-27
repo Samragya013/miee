@@ -338,8 +338,10 @@ class TestAnalysisPipelineWithRealIngestion:
         # Verify it's an ACS error (IngestionError is a MIIEError)
         assert isinstance(exc_info.value, IngestionError)
         assert exc_info.value.error_code == "INGESTION-ERROR"
-        # Check that the error message contains the repository path (may be resolved to absolute)
-        assert non_existent_path.replace("/", "\\") in exc_info.value.message
+        # Check that the error message contains the repository path (platform-agnostic)
+        normalized_msg = exc_info.value.message.replace("\\", "/")
+        normalized_path = non_existent_path.replace("\\", "/")
+        assert normalized_path in normalized_msg
 
 
 if __name__ == "__main__":
