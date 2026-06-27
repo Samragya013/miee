@@ -40,7 +40,7 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
       - run: pip install poetry && poetry install
-      - run: pytest tests/unit/ tests/schema/ tests/contract/ tests/architecture/ -x -q --tb=short
+      - run: poetry run pytest tests/unit/ tests/schema/ tests/contract/ tests/architecture/ -x -q --tb=short
 
   integration-tests:
     runs-on: ubuntu-latest
@@ -50,7 +50,7 @@ jobs:
         with:
           python-version: '3.12'
       - run: pip install poetry && poetry install
-      - run: pytest tests/integration/ -x -q --tb=short
+      - run: poetry run pytest tests/integration/ -x -q --tb=short
 
   regression:
     runs-on: ubuntu-latest
@@ -60,7 +60,7 @@ jobs:
         with:
           python-version: '3.12'
       - run: pip install poetry && poetry install
-      - run: pytest tests/regression/ tests/workflow/ -x -q --tb=short
+      - run: poetry run pytest tests/regression/ tests/workflow/ -x -q --tb=short
 
   security:
     runs-on: ubuntu-latest

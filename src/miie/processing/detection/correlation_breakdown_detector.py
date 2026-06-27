@@ -269,7 +269,6 @@ class CorrelationBreakdownDetector(BaseDetector):
                 and pearson_values[0] > self.gradual_erosion_window_start_min
                 and pearson_values[-1] < self.gradual_erosion_window_end_max
             ):
-
                 # Compute linear regression slope of Pearson r over window indices
                 valid_indices = []
                 valid_values = []
