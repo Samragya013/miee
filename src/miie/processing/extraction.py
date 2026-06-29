@@ -1,10 +1,27 @@
 """
-Metric Extraction Engine for MIIE v1.0.
+Metric Extraction Engine for MIIE v1.0 (DEPRECATED).
 
-Implements INT-02: Metric Extraction Engine interface.
-Extracts all 7 metrics from Git repositories and external artifacts.
-Handles unavailable metrics per BSD/TFS missing data policy.
+.. deprecated::
+    This module is deprecated. Use ``miie.processing.extraction`` package
+    instead::
+
+        from miie.processing.extraction import ExtractionEngine
+
+The ``ExtractionEngine`` orchestrates ``CommitExtractor`` and
+``MetricExtractor`` to produce ``ObservationCollection`` and
+``MetricDataFrame`` in a single pass.
+
+The legacy ``MetricExtractionEngine`` class below is retained for
+backward compatibility with existing tests and CLI commands.
 """
+
+import warnings as _warnings
+
+_warnings.warn(
+    "miie.processing.extraction (module) is deprecated. " "Use miie.processing.extraction.ExtractionEngine instead.",
+    DeprecationWarning,
+    stacklevel=2,
+)
 
 import datetime
 import json
