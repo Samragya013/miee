@@ -7,6 +7,7 @@ code 0 if all pass, 1 if any fail.
 Usage:
     python benchmarks/validate_targets.py [--results-dir benchmarks/results/]
 """
+
 import argparse
 import json
 import sys
@@ -57,9 +58,7 @@ def check_targets(eval_result: Dict[str, Any]) -> Tuple[Dict[str, bool], Dict[st
 
 def main() -> int:
     """CLI entry point."""
-    parser = argparse.ArgumentParser(
-        description="Validate MIIE detector performance against IMP §1.6 hard targets."
-    )
+    parser = argparse.ArgumentParser(description="Validate MIIE detector performance against IMP §1.6 hard targets.")
     parser.add_argument(
         "--results-dir",
         type=str,

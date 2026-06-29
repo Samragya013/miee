@@ -7,15 +7,14 @@ matching the BSD §16 EvaluationResult schema.
 Usage:
     python benchmarks/run_evaluation.py --seed 42 --output benchmarks/results/
 """
+
 import argparse
 import json
-import math
 import random
 import sys
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Tuple
-
 
 MANIFEST_PATH = Path(__file__).parent / "metadata" / "candidate_manifest.json"
 
@@ -40,9 +39,7 @@ def load_manifest(manifest_path: Path) -> Dict[str, Any]:
         return json.load(f)
 
 
-def get_suite_candidates(
-    manifest: Dict[str, Any], suite_key: str
-) -> List[Dict[str, Any]]:
+def get_suite_candidates(manifest: Dict[str, Any], suite_key: str) -> List[Dict[str, Any]]:
     """Extract candidates belonging to a specific suite."""
     info = SUITES[suite_key]
     low, high = info["candidate_range"]
@@ -69,9 +66,9 @@ def simulate_detector_predictions(
     # Detector-specific true-positive and false-positive rates
     # TPR = recall; FPR controlled to meet precision target
     detector_params = {
-        "D-01": {"tpr": 0.82, "fpr": 0.04},   # recall ~0.82, low FP for P>=0.80
-        "D-02": {"tpr": 0.78, "fpr": 0.05},   # recall ~0.78, low FP for P>=0.75
-        "D-03": {"tpr": 0.88, "fpr": 0.02},   # recall ~0.88, very low FP for P>=0.85
+        "D-01": {"tpr": 0.82, "fpr": 0.04},  # recall ~0.82, low FP for P>=0.80
+        "D-02": {"tpr": 0.78, "fpr": 0.05},  # recall ~0.78, low FP for P>=0.75
+        "D-03": {"tpr": 0.88, "fpr": 0.02},  # recall ~0.88, very low FP for P>=0.85
     }
     params = detector_params[detector_id]
     rng = random.Random(seed)
@@ -193,8 +190,10 @@ def run_evaluation(seed: int, output_dir: Path) -> Dict[str, Any]:
             json.dump(eval_result, f, indent=2)
 
         all_results[detector_id] = eval_result
-        print(f"  {detector_id}: precision={metrics['precision']:.4f}, recall={metrics['recall']:.4f} "
-              f"(target: P>={HARD_TARGETS[detector_id]['precision']}, R>={HARD_TARGETS[detector_id]['recall']})")
+        print(
+            f"  {detector_id}: precision={metrics['precision']:.4f}, recall={metrics['recall']:.4f} "
+            f"(target: P>={HARD_TARGETS[detector_id]['precision']}, R>={HARD_TARGETS[detector_id]['recall']})"
+        )
 
     # Build summary
     summary = {
@@ -245,9 +244,7 @@ def main() -> int:
     parser = argparse.ArgumentParser(
         description="Run MIIE benchmark evaluation and generate proof of detector targets."
     )
-    parser.add_argument(
-        "--seed", type=int, default=42, help="Random seed for reproducibility (default: 42)"
-    )
+    parser.add_argument("--seed", type=int, default=42, help="Random seed for reproducibility (default: 42)")
     parser.add_argument(
         "--output",
         type=str,
@@ -266,10 +263,14 @@ def main() -> int:
     for detector_id, target_status in summary["targets_met"].items():
         status = "PASS" if target_status["overall"] else "FAIL"
         print(f"  {detector_id}: {status}")
-        print(f"    Precision: {summary['results'][detector_id]['precision']:.4f} "
-              f"(target: {HARD_TARGETS[detector_id]['precision']})")
-        print(f"    Recall:    {summary['results'][detector_id]['recall']:.4f} "
-              f"(target: {HARD_TARGETS[detector_id]['recall']})")
+        print(
+            f"    Precision: {summary['results'][detector_id]['precision']:.4f} "
+            f"(target: {HARD_TARGETS[detector_id]['precision']})"
+        )
+        print(
+            f"    Recall:    {summary['results'][detector_id]['recall']:.4f} "
+            f"(target: {HARD_TARGETS[detector_id]['recall']})"
+        )
 
     overall = "PASS" if summary["overall_pass"] else "FAIL"
     print(f"\nOverall: {overall}")

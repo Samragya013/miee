@@ -4,6 +4,7 @@ Loads, validates, and evaluates ground truth data for benchmark scoring.
 Ground truth defines expected anomaly types, severity ranges, and metric
 thresholds for each benchmark candidate.
 """
+
 from __future__ import annotations
 
 import json
@@ -119,8 +120,7 @@ class GroundTruthDataset:
             seen_ids.add(entry.candidate_id)
             if not entry.validate_severity_range():
                 errors.append(
-                    f"Invalid severity range for {entry.candidate_id}: "
-                    f"[{entry.severity_min}, {entry.severity_max}]"
+                    f"Invalid severity range for {entry.candidate_id}: " f"[{entry.severity_min}, {entry.severity_max}]"
                 )
         return errors
 

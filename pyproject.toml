@@ -30,9 +30,33 @@ pre-commit = "^3.0.0"
 [tool.black]
 line-length = 120
 target-version = ["py310", "py311", "py312"]
+exclude = '''
+/(
+    archive
+  | scripts
+  | output
+  | tmp_output
+  | tmp_output_ingestion
+  | .git
+  | .mypy_cache
+  | .pytest_cache
+  | __pycache__
+  | benchmarks/datasets
+  | benchmarks/tmp
+)/
+'''
 
 [tool.isort]
 profile = "black"
+extend_skip = [
+    "archive",
+    "scripts",
+    "output",
+    "tmp_output",
+    "tmp_output_ingestion",
+    "benchmarks/datasets",
+    "benchmarks/tmp",
+]
 
 [build-system]
 requires = ["poetry-core"]

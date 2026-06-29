@@ -4,6 +4,7 @@ Provides isolated execution of benchmark candidates against detector
 engines, ensuring temporal isolation and preventing data leakage
 between training and evaluation windows.
 """
+
 from __future__ import annotations
 
 import json

@@ -1,6 +1,6 @@
 import json
-from pathlib import Path
 from datetime import datetime, timezone
+from pathlib import Path
 
 base = Path("benchmarks/datasets/candidates")
 manifest = {
@@ -12,7 +12,7 @@ manifest = {
         "total_candidates": 120,
         "status": "candidate",
     },
-    "candidates": {}
+    "candidates": {},
 }
 
 for cdir in sorted(base.iterdir()):
