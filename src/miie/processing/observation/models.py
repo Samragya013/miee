@@ -50,6 +50,8 @@ _COMMIT_SHA_RE = re.compile(r"^[0-9a-f]{40}$")
 _OBSERVATION_ID_RE = re.compile(r"^[0-9a-f]{16}$")
 _WINDOW_ID_RE = re.compile(r"^w[0-9]+$")
 
+_VALID_STRATEGIES: frozenset[str] = frozenset({"temporal", "commit_count", "hybrid", "custom"})
+
 
 # ---------------------------------------------------------------------------
 # Enums
@@ -318,7 +320,7 @@ class ObservationWindow:
             raise ValueError(f"window_index must be non-negative, got {self.window_index}")
 
         # strategy
-        valid_strategies = {"temporal", "commit_count", "hybrid"}
+        valid_strategies = {"temporal", "commit_count", "hybrid", "custom"}
         if self.strategy not in valid_strategies:
             raise ValueError(f"strategy must be one of {valid_strategies}, got {self.strategy!r}")
 
@@ -451,6 +453,86 @@ class ObservationCollection:
         for window in self.windows:
             result.extend(window.observations)
         return result
+
+
+# ---------------------------------------------------------------------------
+# Window Builder Configuration (ODSS §24, OEAS §14.7)
+# ---------------------------------------------------------------------------
+
+
+@dataclass(frozen=True)
+class WindowConfig:
+    """ODSS §24 — Configuration for the Window Builder.
+
+    Attributes:
+        strategy: Windowing strategy ('temporal', 'commit_count', 'hybrid', 'custom').
+        window_size: Size parameter (days for temporal, commits for commit_count).
+        min_observations: Minimum observations per window (soft constraint).
+        max_windows: Maximum number of windows (optional).
+        custom_boundaries: Custom (start, end) ISO-8601 pairs for 'custom' strategy.
+    """
+
+    strategy: str
+    window_size: int = 30
+    min_observations: int = 2
+    max_windows: Optional[int] = None
+    custom_boundaries: Optional[List[Tuple[str, str]]] = None
+
+    def __post_init__(self) -> None:
+        if self.strategy not in _VALID_STRATEGIES:
+            raise ValueError(f"strategy must be one of {_VALID_STRATEGIES}, got {self.strategy!r}")
+        if self.window_size < 1:
+            raise ValueError(f"window_size must be >= 1, got {self.window_size}")
+        if self.min_observations < 0:
+            raise ValueError(f"min_observations must be >= 0, got {self.min_observations}")
+        if self.max_windows is not None and self.max_windows < 1:
+            raise ValueError(f"max_windows must be >= 1, got {self.max_windows}")
+        if self.strategy == "custom":
+            if not self.custom_boundaries:
+                raise ValueError("custom_boundaries required for 'custom' strategy")
+            for i, (start, end) in enumerate(self.custom_boundaries):
+                try:
+                    s = datetime.fromisoformat(start.replace("Z", "+00:00"))
+                    e = datetime.fromisoformat(end.replace("Z", "+00:00"))
+                except (ValueError, AttributeError) as exc:
+                    raise ValueError(f"custom_boundaries[{i}] must be valid ISO-8601: {exc}") from exc
+                if s >= e:
+                    raise ValueError(f"custom_boundaries[{i}] start must be < end: {start} >= {end}")
+
+
+@dataclass(frozen=True)
+class WindowBuilderResult:
+    """ODSS §25 — Output of the Window Builder.
+
+    Attributes:
+        windows: Ordered list of non-empty ObservationWindows.
+        unassigned_observations: Observations not placed in any window.
+        warnings: Diagnostic messages from the build process.
+    """
+
+    windows: List[ObservationWindow] = field(default_factory=list)
+    unassigned_observations: List[Observation] = field(default_factory=list)
+    warnings: List[str] = field(default_factory=list)
+
+
+# ---------------------------------------------------------------------------
+# Detector Adapter Output (ODSS §27)
+# ---------------------------------------------------------------------------
+
+
+@dataclass(frozen=True)
+class DetectorAdapterOutput:
+    """ODSS §27 — Translated output for legacy detectors.
+
+    Attributes:
+        metrics: metric_id → window_id → list of observation values.
+        window_ids: Ordered window identifiers.
+        metadata: Adapter metadata.
+    """
+
+    metrics: Dict[str, Dict[str, List[float]]] = field(default_factory=dict)
+    window_ids: List[str] = field(default_factory=list)
+    metadata: Dict[str, str] = field(default_factory=dict)
 
 
 # ---------------------------------------------------------------------------

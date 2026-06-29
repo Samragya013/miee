@@ -120,6 +120,22 @@ class ObservationStoreError(MIIEError):
     """
 
 
+class WindowBuilderError(MIIEError):
+    """OEAS §14.7 / ODSS §24 — Window Builder error.
+
+    Raised when the ObservationWindowBuilder encounters an invalid
+    configuration, empty collection, or strategy-specific failure.
+    """
+
+
+class DetectorAdapterError(MIIEError):
+    """OEAS §21.4 / ODSS §27 — Detector Adapter error.
+
+    Raised when the DetectorAdapter cannot translate ObservationWindows
+    into the legacy MetricDataFrame format.
+    """
+
+
 # CLI-specific error classes for standardized error reporting
 class ConfigError(MIIEError):
     """M-12: Configuration validation or loading error."""

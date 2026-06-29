@@ -389,3 +389,90 @@ class IObservationStore(Protocol):
     def list_collections(self) -> List[str]:
         """Return IDs of all stored collections."""
         ...
+
+
+# ---------------------------------------------------------------------------
+# Window Builder Interface (OEAS §21.3, ODSS §24-25)
+# ---------------------------------------------------------------------------
+
+
+@runtime_checkable
+class IWindowBuilder(Protocol):
+    """OEAS §21.3 / ODSS §24 — Window Builder interface.
+
+    Partitions observations into analysis windows according to
+    a configurable strategy (temporal, commit_count, hybrid, custom).
+    """
+
+    def build(
+        self,
+        collection: Any,
+        config: Any,
+    ) -> Any:
+        """Build observation windows from a collection.
+
+        Args:
+            collection: ObservationCollection containing observations.
+            config: WindowConfig specifying strategy and parameters.
+
+        Returns:
+            WindowBuilderResult with ordered windows, unassigned observations, and warnings.
+
+        Raises:
+            WindowBuilderError: If the collection is empty or config is invalid.
+        """
+        ...
+
+
+# ---------------------------------------------------------------------------
+# Detector Adapter Interface (OEAS §21.4, ODSS §27)
+# ---------------------------------------------------------------------------
+
+
+@runtime_checkable
+class IDetectorAdapter(Protocol):
+    """OEAS §21.4 / ODSS §27 — Detector Adapter interface.
+
+    Translates ObservationWindowCollection into MetricDataFrame and
+    paired observations for legacy detectors.
+    """
+
+    def to_metric_dataframe(
+        self,
+        windows: List[Any],
+        collection: Any,
+    ) -> Any:
+        """Translate ObservationWindows into a MetricDataFrame.
+
+        Args:
+            windows: List of ObservationWindows from the Window Builder.
+            collection: ObservationCollection for source lookups.
+
+        Returns:
+            MetricDataFrame compatible with existing detectors.
+
+        Raises:
+            DetectorAdapterError: If translation fails.
+        """
+        ...
+
+    def to_paired_observations(
+        self,
+        window: Any,
+        metric_i: str,
+        metric_j: str,
+    ) -> Any:
+        """Extract paired observations for correlation detectors.
+
+        Args:
+            window: A single ObservationWindow.
+            metric_i: First metric identifier.
+            metric_j: Second metric identifier.
+
+        Returns:
+            Tuple of (values_i, values_j) aligned by timestamp.
+
+        Raises:
+            DetectorAdapterError: If extraction fails.
+        """
+        ...
