@@ -104,6 +104,22 @@ class TemplateError(MIIEError):
     """INT-09: Template Rendering Error"""
 
 
+# Observation Engine v1.5 error classes (IMS Phase 2, additive)
+class ObservationError(MIIEError):
+    """ODSS: Observation validation or creation error.
+
+    Raised when an observation violates ODSS constraints
+    (invalid fields, deterministic ID mismatch, etc.).
+    """
+
+
+class ObservationStoreError(MIIEError):
+    """ODSS: ObservationStore operation error.
+
+    Raised when a store operation fails (add, get, query, clear, etc.).
+    """
+
+
 # CLI-specific error classes for standardized error reporting
 class ConfigError(MIIEError):
     """M-12: Configuration validation or loading error."""

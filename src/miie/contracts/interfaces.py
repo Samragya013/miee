@@ -321,3 +321,71 @@ class IDatasetGenerator(Protocol):
             List[Path]: Paths to generated dataset directories
         """
         ...
+
+
+# ---------------------------------------------------------------------------
+# Observation Engine v1.5 Interfaces (IMS Phase 2, additive)
+# ---------------------------------------------------------------------------
+
+
+@runtime_checkable
+class IObservationStore(Protocol):
+    """ODSS §12 — Observation Store interface.
+
+    In-memory storage for ObservationCollections with query support.
+    """
+
+    def add(self, collection: Any) -> None:
+        """Add an ObservationCollection to the store.
+
+        Args:
+            collection: An ObservationCollection to store.
+
+        Raises:
+            ObservationStoreError: If the collection is invalid or duplicate.
+        """
+        ...
+
+    def get(self, collection_id: str) -> Any:
+        """Retrieve a collection by its ID.
+
+        Args:
+            collection_id: The collection identifier.
+
+        Returns:
+            The ObservationCollection, or None if not found.
+        """
+        ...
+
+    def query(
+        self,
+        *,
+        repository_id: Optional[str] = None,
+        analysis_id: Optional[str] = None,
+        metric_id: Optional[str] = None,
+        window_id: Optional[str] = None,
+    ) -> List[Any]:
+        """Query observations across stored collections.
+
+        Args:
+            repository_id: Filter by repository ID.
+            analysis_id: Filter by analysis ID.
+            metric_id: Filter by metric ID.
+            window_id: Filter by window ID.
+
+        Returns:
+            List of matching ObservationCollections.
+        """
+        ...
+
+    def count(self) -> int:
+        """Return the number of stored collections."""
+        ...
+
+    def clear(self) -> None:
+        """Remove all stored collections."""
+        ...
+
+    def list_collections(self) -> List[str]:
+        """Return IDs of all stored collections."""
+        ...

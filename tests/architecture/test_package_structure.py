@@ -1,4 +1,4 @@
-"""Tests for MIIE package structure validation."""
+"""Tests for MIIE package structure validation (v1.5)."""
 
 from pathlib import Path
 
@@ -8,21 +8,19 @@ import pytest
 ROOT_DIR = Path(__file__).parent.parent.parent
 SRC_DIR = ROOT_DIR / "src" / "miie"
 
-# Expected packages according to TRD architecture
+# Expected packages according to v1.5 architecture
+# (common, detection, interface removed — empty legacy packages)
 EXPECTED_PACKAGES = {
-    "interface",
+    "api",
+    "benchmark",
+    "config",
+    "contracts",
     "orchestration",
     "processing",
-    "benchmark",
-    "storage",
-    "detection",
-    "contracts",
-    "schemas",
     "reporting",
-    "common",
+    "schemas",
+    "storage",
     "utils",
-    "config",
-    "api",
 }
 
 

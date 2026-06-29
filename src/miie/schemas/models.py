@@ -1001,3 +1001,26 @@ class StateObject:
                 raise ValueError(f"history[{i}] must be a StateTransition instance")
         if self.recovery_metadata is not None and not isinstance(self.recovery_metadata, RecoveryMetadata):
             raise ValueError("recovery_metadata must be a RecoveryMetadata instance or None")
+
+
+# ---------------------------------------------------------------------------
+# Observation Engine v1.5 — Re-exports
+# ---------------------------------------------------------------------------
+# These re-exports make observation models importable from schemas.models
+# for backward compatibility. The canonical definitions live in
+# miie.processing.observation.models.
+
+from miie.processing.observation.models import (  # noqa: E402, F401
+    ODSS_SCHEMA_VERSION,
+    Observation,
+    ObservationCollection,
+    ObservationProvenance,
+    ObservationQuality,
+    ObservationRelationship,
+    ObservationStatistics,
+    ObservationWindow,
+    RelationshipType,
+    SourceType,
+    create_observation,
+    generate_observation_id,
+)
