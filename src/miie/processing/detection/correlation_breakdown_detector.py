@@ -1,15 +1,27 @@
 """
 Correlation Breakdown Detector implementation for MIIE v1.0.
 Implements D-02 detector per TFS Section 5.2.
+
+Extended in v1.5 with detect_observations() that consumes ObservationWindow
+data directly, using paired observations aligned by source_id instead of
+positional truncation.
+
+Reference: DES-v2.0 §16.4, §22, IMS-v1.0 Phase 5
 """
 
+from __future__ import annotations
+
 import itertools
-from typing import Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 import numpy as np
-from scipy.stats import rankdata
 
 from miie.processing.detection.base import BaseDetector
+from miie.processing.detection.statistics import (
+    fisher_z_ci,
+    pearson_r,
+    spearman_rho,
+)
 from miie.schemas.models import DetectorResult, MetricDataFrame
 
 
@@ -36,6 +48,135 @@ class CorrelationBreakdownDetector(BaseDetector):
         self.gradual_erosion_window_start_min = 0.3
         self.gradual_erosion_window_end_max = 0.1
 
+    # ------------------------------------------------------------------
+    # v1.5 Observation-Window Path
+    # ------------------------------------------------------------------
+
+    def detect_observations(
+        self,
+        windows: List[Any],
+        config: Optional[Dict[str, Any]] = None,
+    ) -> DetectorResult:
+        """Execute correlation breakdown detection on ObservationWindows.
+
+        Aligns paired observations by source_id within each window,
+        then computes correlation trajectories across windows.
+
+        Args:
+            windows: List of ObservationWindow objects.
+            config: Optional overrides for detection thresholds.
+
+        Returns:
+            DetectorResult with breakdown analysis.
+        """
+        detector_outputs: Dict[str, Any] = {}
+
+        # Apply config overrides
+        sudden_drop = self.sudden_drop_threshold
+        sign_min = self.sign_reversal_min_correlation
+        erosion_slope = self.gradual_erosion_slope_threshold
+        erosion_start = self.gradual_erosion_window_start_min
+        erosion_end = self.gradual_erosion_window_end_max
+        if config:
+            sudden_drop = config.get("sudden_drop_threshold", sudden_drop)
+            sign_min = config.get("sign_reversal_min_correlation", sign_min)
+            erosion_slope = config.get("gradual_erosion_slope_threshold", erosion_slope)
+            erosion_start = config.get("gradual_erosion_window_start_min", erosion_start)
+            erosion_end = config.get("gradual_erosion_window_end_max", erosion_end)
+
+        available_metrics = self._discover_metrics(windows)
+
+        if len(available_metrics) < 2:
+            detector_outputs[self.detector_id] = self._empty_output()
+            return DetectorResult(detector_outputs=detector_outputs)
+
+        metric_pairs = list(itertools.combinations(available_metrics, 2))
+        window_ids = [w.window_id for w in windows]
+
+        breakdown_events: List[Dict[str, Any]] = []
+        pearson_trajectories: Dict[str, List[Optional[float]]] = {}
+        spearman_trajectories: Dict[str, List[Optional[float]]] = {}
+        confidence_intervals: Dict[Tuple[str, str, str], List[float]] = {}
+
+        for metric_i, metric_j in metric_pairs:
+            pair_key = f"{metric_i}_{metric_j}"
+            pearson_values: List[Optional[float]] = []
+            spearman_values: List[Optional[float]] = []
+
+            for window in windows:
+                # Extract paired observations by source_id
+                vals_i, vals_j = self._extract_paired_values(window, metric_i, metric_j)
+                n = min(len(vals_i), len(vals_j))
+
+                if n < 10:
+                    pearson_values.append(None)
+                    spearman_values.append(None)
+                    continue
+
+                # Use shared statistics
+                r = pearson_r(vals_i, vals_j)
+                rho = spearman_rho(vals_i, vals_j)
+
+                pearson_values.append(float(r))
+                spearman_values.append(float(rho))
+
+                # Fisher z confidence interval
+                ci_lower, ci_upper = fisher_z_ci(r, n)
+                confidence_intervals[(metric_i, metric_j, window.window_id)] = [
+                    ci_lower,
+                    ci_upper,
+                ]
+
+            pearson_trajectories[pair_key] = pearson_values
+            spearman_trajectories[pair_key] = spearman_values
+
+            # Detect breakdowns
+            pair_breakdowns = self._detect_breakdowns_for_pair(
+                metric_i,
+                metric_j,
+                window_ids,
+                pearson_values,
+                spearman_values,
+                confidence_intervals,
+                sudden_drop,
+                sign_min,
+                erosion_slope,
+                erosion_start,
+                erosion_end,
+            )
+            breakdown_events.extend(pair_breakdowns)
+
+        breakdown_detected = len(breakdown_events) > 0
+        breakdown_type = None
+        if breakdown_detected:
+            type_priority = {
+                "sign_reversal": 0,
+                "sudden_drop": 1,
+                "gradual_erosion": 2,
+                "confidence_exclusion": 3,
+            }
+            breakdown_type = min(
+                [e["breakdown_type"] for e in breakdown_events if e["breakdown_type"]],
+                key=lambda t: type_priority[t],
+            )
+
+        detector_outputs[self.detector_id] = {
+            "breakdown_detected": breakdown_detected,
+            "breakdown_type": breakdown_type,
+            "metric_pairs_analyzed": [f"{m1}_{m2}" for m1, m2 in metric_pairs],
+            "breakdown_events": breakdown_events,
+            "pearson_trajectories": pearson_trajectories,
+            "spearman_trajectories": spearman_trajectories,
+            "confidence_intervals": {f"{m1}_{m2}_{w}": ci for (m1, m2, w), ci in confidence_intervals.items()},
+            "window_pairs_flagged": [[e["window_pair"][0], e["window_pair"][1]] for e in breakdown_events],
+        }
+
+        return DetectorResult(detector_outputs=detector_outputs)
+
+    # ------------------------------------------------------------------
+    # Legacy MetricDataFrame Path (unchanged for backward compatibility)
+    # ------------------------------------------------------------------
+
     def validate_input(self, metric_dataframe: MetricDataFrame) -> bool:
         """
         Validate that at least two metrics are present for correlation analysis.
@@ -48,12 +189,11 @@ class CorrelationBreakdownDetector(BaseDetector):
         """
         available_metrics = set(metric_dataframe.metrics.keys())
         required_metrics = set(self.supported_metrics)
-        # Need at least two metrics to compute correlation
         return len(available_metrics.intersection(required_metrics)) >= 2
 
     def execute(self, metric_dataframe: MetricDataFrame) -> DetectorResult:
         """
-        Execute correlation breakdown detection.
+        Execute correlation breakdown detection (legacy path).
 
         Args:
             metric_dataframe: Input metrics for detection
@@ -61,107 +201,55 @@ class CorrelationBreakdownDetector(BaseDetector):
         Returns:
             DetectorResult: Detection outputs with breakdown analysis
         """
-        detector_outputs = {}
+        detector_outputs: Dict[str, Any] = {}
 
-        # Get available metrics that we support
         available_metrics = [m for m in self.supported_metrics if m in metric_dataframe.metrics]
 
         if len(available_metrics) < 2:
-            # Not enough metrics for correlation analysis
-            detector_outputs[self.detector_id] = {
-                "breakdown_detected": False,
-                "breakdown_type": None,
-                "metric_pairs_analyzed": [],
-                "breakdown_events": [],
-                "pearson_trajectories": {},
-                "spearman_trajectories": {},
-                "confidence_intervals": {},
-                "window_pairs_flagged": [],
-            }
+            detector_outputs[self.detector_id] = self._empty_output()
             return DetectorResult(detector_outputs=detector_outputs)
 
-        # Generate all unique metric pairs (i < j)
         metric_pairs = list(itertools.combinations(available_metrics, 2))
 
-        # Get all window IDs (assuming all metrics have same windows)
-        # We'll take the union of all window IDs across metrics
         window_sets = [set(metric_dataframe.metrics[m].keys()) for m in available_metrics]
-        if not window_sets:
-            window_ids = []
-        else:
-            window_ids = sorted(set.union(*window_sets))
+        window_ids = sorted(set.union(*window_sets)) if window_sets else []
 
-        # Initialize results storage
-        breakdown_events = []
-        pearson_trajectories = {}  # (metric_i, metric_j) -> [r_values per window]
-        spearman_trajectories = {}  # (metric_i, metric_j) -> [rho_values per window]
-        confidence_intervals = {}  # (metric_i, metric_j, window_id) -> [lower, upper]
+        breakdown_events: List[Dict[str, Any]] = []
+        pearson_trajectories: Dict[str, List[Optional[float]]] = {}
+        spearman_trajectories: Dict[str, List[Optional[float]]] = {}
+        confidence_intervals: Dict[Tuple[str, str, str], List[float]] = {}
 
-        # Process each metric pair
         for metric_i, metric_j in metric_pairs:
             pair_key = f"{metric_i}_{metric_j}"
-            pearson_values = []
-            spearman_values = []
+            pearson_values: List[Optional[float]] = []
+            spearman_values: List[Optional[float]] = []
 
-            # Process each window in chronological order
             for window_id in window_ids:
-                # Get metric values for this window
                 vals_i = metric_dataframe.metrics[metric_i].get(window_id, [])
                 vals_j = metric_dataframe.metrics[metric_j].get(window_id, [])
 
-                # Check for paired observations (assume same length and ordered by index)
                 n = min(len(vals_i), len(vals_j))
                 if n < 10:
-                    # Insufficient paired observations
                     pearson_values.append(None)
                     spearman_values.append(None)
                     continue
 
-                # Truncate to paired observations
-                x = np.array(vals_i[:n])
-                y = np.array(vals_j[:n])
+                # Use shared statistics module
+                r = pearson_r(vals_i, vals_j)
+                rho = spearman_rho(vals_i, vals_j)
 
-                # Compute Pearson correlation
-                pearson_r = np.corrcoef(x, y)[0, 1]
-                if np.isnan(pearson_r):
-                    pearson_r = 0.0
+                pearson_values.append(float(r))
+                spearman_values.append(float(rho))
 
-                # Compute Spearman rank correlation
-                # Use numpy to compute ranks, then Pearson on ranks
-                try:
-                    x_ranked = rankdata(x, method="average")
-                    y_ranked = rankdata(y, method="average")
-                    spearman_rho = np.corrcoef(x_ranked, y_ranked)[0, 1]
-                    if np.isnan(spearman_rho):
-                        spearman_rho = 0.0
-                except:
-                    spearman_rho = 0.0
-
-                pearson_values.append(float(pearson_r))
-                spearman_values.append(float(spearman_rho))
-
-                # Compute confidence interval for Pearson r using Fisher z-transform
-                if n >= 10:  # Already checked n>=10 above
-                    # Fisher z-transform
-                    z = 0.5 * np.log((1 + pearson_r) / (1 - pearson_r + 1e-10))  # Avoid division by zero
-                    se = 1.0 / np.sqrt(n - 3)
-                    z_critical = 1.96  # For 95% CI
-                    z_lower = z - z_critical * se
-                    z_upper = z + z_critical * se
-                    # Transform back to r scale
-                    r_lower = np.tanh(z_lower)
-                    r_upper = np.tanh(z_upper)
-                    confidence_intervals[(metric_i, metric_j, window_id)] = [
-                        float(r_lower),
-                        float(r_upper),
-                    ]
-                else:
-                    confidence_intervals[(metric_i, metric_j, window_id)] = [0.0, 0.0]
+                ci_lower, ci_upper = fisher_z_ci(r, n)
+                confidence_intervals[(metric_i, metric_j, window_id)] = [
+                    ci_lower,
+                    ci_upper,
+                ]
 
             pearson_trajectories[pair_key] = pearson_values
             spearman_trajectories[pair_key] = spearman_values
 
-            # Detect breakdowns for this metric pair
             pair_breakdowns = self._detect_breakdowns_for_pair(
                 metric_i,
                 metric_j,
@@ -172,24 +260,20 @@ class CorrelationBreakdownDetector(BaseDetector):
             )
             breakdown_events.extend(pair_breakdowns)
 
-        # Determine overall breakdown detection
         breakdown_detected = len(breakdown_events) > 0
         breakdown_type = None
         if breakdown_detected:
-            # Priority order: sign_reversal > sudden_drop > gradual_erosion > confidence_exclusion
             type_priority = {
                 "sign_reversal": 0,
                 "sudden_drop": 1,
                 "gradual_erosion": 2,
                 "confidence_exclusion": 3,
             }
-            # Get the highest priority (lowest number) type
             breakdown_type = min(
                 [event["breakdown_type"] for event in breakdown_events if event["breakdown_type"]],
                 key=lambda t: type_priority[t],
             )
 
-        # Prepare final output
         detector_outputs[self.detector_id] = {
             "breakdown_detected": breakdown_detected,
             "breakdown_type": breakdown_type,
@@ -203,6 +287,35 @@ class CorrelationBreakdownDetector(BaseDetector):
 
         return DetectorResult(detector_outputs=detector_outputs)
 
+    # ------------------------------------------------------------------
+    # Private helpers
+    # ------------------------------------------------------------------
+
+    def _discover_metrics(self, windows: List[Any]) -> List[str]:
+        """Find all supported metric IDs present in any window."""
+        found: set[str] = set()
+        for w in windows:
+            for obs in w.observations:
+                if obs.metric_id in self.supported_metrics:
+                    found.add(obs.metric_id)
+        return sorted(found)
+
+    def _extract_paired_values(self, window: Any, metric_i: str, metric_j: str) -> Tuple[List[float], List[float]]:
+        """Extract aligned observation values for two metrics by source_id."""
+        obs_i: Dict[str, float] = {}
+        obs_j: Dict[str, float] = {}
+        for obs in window.observations:
+            if obs.metric_id == metric_i and obs.source_id not in obs_i:
+                obs_i[obs.source_id] = obs.value
+            elif obs.metric_id == metric_j and obs.source_id not in obs_j:
+                obs_j[obs.source_id] = obs.value
+
+        common = sorted(set(obs_i.keys()) & set(obs_j.keys()))
+        if not common:
+            return [], []
+
+        return [obs_i[s] for s in common], [obs_j[s] for s in common]
+
     def _detect_breakdowns_for_pair(
         self,
         metric_i: str,
@@ -211,25 +324,25 @@ class CorrelationBreakdownDetector(BaseDetector):
         pearson_values: List[Optional[float]],
         spearman_values: List[Optional[float]],
         confidence_intervals: Dict[Tuple[str, str, str], List[float]],
-    ) -> List[Dict]:
-        """
-        Detect breakdowns for a single metric pair across windows.
-
-        Returns:
-            List of breakdown event dictionaries
-        """
-        breakdown_events = []
+        sudden_drop_threshold: float = 0.3,
+        sign_reversal_min: float = 0.2,
+        erosion_slope_threshold: float = -0.1,
+        erosion_start_min: float = 0.3,
+        erosion_end_max: float = 0.1,
+    ) -> List[Dict[str, Any]]:
+        """Detect breakdowns for a single metric pair across windows."""
+        breakdown_events: List[Dict[str, Any]] = []
         K = len(window_ids)
 
         if K < 2:
-            return breakdown_events  # Need at least 2 windows for any comparison
+            return breakdown_events
 
         # Breakdown Type 1: Sudden drop
         for k in range(K - 1):
             if pearson_values[k] is None or pearson_values[k + 1] is None:
                 continue
             delta = abs(pearson_values[k + 1] - pearson_values[k])
-            if delta > self.sudden_drop_threshold:
+            if delta > sudden_drop_threshold:
                 breakdown_events.append(
                     {
                         "metric_pair": [metric_i, metric_j],
@@ -247,8 +360,8 @@ class CorrelationBreakdownDetector(BaseDetector):
                 continue
             if (
                 np.sign(pearson_values[k]) != np.sign(pearson_values[k + 1])
-                and abs(pearson_values[k]) > self.sign_reversal_min_correlation
-                and abs(pearson_values[k + 1]) > self.sign_reversal_min_correlation
+                and abs(pearson_values[k]) > sign_reversal_min
+                and abs(pearson_values[k + 1]) > sign_reversal_min
             ):
                 breakdown_events.append(
                     {
@@ -262,14 +375,12 @@ class CorrelationBreakdownDetector(BaseDetector):
 
         # Breakdown Type 3: Gradual erosion (requires K >= 4)
         if K >= 4:
-            # Only consider if first window correlation > threshold and last window correlation < threshold
             if (
                 pearson_values[0] is not None
                 and pearson_values[-1] is not None
-                and pearson_values[0] > self.gradual_erosion_window_start_min
-                and pearson_values[-1] < self.gradual_erosion_window_end_max
+                and pearson_values[0] > erosion_start_min
+                and pearson_values[-1] < erosion_end_max
             ):
-                # Compute linear regression slope of Pearson r over window indices
                 valid_indices = []
                 valid_values = []
                 for idx, val in enumerate(pearson_values):
@@ -278,7 +389,6 @@ class CorrelationBreakdownDetector(BaseDetector):
                         valid_values.append(val)
 
                 if len(valid_indices) >= 2:
-                    # Simple linear regression: slope = sum((x - x_mean)*(y - y_mean)) / sum((x - x_mean)^2)
                     x = np.array(valid_indices, dtype=float)
                     y = np.array(valid_values, dtype=float)
                     x_mean = np.mean(x)
@@ -287,15 +397,12 @@ class CorrelationBreakdownDetector(BaseDetector):
                     denominator = np.sum((x - x_mean) ** 2)
                     if denominator != 0:
                         slope = numerator / denominator
-                        if slope < self.gradual_erosion_slope_threshold:
+                        if slope < erosion_slope_threshold:
                             breakdown_events.append(
                                 {
                                     "metric_pair": [metric_i, metric_j],
                                     "breakdown_type": "gradual_erosion",
-                                    "window_pair": [
-                                        window_ids[0],
-                                        window_ids[-1],
-                                    ],  # First to last window
+                                    "window_pair": [window_ids[0], window_ids[-1]],
                                     "slope": slope,
                                     "pearson_values": pearson_values,
                                     "detection_method": "gradual_erosion",
@@ -303,27 +410,38 @@ class CorrelationBreakdownDetector(BaseDetector):
                             )
 
         # Breakdown Type 4: Confidence interval exclusion
-        if K >= 2:  # Need at least 2 windows to compare consecutive CIs
-            for k in range(K - 1):
-                ci_key_curr = (metric_i, metric_j, window_ids[k])
-                ci_key_next = (metric_i, metric_j, window_ids[k + 1])
-                if ci_key_curr in confidence_intervals and ci_key_next in confidence_intervals:
-                    ci_curr = confidence_intervals[ci_key_curr]
-                    ci_next = confidence_intervals[ci_key_next]
-                    # Check if intervals do NOT overlap
-                    if ci_curr[1] < ci_next[0] or ci_next[1] < ci_curr[0]:
-                        breakdown_events.append(
-                            {
-                                "metric_pair": [metric_i, metric_j],
-                                "breakdown_type": "confidence_exclusion",
-                                "window_pair": [window_ids[k], window_ids[k + 1]],
-                                "confidence_intervals": [ci_curr, ci_next],
-                                "pearson_values": [
-                                    pearson_values[k],
-                                    pearson_values[k + 1],
-                                ],
-                                "detection_method": "confidence_exclusion",
-                            }
-                        )
+        for k in range(K - 1):
+            ci_key_curr = (metric_i, metric_j, window_ids[k])
+            ci_key_next = (metric_i, metric_j, window_ids[k + 1])
+            if ci_key_curr in confidence_intervals and ci_key_next in confidence_intervals:
+                ci_curr = confidence_intervals[ci_key_curr]
+                ci_next = confidence_intervals[ci_key_next]
+                if ci_curr[1] < ci_next[0] or ci_next[1] < ci_curr[0]:
+                    breakdown_events.append(
+                        {
+                            "metric_pair": [metric_i, metric_j],
+                            "breakdown_type": "confidence_exclusion",
+                            "window_pair": [window_ids[k], window_ids[k + 1]],
+                            "confidence_intervals": [ci_curr, ci_next],
+                            "pearson_values": [
+                                pearson_values[k],
+                                pearson_values[k + 1],
+                            ],
+                            "detection_method": "confidence_exclusion",
+                        }
+                    )
 
         return breakdown_events
+
+    def _empty_output(self) -> Dict[str, Any]:
+        """Return the empty (no-breakdown) output structure."""
+        return {
+            "breakdown_detected": False,
+            "breakdown_type": None,
+            "metric_pairs_analyzed": [],
+            "breakdown_events": [],
+            "pearson_trajectories": {},
+            "spearman_trajectories": {},
+            "confidence_intervals": {},
+            "window_pairs_flagged": [],
+        }

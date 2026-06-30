@@ -1,13 +1,27 @@
 """
 Threshold Compression Detector implementation for MIIE v1.0.
 Implements D-03 detector per TFS Section 5.3.
+
+Extended in v1.5 with detect_observations() that consumes ObservationWindow
+data directly, using true per-commit observation samples for excess mass
+and dip test computations.
+
+Reference: DES-v2.0 §16.5, §23, IMS-v1.0 Phase 5
 """
 
-from typing import List, Tuple
+from __future__ import annotations
+
+from typing import Any, Dict, List
 
 import numpy as np
 
 from miie.processing.detection.base import BaseDetector
+from miie.processing.detection.statistics import (
+    auto_thresholds,
+    compute_epsilon,
+    dip_test,
+    excess_mass_test,
+)
 from miie.schemas.models import DetectorResult, MetricDataFrame
 
 
@@ -49,6 +63,134 @@ class ThresholdCompressionDetector(BaseDetector):
         ]
         self.auto_threshold_percentiles = [10, 25, 50, 75, 90]
 
+    # ------------------------------------------------------------------
+    # v1.5 Observation-Window Path
+    # ------------------------------------------------------------------
+
+    def detect_observations(
+        self,
+        windows: List[Any],
+        config: Optional[Dict[str, Any]] = None,
+    ) -> DetectorResult:
+        """Execute threshold compression detection on ObservationWindows.
+
+        Args:
+            windows: List of ObservationWindow objects.
+            config: Optional overrides for detection thresholds.
+
+        Returns:
+            DetectorResult with compression analysis.
+        """
+        detector_outputs: Dict[str, Any] = {}
+
+        # Apply config overrides
+        em_z_thresh = self.excess_mass_z_threshold
+        dip_p_thresh = self.dip_test_p_threshold
+        dip_boot = self.dip_test_bootstrap_samples
+        dip_seed = self.dip_test_random_seed
+        if config:
+            em_z_thresh = config.get("excess_mass_z_threshold", em_z_thresh)
+            dip_p_thresh = config.get("dip_test_p_threshold", dip_p_thresh)
+            dip_boot = config.get("dip_test_bootstrap_samples", dip_boot)
+            dip_seed = config.get("dip_test_random_seed", dip_seed)
+
+        available_metrics = self._discover_metrics(windows)
+
+        if not available_metrics:
+            detector_outputs[self.detector_id] = self._empty_output()
+            return DetectorResult(detector_outputs=detector_outputs)
+
+        window_ids = [w.window_id for w in windows]
+
+        compression_events: List[Dict[str, Any]] = []
+        thresholds_used: Dict[str, List[float]] = {}
+        excess_mass_z_scores: Dict[str, float] = {}
+        dip_test_statistics: Dict[str, float] = {}
+        dip_test_p_values: Dict[str, float] = {}
+
+        processed_windows: set[str] = set()
+
+        for metric in available_metrics:
+            # Extract all values for this metric across windows
+            all_vals = self._extract_all_values(windows, metric)
+            metric_thresholds = auto_thresholds(
+                all_vals,
+                self.auto_threshold_candidates,
+                self.auto_threshold_percentiles,
+            )
+            thresholds_used[metric] = metric_thresholds
+
+            if not metric_thresholds:
+                continue
+
+            # Extract per-window values
+            window_values = self._extract_metric_values(windows, metric)
+
+            for threshold in metric_thresholds:
+                for wid in window_ids:
+                    vals = window_values.get(wid, [])
+
+                    if len(vals) < 20:
+                        continue
+
+                    processed_windows.add(wid)
+
+                    # Excess mass test using shared statistics
+                    eps = compute_epsilon(vals, threshold)
+                    z_score = excess_mass_test(vals, threshold, eps)
+                    excess_mass_z_scores[f"{metric}_{threshold}_{wid}"] = float(z_score)
+
+                    # Dip test using shared statistics
+                    dip_stat, dip_p = dip_test(vals, bootstrap_samples=dip_boot, random_seed=dip_seed)
+                    dip_test_statistics[f"{metric}_{threshold}_{wid}"] = float(dip_stat)
+                    dip_test_p_values[f"{metric}_{threshold}_{wid}"] = float(dip_p)
+
+                    excess_mass_flag = z_score > em_z_thresh
+                    multimodal_flag = dip_p < dip_p_thresh
+
+                    in_band = int(np.sum(np.abs(np.array(vals) - threshold) <= eps))
+                    p_hat = in_band / len(vals) if len(vals) > 0 else 0.0
+
+                    if excess_mass_flag and (multimodal_flag or p_hat > 0.5):
+                        compression_events.append(
+                            {
+                                "metric": metric,
+                                "threshold": threshold,
+                                "window": wid,
+                                "compression_detected": True,
+                                "compression_index": float(p_hat),
+                                "excess_mass_z_score": float(z_score),
+                                "dip_test_statistic": float(dip_stat),
+                                "dip_test_p_value": float(dip_p),
+                                "epsilon": float(eps),
+                                "sample_size": len(vals),
+                                "hypothesized_cause": self._infer_cause(metric, threshold),
+                            }
+                        )
+
+        compression_detected = len(compression_events) > 0
+        compression_index = 0.0
+        if compression_events:
+            compression_index = float(np.mean([e["compression_index"] for e in compression_events]))
+
+        detector_outputs[self.detector_id] = {
+            "compression_detected": compression_detected,
+            "compression_index": compression_index,
+            "metrics_analyzed": available_metrics,
+            "compression_events": compression_events,
+            "thresholds_used": thresholds_used,
+            "excess_mass_z_scores": excess_mass_z_scores,
+            "dip_test_statistics": dip_test_statistics,
+            "dip_test_p_values": dip_test_p_values,
+            "windows_analyzed": sorted(list(processed_windows)),
+        }
+
+        return DetectorResult(detector_outputs=detector_outputs)
+
+    # ------------------------------------------------------------------
+    # Legacy MetricDataFrame Path (unchanged for backward compatibility)
+    # ------------------------------------------------------------------
+
     def validate_input(self, metric_dataframe: MetricDataFrame) -> bool:
         """
         Validate that at least one metric is present for threshold compression analysis.
@@ -65,7 +207,7 @@ class ThresholdCompressionDetector(BaseDetector):
 
     def execute(self, metric_dataframe: MetricDataFrame) -> DetectorResult:
         """
-        Execute threshold compression detection.
+        Execute threshold compression detection (legacy path).
 
         Args:
             metric_dataframe: Input metrics for detection
@@ -73,301 +215,153 @@ class ThresholdCompressionDetector(BaseDetector):
         Returns:
             DetectorResult: Detection outputs with compression analysis
         """
-        detector_outputs = {}
+        detector_outputs: Dict[str, Any] = {}
 
-        # Get available metrics that we support
         available_metrics = [m for m in self.supported_metrics if m in metric_dataframe.metrics]
 
         if not available_metrics:
-            # No metrics available for compression analysis
-            detector_outputs[self.detector_id] = {
-                "compression_detected": False,
-                "compression_index": 0.0,
-                "metrics_analyzed": [],
-                "compression_events": [],
-                "thresholds_used": {},
-                "excess_mass_z_scores": {},
-                "dip_test_statistics": {},
-                "dip_test_p_values": {},
-                "windows_analyzed": [],
-            }
+            detector_outputs[self.detector_id] = self._empty_output()
             return DetectorResult(detector_outputs=detector_outputs)
 
-        # Get all window IDs (assuming all metrics have same windows)
         window_sets = [set(metric_dataframe.metrics[m].keys()) for m in available_metrics]
-        if not window_sets:
-            window_ids = []
-        else:
-            window_ids = sorted(set.union(*window_sets))
+        window_ids = sorted(set.union(*window_sets)) if window_sets else []
 
-        # Initialize results storage
-        compression_events = []
-        thresholds_used = {}  # metric -> [thresholds]
-        excess_mass_z_scores = {}  # (metric, threshold, window) -> z-score
-        dip_test_statistics = {}  # (metric, threshold, window) -> dip stat
-        dip_test_p_values = {}  # (metric, threshold, window) -> dip p-value
+        compression_events: List[Dict[str, Any]] = []
+        thresholds_used: Dict[str, List[float]] = {}
+        excess_mass_z_scores: Dict[str, float] = {}
+        dip_test_statistics: Dict[str, float] = {}
+        dip_test_p_values: Dict[str, float] = {}
 
-        # Set random seed for dip test bootstrap
-        rng = np.random.default_rng(self.dip_test_random_seed)
+        processed_windows: set[str] = set()
 
-        # Process each metric
-        processed_windows = set()
         for metric in available_metrics:
-            metric_thresholds = self._get_thresholds_for_metric(metric_dataframe, metric)
+            # Get thresholds using shared statistics
+            all_vals = []
+            for window_id, vals in metric_dataframe.metrics[metric].items():
+                all_vals.extend(vals)
+
+            if not all_vals:
+                continue
+
+            metric_thresholds = auto_thresholds(
+                all_vals,
+                self.auto_threshold_candidates,
+                self.auto_threshold_percentiles,
+            )
             thresholds_used[metric] = metric_thresholds
 
             if not metric_thresholds:
-                # No thresholds to test for this metric
                 continue
 
-            # Get window IDs for this metric
             metric_windows = sorted(set(metric_dataframe.metrics[metric].keys()))
-            if not metric_windows:
-                continue
 
-            # Process each threshold and window
             for threshold in metric_thresholds:
                 for window_id in metric_windows:
-                    # Get metric values for this window
                     vals = metric_dataframe.metrics[metric].get(window_id, [])
 
-                    # Skip if insufficient sample size (TFS: ||W|| < 20 -> skip)
                     if len(vals) < 20:
                         continue
-                    # Mark that we are processing this window (at least for this metric-threshold combo)
+
                     processed_windows.add(window_id)
 
-                    # Perform excess mass test
-                    z_score = self._excess_mass_test(vals, threshold)
-                    excess_mass_z_scores[(metric, threshold, window_id)] = float(z_score)
+                    # Use shared statistics module
+                    eps = compute_epsilon(vals, threshold)
+                    z_score = excess_mass_test(vals, threshold, eps)
+                    excess_mass_z_scores[f"{metric}_{threshold}_{window_id}"] = float(z_score)
 
-                    # Perform dip test (supporting)
-                    dip_stat, dip_p = self._dip_test(
+                    dip_stat, dip_p = dip_test(
                         vals,
                         bootstrap_samples=self.dip_test_bootstrap_samples,
                         random_seed=self.dip_test_random_seed,
                     )
-                    dip_test_statistics[(metric, threshold, window_id)] = float(dip_stat)
-                    dip_test_p_values[(metric, threshold, window_id)] = float(dip_p)
+                    dip_test_statistics[f"{metric}_{threshold}_{window_id}"] = float(dip_stat)
+                    dip_test_p_values[f"{metric}_{threshold}_{window_id}"] = float(dip_p)
 
-                    # Determine if compression is detected
-                    # Per TFS Section 5.3: Final flag: TRUE if excess_mass_flag AND (multimodal_flag OR p_hat > 0.5)
-                    # where:
-                    #   excess_mass_flag = (z_score > z_0.95)  [one-tailed, α = 0.05]
-                    #   multimodal_flag = (dip_p < 0.05)
-                    #   p_hat = proportion of values in band [T-ε, T+ε]
                     excess_mass_flag = z_score > self.excess_mass_z_threshold
                     multimodal_flag = dip_p < self.dip_test_p_threshold
 
-                    # Compute p_hat (proportion in band)
-                    epsilon = self._compute_epsilon(vals, threshold)
-                    in_band = np.sum(np.abs(np.array(vals) - threshold) <= epsilon)
+                    in_band = int(np.sum(np.abs(np.array(vals) - threshold) <= eps))
                     p_hat = in_band / len(vals) if len(vals) > 0 else 0.0
 
                     if excess_mass_flag and (multimodal_flag or p_hat > 0.5):
-                        # Compression detected
                         compression_events.append(
                             {
                                 "metric": metric,
                                 "threshold": threshold,
                                 "window": window_id,
                                 "compression_detected": True,
-                                "compression_index": float(p_hat),  # Per TFS: compression_index = p_hat
+                                "compression_index": float(p_hat),
                                 "excess_mass_z_score": float(z_score),
                                 "dip_test_statistic": float(dip_stat),
                                 "dip_test_p_value": float(dip_p),
-                                "epsilon": float(epsilon),
+                                "epsilon": float(eps),
                                 "sample_size": len(vals),
-                                "hypothesized_cause": self._infer_cause(metric, threshold),  # Rule-based
+                                "hypothesized_cause": self._infer_cause(metric, threshold),
                             }
                         )
 
-        # Determine overall compression detection
         compression_detected = len(compression_events) > 0
-        # Compression index: average compression_index across all events
         compression_index = 0.0
         if compression_events:
-            compression_values = [event["compression_index"] for event in compression_events]
-            compression_index = float(np.mean(compression_values))
+            compression_index = float(np.mean([e["compression_index"] for e in compression_events]))
 
-        # Prepare final output
         detector_outputs[self.detector_id] = {
             "compression_detected": compression_detected,
             "compression_index": compression_index,
             "metrics_analyzed": available_metrics,
             "compression_events": compression_events,
-            "thresholds_used": {m: thresholds for m, thresholds in thresholds_used.items()},
-            "excess_mass_z_scores": {f"{m}_{t}_{w}": z for (m, t, w), z in excess_mass_z_scores.items()},
-            "dip_test_statistics": {f"{m}_{t}_{w}": stat for (m, t, w), stat in dip_test_statistics.items()},
-            "dip_test_p_values": {f"{m}_{t}_{w}": p for (m, t, w), p in dip_test_p_values.items()},
+            "thresholds_used": {m: t for m, t in thresholds_used.items()},
+            "excess_mass_z_scores": excess_mass_z_scores,
+            "dip_test_statistics": dip_test_statistics,
+            "dip_test_p_values": dip_test_p_values,
             "windows_analyzed": sorted(list(processed_windows)),
         }
 
         return DetectorResult(detector_outputs=detector_outputs)
 
-    def _get_thresholds_for_metric(self, metric_dataframe: MetricDataFrame, metric: str) -> List[float]:
-        """
-        Get thresholds for a metric: explicit thresholds (from config) + auto-thresholds.
-        For now, we only implement auto-threshold detection as explicit thresholds
-        would require configuration input.
-        """
-        # Get metric values across all windows to compute auto-thresholds
-        all_vals = []
-        for window_id, vals in metric_dataframe.metrics[metric].items():
-            all_vals.extend(vals)
+    # ------------------------------------------------------------------
+    # Private helpers
+    # ------------------------------------------------------------------
 
-        if not all_vals:
-            return []
+    def _discover_metrics(self, windows: List[Any]) -> List[str]:
+        """Find all supported metric IDs present in any window."""
+        found: set[str] = set()
+        for w in windows:
+            for obs in w.observations:
+                if obs.metric_id in self.supported_metrics:
+                    found.add(obs.metric_id)
+        return sorted(found)
 
-        # Auto-threshold detection (TFS Section 5.3)
-        auto_thresholds = set()
+    def _extract_metric_values(self, windows: List[Any], metric_id: str) -> Dict[str, List[float]]:
+        """Extract per-window value lists for a metric."""
+        result: Dict[str, List[float]] = {}
+        for w in windows:
+            values = [obs.value for obs in w.observations if obs.metric_id == metric_id]
+            if values:
+                result[w.window_id] = values
+        return result
 
-        # Add candidate thresholds that are within [min(X), max(X)]
-        min_val = np.min(all_vals)
-        max_val = np.max(all_vals)
-        for T in self.auto_threshold_candidates:
-            if min_val <= T <= max_val:
-                auto_thresholds.add(float(T))
-
-        # Add percentile-based thresholds that are "round numbers" (end in 0 or 5)
-        for percentile in self.auto_threshold_percentiles:
-            T = np.percentile(all_vals, percentile)
-            # Check if T is a "round number" (ends in 0 or 5)
-            # We'll check if the last non-zero digit is 0 or 5 when rounded to 1 decimal place
-            T_rounded = round(T, 1)
-            if T_rounded * 10 % 10 == 0 or T_rounded * 10 % 10 == 5:
-                auto_thresholds.add(float(T_rounded))
-
-        return sorted(list(auto_thresholds))
-
-    def _compute_epsilon(self, vals: List[float], threshold: float) -> float:
-        """
-        Compute epsilon for the threshold compression test.
-        Per TFS Section 5.3: ε = max(0.02 × T, 0.01 × (max(X) - min(X)))
-        """
-        if len(vals) == 0:
-            return 0.0
-        val_range = np.max(vals) - np.min(vals)
-        epsilon1 = 0.02 * abs(threshold)
-        epsilon2 = 0.01 * val_range
-        return max(epsilon1, epsilon2)
-
-    def _excess_mass_test(self, vals: List[float], threshold: float) -> float:
-        """
-        Compute excess mass test statistic.
-        Per TFS Section 5.3:
-        Let B(T, ε) = {x : |x - T| ≤ ε} (the "band" around threshold).
-        Expected proportion under uniform assumption: p₀ = 2ε / (max(X) - min(X))
-        Observed proportion: p = |B(T, ε)| / n
-        Test statistic: z = (p - p₀) / √(p₀(1 - p₀) / n)
-        """
-        n = len(vals)
-        if n < 2:
-            return 0.0
-
-        min_val = np.min(vals)
-        max_val = np.max(vals)
-        val_range = max_val - min_val
-
-        if val_range == 0:
-            # All values are the same
-            if threshold == min_val:  # which equals max_val
-                # All values are exactly at the threshold -> perfect compression
-                # Return a large z-score to indicate significance
-                return float("inf")
-            else:
-                # threshold is not the constant value
-                return 0.0
-
-        epsilon = self._compute_epsilon(vals, threshold)
-        # Avoid division by zero in p0 calculation
-        if val_range == 0:
-            p0 = 0.0
-        else:
-            p0 = 2.0 * epsilon / val_range
-
-        # Avoid p0 being 0 or 1 (would make denominator zero)
-        if p0 <= 0 or p0 >= 1:
-            return 0.0
-
-        # Count values in band [T-ε, T+ε]
-        in_band = np.sum(np.abs(np.array(vals) - threshold) <= epsilon)
-        p = in_band / n if n > 0 else 0.0
-
-        # Compute z-score
-        # z = (p - p0) / sqrt(p0 * (1 - p0) / n)
-        try:
-            z = (p - p0) / np.sqrt(p0 * (1.0 - p0) / n)
-        except:
-            z = 0.0
-
-        return float(z)
-
-    def _dip_test(self, vals: List[float], bootstrap_samples: int = 1000, random_seed: int = 42) -> Tuple[float, float]:
-        """
-        Compute Hartigans' Dip test statistic and p-value via bootstrap.
-        Per TFS Section 5.3:
-        D = inf_F sup_x |F_n(x) - F(x)|
-        where F_n is empirical CDF and F ranges over unimodal distributions.
-        p-value computed via bootstrap (n_boot = 1000, seed = 42).
-        """
-        n = len(vals)
-        if n < 2:
-            return 0.0, 1.0
-
-        # Set random seed for reproducibility
-        rng = np.random.default_rng(random_seed)
-
-        # Compute empirical CDF
-        sorted_vals = np.sort(vals)
-        # Empirical CDF at each sorted value: i/n
-        ecdf = np.arange(1, n + 1) / n
-
-        # Compute dip statistic: minimum (over unimodal F) of sup_x |F_n(x) - F(x)|
-        # We'll use the approximation: dip statistic = max |ecdf(x) - ucdf(x)|
-        # where ucdf is the CDF of the uniform distribution on [min, max]
-        # This is not the exact dip test but a common approximation.
-        # For exact dip test, we would need to compute the distance to the unimodal distribution.
-        # Given complexity, we'll use the Kolmogorov-Smirnov test against the uniform distribution
-        # as an approximation for dip test.
-        min_val = np.min(vals)
-        max_val = np.max(vals)
-        if max_val == min_val:
-            return 0.0, 1.0
-
-        # Theoretical uniform CDF
-        ucdf = (sorted_vals - min_val) / (max_val - min_val)
-        # Clip to [0, 1] just in case
-        ucdf = np.clip(ucdf, 0.0, 1.0)
-
-        # KS statistic between empirical CDF and uniform CDF
-        dip_statistic = np.max(np.abs(ecdf - ucdf))
-
-        # Bootstrap p-value: generate bootstrap samples from uniform distribution
-        # and compute dip statistic for each
-        bootstrap_stats = []
-        for _ in range(bootstrap_samples):
-            # Generate bootstrap sample from uniform distribution [min_val, max_val]
-            bootstrap_sample = rng.uniform(min_val, max_val, n)
-            bootstrap_sample_sorted = np.sort(bootstrap_sample)
-            bootstrap_ecdf = np.arange(1, n + 1) / n
-            bootstrap_ucdf = (bootstrap_sample_sorted - min_val) / (max_val - min_val)
-            bootstrap_ucdf = np.clip(bootstrap_ucdf, 0.0, 1.0)
-            bootstrap_dip = np.max(np.abs(bootstrap_ecdf - bootstrap_ucdf))
-            bootstrap_stats.append(bootstrap_dip)
-
-        # p-value = proportion of bootstrap stats >= observed dip statistic
-        bootstrap_stats = np.array(bootstrap_stats)
-        p_value = np.sum(bootstrap_stats >= dip_statistic) / len(bootstrap_stats)
-
-        return float(dip_statistic), float(p_value)
+    def _extract_all_values(self, windows: List[Any], metric_id: str) -> List[float]:
+        """Extract all values for a metric across all windows."""
+        result: List[float] = []
+        for w in windows:
+            result.extend(obs.value for obs in w.observations if obs.metric_id == metric_id)
+        return result
 
     def _infer_cause(self, metric: str, threshold: float) -> str:
-        """
-        Rule-based cause inference for threshold compression.
-        Per TFS Section 5.3: hypothesized_cause = infer_cause(M, T)
-        Rule-based: see FR-010 (we don't have FR-010, so we'll return a placeholder)
-        """
-        # Without FR-010, we'll return a generic cause
-        # In a real implementation, this would rule-based lookup
-        return "THRESHOLD_GAMING"  # Placeholder from TFS example
+        """Rule-based cause inference for threshold compression."""
+        return "THRESHOLD_GAMING"
+
+    def _empty_output(self) -> Dict[str, Any]:
+        """Return the empty (no-compression) output structure."""
+        return {
+            "compression_detected": False,
+            "compression_index": 0.0,
+            "metrics_analyzed": [],
+            "compression_events": [],
+            "thresholds_used": {},
+            "excess_mass_z_scores": {},
+            "dip_test_statistics": {},
+            "dip_test_p_values": {},
+            "windows_analyzed": [],
+        }
