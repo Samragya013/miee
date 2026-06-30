@@ -167,15 +167,35 @@ class AnalysisPipeline:
             enabled_detectors=enabled_detectors,
         )
 
-        # Step 5: Scoring
+        # Step 5: Generate partial evidence (observation-level metadata only)
+        # This enables observation-aware scoring without circular dependency
+        partial_evidence_package = self.evidence_engine.generate_observation_evidence(
+            repository_context=repository_context,
+            metric_dataframe=metric_dataframe,
+            windows=windows,
+            detector_results=detector_results,
+            configuration={
+                "metric_list": metric_list,
+                "since": since,
+                "until": until,
+                "exclude_bots": exclude_bots,
+                "segmentation_strategy": segmentation_strategy,
+                "segmentation_size": segmentation_size,
+                "detector_config": detector_config or {},
+                "enabled_detectors": enabled_detectors or ["D-01", "D-02", "D-03"],
+            },
+        )
+
+        # Step 6: Scoring (with observation-aware evidence)
         score_package = self.scoring_engine.compute_integrity_score(
             detector_results=detector_results,
             metric_dataframe=metric_dataframe,
             windows=windows,
             detector_weights=detector_weights,
+            evidence_package=partial_evidence_package,
         )
 
-        # Step 6: Evidence Generation
+        # Step 7: Generate full evidence package with scores
         evidence_package = self.evidence_engine.generate(
             repository_context=repository_context,
             metric_dataframe=metric_dataframe,
@@ -194,12 +214,12 @@ class AnalysisPipeline:
             },
         )
 
-        # Step 7: Explanation Generation
+        # Step 8: Explanation Generation
         explanation_report = self.explanation_engine.generate(
             evidence_package=evidence_package, score_package=score_package
         )
 
-        # Step 8: Report Generation
+        # Step 9: Report Generation
         analysis_results = {
             "repository_context": repository_context,
             "metric_dataframe": metric_dataframe,

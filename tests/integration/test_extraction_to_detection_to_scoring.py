@@ -98,17 +98,16 @@ class TestExtractionToDetectionToScoringFlow:
             confidence = score_package.confidence
 
             # Check integrity structure
-            assert "overall" in integrity
-            assert "per_metric" in integrity
-            assert isinstance(integrity["overall"], (int, float))
-            assert 0.0 <= integrity["overall"] <= 1.0
+            assert hasattr(integrity, "overall")
+            assert hasattr(integrity, "per_metric")
+            assert isinstance(integrity.overall, (int, float))
+            assert 0.0 <= integrity.overall <= 1.0
 
             # Check confidence structure
-            assert "overall" in confidence
-            assert "factors" in confidence
-            assert isinstance(confidence["overall"], (int, float))
-            assert 0.0 <= confidence["overall"] <= 1.0
-            assert isinstance(confidence["factors"], dict)
+            assert hasattr(confidence, "overall")
+            assert hasattr(confidence, "factors")
+            assert isinstance(confidence.overall, (int, float))
+            assert 0.0 <= confidence.overall <= 1.0
 
         # If it's a dict (older format)
         else:
@@ -190,7 +189,5 @@ class TestExtractionToDetectionToScoringFlow:
         assert hasattr(score_package, "integrity") or isinstance(score_package, dict)
         if hasattr(score_package, "integrity"):
             assert hasattr(score_package, "confidence")
-            assert isinstance(score_package.integrity, dict)
-            assert isinstance(score_package.confidence, dict)
-            assert "overall" in score_package.integrity
-            assert "overall" in score_package.confidence
+            assert hasattr(score_package.integrity, "overall")
+            assert hasattr(score_package.confidence, "overall")

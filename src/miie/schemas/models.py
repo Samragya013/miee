@@ -306,6 +306,7 @@ class EvidencePackage:
 
     Source: ACS v1.0 Section 10.1 (Evidence Generation)
     Extended: IMS Phase 6 (Evidence Refactor) for observation-level provenance
+    Extended: IMS Phase 7 (Scoring Refactor) for observation-aware scoring
 
     Observation provenance fields provide complete traceability from evidence
     back to the raw observations, detector executions, and statistical artifacts
@@ -317,7 +318,7 @@ class EvidencePackage:
     windows: List[WindowDefinition]
     metrics: Dict[str, Any]  # Summary of metric data
     detector_outputs: DetectorResults
-    scores: ScorePackage
+    scores: Optional[ScorePackage] = None  # Optional for observation-aware scoring
     warnings: List[WarningItem] = field(default_factory=list)
 
     # Observation-level provenance fields (IMS Phase 6)
@@ -404,9 +405,9 @@ class EvidencePackage:
             if not isinstance(window, WindowDefinition):
                 raise ValueError(f"windows[{i}] must be a WindowDefinition instance")
 
-        # Validate scores is a ScorePackage instance
-        if not isinstance(self.scores, ScorePackage):
-            raise ValueError("scores must be a ScorePackage instance")
+        # Validate scores is a ScorePackage instance (optional for observation-aware scoring)
+        if self.scores is not None and not isinstance(self.scores, ScorePackage):
+            raise ValueError("scores must be a ScorePackage instance or None")
 
         # Validate detector_outputs is a DetectorResults instance
         if not isinstance(self.detector_outputs, DetectorResults):
@@ -461,7 +462,9 @@ class EvidencePackage:
                 "timestamp": self.scores.timestamp.isoformat(),
                 "config_hash": self.scores.config_hash,
                 "formula_version": self.scores.formula_version,
-            },
+            }
+            if self.scores is not None
+            else None,
             "warnings": [
                 {
                     "stage": w.stage,

@@ -132,10 +132,10 @@ def test_day10_dry_run_pipeline_integration():
     assert isinstance(score_package, ScorePackage)
     assert hasattr(score_package, "integrity")
     assert hasattr(score_package, "confidence")
-    assert isinstance(score_package.integrity, dict)
-    assert isinstance(score_package.confidence, dict)
-    assert "overall" in score_package.integrity
-    assert "overall" in score_package.confidence
+    assert hasattr(score_package.integrity, "overall")
+    assert hasattr(score_package.confidence, "overall")
+    assert hasattr(score_package.integrity, "per_metric")
+    assert hasattr(score_package.confidence, "factors")
 
     # Step 3: Evidence Package Creation (simulating evidence generation)
     evidence_package = create_mock_evidence_package(repository_context, metric_dataframe, windows, detector_results)
@@ -209,8 +209,8 @@ def test_day10_dry_run_pipeline_integration():
             "contributor_count": repository_context.contributor_count,
         },
         "scores": {
-            "integrity_overall": score_package.integrity["overall"],
-            "confidence_overall": score_package.confidence["overall"],
+            "integrity_overall": score_package.integrity.overall,
+            "confidence_overall": score_package.confidence.overall,
         },
         "explanation": {
             "narrative_count": len(explanation_report.narratives),

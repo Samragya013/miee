@@ -138,7 +138,10 @@ class IDetectorEngine(Protocol):
 
 @runtime_checkable
 class IScoringEngine(Protocol):
-    """INT-05: Scoring Engine"""
+    """INT-05: Scoring Engine
+
+    Extended: IMS Phase 7 (Scoring Refactor) for observation-level scoring
+    """
 
     def compute_integrity_score(
         self,
@@ -146,6 +149,7 @@ class IScoringEngine(Protocol):
         metric_dataframe: MetricDataFrame,
         windows: List[WindowDefinition],
         detector_weights: Optional[Dict[str, float]] = None,
+        evidence_package: Optional[EvidencePackage] = None,
     ) -> ScorePackage:
         """Compute integrity and confidence scores.
 
@@ -154,6 +158,7 @@ class IScoringEngine(Protocol):
             metric_dataframe: Container for extracted metrics
             windows: List of window definitions used in analysis
             detector_weights: Optional weights for detectors (defaults to equal weights)
+            evidence_package: Optional evidence package with observation-level metadata
 
         Returns:
             ScorePackage: Container for computed integrity and confidence scores
@@ -186,6 +191,32 @@ class IEvidenceEngine(Protocol):
 
         Returns:
             EvidencePackage: Container for traceable evidence
+        """
+        ...
+
+    def generate_observation_evidence(
+        self,
+        repository_context: RepositoryContext,
+        metric_dataframe: MetricDataFrame,
+        windows: List[WindowDefinition],
+        detector_results: DetectorResults,
+        configuration: Dict[str, Any],
+    ) -> EvidencePackage:
+        """Generate partial evidence package with observation-level metadata only.
+
+        This enables the two-phase evidence approach: observation metadata is
+        extracted first and passed to the scoring engine, then the full evidence
+        package (including scores) is generated after scoring.
+
+        Args:
+            repository_context: Repository context from ingestion
+            metric_dataframe: Container for extracted metrics
+            windows: List of window definitions
+            detector_results: Container for detector outputs
+            configuration: Analysis configuration used
+
+        Returns:
+            EvidencePackage: Partial evidence package with scores=None
         """
         ...
 

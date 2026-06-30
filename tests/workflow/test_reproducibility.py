@@ -321,9 +321,9 @@ class TestDeterminismFixes:
         result1 = engine.compute_integrity_score(detector_results, metric_dataframe, windows)
         result2 = engine.compute_integrity_score(detector_results, metric_dataframe, windows)
 
-        assert result1.integrity["overall"] == result2.integrity["overall"]
-        assert result1.confidence["overall"] == result2.confidence["overall"]
-        assert result1.integrity["per_metric"] == result2.integrity["per_metric"]
+        assert result1.integrity.overall == result2.integrity.overall
+        assert result1.confidence.overall == result2.confidence.overall
+        assert result1.integrity.per_metric == result2.integrity.per_metric
 
     def test_json_dumps_deterministic(self):
         """json_dumps must produce identical output for same input."""

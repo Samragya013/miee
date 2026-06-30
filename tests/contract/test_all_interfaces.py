@@ -259,6 +259,16 @@ class TestMockImplementations:
             ):
                 pass
 
+            def generate_observation_evidence(
+                self,
+                repository_context,
+                metric_dataframe,
+                windows,
+                detector_results,
+                configuration,
+            ):
+                pass
+
         assert isinstance(Impl(), IEvidenceEngine)
 
     def test_explanation_engine(self):

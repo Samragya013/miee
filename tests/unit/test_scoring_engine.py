@@ -143,22 +143,22 @@ def test_scoring_engine_with_actual_implementation():
 
     # Check integrity
     integrity = score_package.integrity
-    assert "overall" in integrity
-    assert "per_metric" in integrity
-    assert isinstance(integrity["overall"], (int, float))
-    assert 0.0 <= integrity["overall"] <= 1.0
+    assert hasattr(integrity, "overall")
+    assert hasattr(integrity, "per_metric")
+    assert isinstance(integrity.overall, (int, float))
+    assert 0.0 <= integrity.overall <= 1.0
 
     for metric_id in ["M-01", "M-02", "M-03"]:
-        assert metric_id in integrity["per_metric"]
-        assert isinstance(integrity["per_metric"][metric_id], (int, float))
-        assert 0.0 <= integrity["per_metric"][metric_id] <= 1.0
+        assert metric_id in integrity.per_metric
+        assert isinstance(integrity.per_metric[metric_id], (int, float))
+        assert 0.0 <= integrity.per_metric[metric_id] <= 1.0
 
     # Check confidence
     confidence = score_package.confidence
-    assert "overall" in confidence
-    assert "factors" in confidence
-    assert isinstance(confidence["overall"], (int, float))
-    assert 0.0 <= confidence["overall"] <= 1.0
+    assert hasattr(confidence, "overall")
+    assert hasattr(confidence, "factors")
+    assert isinstance(confidence.overall, (int, float))
+    assert 0.0 <= confidence.overall <= 1.0
 
     expected_factors = [
         "sample_size",
@@ -166,11 +166,12 @@ def test_scoring_engine_with_actual_implementation():
         "missing_data",
         "window_balance",
         "detector_success",
+        "observation_quality",
     ]
     for factor in expected_factors:
-        assert factor in confidence["factors"]
-        assert isinstance(confidence["factors"][factor], (int, float))
-        assert 0.0 <= confidence["factors"][factor] <= 1.0
+        assert factor in confidence.factors
+        assert isinstance(confidence.factors[factor], (int, float))
+        assert 0.0 <= confidence.factors[factor] <= 1.0
 
 
 def test_scoring_engine_validation_error_handling():
@@ -199,8 +200,8 @@ def test_scoring_engine_validation_error_handling():
 
     assert isinstance(score_package, ScorePackage)
     # Even with empty inputs, we should get valid structure
-    assert isinstance(score_package.integrity, dict)
-    assert isinstance(score_package.confidence, dict)
+    assert hasattr(score_package.integrity, "overall")
+    assert hasattr(score_package.confidence, "overall")
 
 
 def test_mock_scoring_engines():

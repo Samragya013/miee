@@ -10,6 +10,7 @@ from miie.contracts.interfaces import IScoringEngine
 from miie.schemas.models import (
     ConfidenceScore,
     DetectorResults,
+    EvidencePackage,
     IntegrityScore,
     MetricDataFrame,
     ScorePackage,
@@ -26,6 +27,7 @@ class MockScoringEngine(IScoringEngine):
         metric_dataframe: MetricDataFrame,
         windows: List[WindowDefinition],
         detector_weights: Optional[Dict[str, float]] = None,
+        evidence_package: Optional[EvidencePackage] = None,
     ) -> ScorePackage:
         """Compute mock integrity and confidence scores.
 
@@ -60,6 +62,7 @@ class MockZeroScoringEngine(IScoringEngine):
         metric_dataframe: MetricDataFrame,
         windows: List[WindowDefinition],
         detector_weights: Optional[Dict[str, float]] = None,
+        evidence_package: Optional[EvidencePackage] = None,
     ) -> ScorePackage:
         """Compute zero integrity and confidence scores."""
         return ScorePackage(
@@ -90,6 +93,7 @@ class MockPerfectScoringEngine(IScoringEngine):
         metric_dataframe: MetricDataFrame,
         windows: List[WindowDefinition],
         detector_weights: Optional[Dict[str, float]] = None,
+        evidence_package: Optional[EvidencePackage] = None,
     ) -> ScorePackage:
         """Compute perfect integrity and confidence scores."""
         # Get all metrics from metric_dataframe

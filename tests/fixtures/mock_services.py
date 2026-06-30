@@ -189,6 +189,7 @@ class MockScoringEngine(IScoringEngine):
         metric_dataframe: MetricDataFrame,
         windows: List[WindowDefinition],
         detector_weights: Optional[Dict[str, float]] = None,
+        evidence_package: Optional[EvidencePackage] = None,
     ) -> ScorePackage:
         self.compute_integrity_score_called = True
 
@@ -238,6 +239,56 @@ class MockEvidenceEngine(IEvidenceEngine):
             detector_outputs=detector_results,
             scores=score_package,
             warnings=[],
+        )
+
+    def generate_observation_evidence(
+        self,
+        repository_context: RepositoryContext,
+        metric_dataframe: MetricDataFrame,
+        windows: List[WindowDefinition],
+        detector_results: DetectorResults,
+        configuration: Dict[str, Any],
+    ) -> EvidencePackage:
+        """Generate partial evidence package with observation-level metadata only."""
+        return EvidencePackage(
+            provenance=Provenance(
+                miie_version="1.0.0",
+                config_hash="abc123def456",
+                timestamp=datetime(2023, 6, 15, 12, 0, 0, tzinfo=timezone.utc).isoformat(),
+                seed=42,
+                platform="test-platform",
+                python_version="3.9.0",
+                dependency_hash="dep123hash456",
+            ),
+            windows=windows,
+            metrics=metric_dataframe.metrics,
+            detector_outputs=detector_results,
+            scores=None,
+            warnings=[],
+            observation_summary={
+                "total_observations": 50,
+                "per_metric": {
+                    "M-02": {"count": 25, "window_count": 5, "value_range": [0.1, 0.9]},
+                },
+                "observation_quality": {"complete": 50, "partial": 0, "estimated": 0},
+            },
+            detector_execution_metadata={
+                "D-01": {
+                    "method": "kolmogorov_smirnov",
+                    "windows_analyzed": 5,
+                    "observations_consumed": 25,
+                },
+                "D-02": {
+                    "method": "pearson_correlation",
+                    "windows_analyzed": 5,
+                    "observations_consumed": 25,
+                },
+                "D-03": {
+                    "method": "hartigans_dip",
+                    "windows_analyzed": 5,
+                    "observations_consumed": 25,
+                },
+            },
         )
 
 

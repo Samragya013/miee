@@ -98,6 +98,77 @@ class EvidenceEngine:
             configuration_snapshot=configuration_snapshot,
         )
 
+    def generate_observation_evidence(
+        self,
+        repository_context: RepositoryContext,
+        metric_dataframe: MetricDataFrame,
+        windows: List[WindowDefinition],
+        detector_results: DetectorResults,
+        configuration: Dict[str, Any],
+    ) -> EvidencePackage:
+        """Generate partial evidence package with observation-level metadata only.
+
+        This method generates an EvidencePackage without scores, which can be
+        passed to the scoring engine for observation-aware scoring. The scores
+        field will be None.
+
+        Args:
+            repository_context: Repository context from ingestion
+            metric_dataframe: Container for extracted metrics
+            windows: List of window definitions used for analysis
+            detector_results: Raw detector outputs
+            configuration: Analysis configuration used
+
+        Returns:
+            EvidencePackage: Partial evidence package with observation-level metadata
+        """
+        now = datetime.now(timezone.utc)
+        seed = configuration.get("seed", 42)
+
+        # Generate provenance
+        provenance = self._generate_provenance(
+            configuration=configuration,
+            seed=seed,
+            timestamp=now,
+        )
+
+        # Extract observation summary
+        observation_summary = self._extract_observation_summary(
+            metric_dataframe=metric_dataframe,
+            windows=windows,
+            detector_results=detector_results,
+        )
+
+        # Extract detector execution metadata
+        detector_execution_metadata = self._extract_detector_execution_metadata(
+            detector_results=detector_results,
+            configuration=configuration,
+        )
+
+        # Extract statistical artifacts
+        statistical_artifacts = self._extract_statistical_artifacts(
+            detector_results=detector_results,
+        )
+
+        # Create configuration snapshot
+        configuration_snapshot = self._create_configuration_snapshot(
+            configuration=configuration,
+        )
+
+        return EvidencePackage(
+            provenance=provenance,
+            windows=windows,
+            metrics=(metric_dataframe.metrics if hasattr(metric_dataframe, "metrics") else {}),
+            detector_outputs=detector_results,
+            scores=None,  # No scores yet - will be added after scoring
+            warnings=[],
+            # Observation-level provenance fields (IMS Phase 6)
+            observation_summary=observation_summary,
+            detector_execution_metadata=detector_execution_metadata,
+            statistical_artifacts=statistical_artifacts,
+            configuration_snapshot=configuration_snapshot,
+        )
+
     def _generate_provenance(
         self,
         configuration: Dict[str, Any],
@@ -371,4 +442,65 @@ class MockEvidenceEngine:
             detector_execution_metadata=detector_execution_metadata,
             statistical_artifacts=statistical_artifacts,
             configuration_snapshot=configuration_snapshot,
+        )
+
+    def generate_observation_evidence(
+        self,
+        repository_context: RepositoryContext,
+        metric_dataframe: MetricDataFrame,
+        windows: List[WindowDefinition],
+        detector_results: DetectorResults,
+        configuration: Dict[str, Any],
+    ) -> EvidencePackage:
+        """Generate partial evidence package with observation-level metadata only."""
+        fixed_timestamp = datetime(2023, 6, 15, tzinfo=timezone.utc)
+        seed = configuration.get("seed", 42)
+
+        # Extract observation summary
+        observation_summary: Dict[str, Any] = {
+            "total_observations": 0,
+            "per_metric": {},
+            "observation_quality": {"complete": 0, "partial": 0, "estimated": 0},
+        }
+        if hasattr(metric_dataframe, "metrics"):
+            for metric_id, metric_data in metric_dataframe.metrics.items():
+                if isinstance(metric_data, dict) and "default" in metric_data:
+                    values = metric_data["default"]
+                    if isinstance(values, list):
+                        count = len(values)
+                        observation_summary["total_observations"] += count
+                        observation_summary["per_metric"][metric_id] = {
+                            "count": count,
+                            "window_count": len(windows),
+                            "value_range": [min(values), max(values)] if values else [0, 0],
+                        }
+                        observation_summary["observation_quality"]["complete"] += count
+
+        # Extract detector execution metadata
+        detector_execution_metadata: Dict[str, Dict[str, Any]] = {}
+        for detector_id, output in detector_results.detector_outputs.items():
+            detector_execution_metadata[detector_id] = {
+                "windows_analyzed": len(output.get("window_pairs_analyzed", [])),
+                "observations_consumed": sum(output.get("observation_counts", {}).values()),
+                "method": f"mock_{detector_id.lower()}",
+                "scientific_reference": f"Mock method for {detector_id}",
+            }
+
+        return EvidencePackage(
+            provenance=Provenance(
+                miie_version="1.0.0",
+                config_hash=configuration.get("config_hash", "mock"),
+                timestamp=fixed_timestamp.replace(microsecond=0).isoformat().replace("+00:00", "Z"),
+                seed=seed,
+                platform=configuration.get("platform", "test"),
+                python_version=configuration.get("python_version", "3.9.0"),
+                dependency_hash=configuration.get("dependency_hash", "mock"),
+            ),
+            windows=windows,
+            metrics=(metric_dataframe.metrics if hasattr(metric_dataframe, "metrics") else {}),
+            detector_outputs=detector_results,
+            scores=None,
+            warnings=[],
+            observation_summary=observation_summary,
+            detector_execution_metadata=detector_execution_metadata,
         )

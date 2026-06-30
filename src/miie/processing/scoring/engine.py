@@ -1,23 +1,60 @@
 """Scoring Engine Implementation.
 Implements the IScoringEngine interface for computing integrity and confidence scores.
+
+Extended: IMS Phase 7 (Scoring Refactor) for observation-level scoring.
+Extended: IMS Phase 3 (Integrity Score Observation Enhancement).
+Extended: IMS Phase 4 (Confidence Score Observation Factors).
+Extended: IMS Phase 7 (Deterministic Scoring).
 """
 
-import math
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
 from miie.contracts.errors import ValidationError
 from miie.contracts.interfaces import IScoringEngine
 from miie.schemas.models import (
+    ConfidenceScore,
     DetectorResults,
+    EvidencePackage,
+    IntegrityScore,
     MetricDataFrame,
     ScorePackage,
     WindowDefinition,
 )
 
+from .utils import (
+    compute_balance_factor,
+    compute_clamped,
+    compute_coverage_ratio,
+    compute_cv,
+    compute_detector_success_factor,
+    compute_mean,
+    compute_missing_data_factor,
+    compute_observation_quality_factor,
+    compute_sample_size_factor,
+    compute_variance_factor,
+    safe_divide,
+)
+
 
 class ScoringEngine(IScoringEngine):
-    """Scoring Engine implementation that computes integrity and confidence scores."""
+    """Scoring Engine implementation that computes integrity and confidence scores.
+
+    Extended: IMS Phase 7 (Scoring Refactor) for observation-level scoring.
+
+    The scoring engine now accepts an optional EvidencePackage parameter to leverage
+    observation-level metadata for more accurate scoring while preserving backward
+    compatibility with the legacy DetectorResults-only interface.
+    """
+
+    # TFS Section 6.3 default detector weights
+    DEFAULT_W1 = 0.40  # D-01 (Distributional Drift)
+    DEFAULT_W2 = 0.35  # D-02 (Correlation Breakdown)
+    DEFAULT_W3 = 0.25  # D-03 (Threshold Compression)
+
+    # TFS Section 7.4-7.5 default thresholds
+    SAMPLE_SIZE_TARGET = 50.0
+    VARIANCE_CV_THRESHOLD = 0.5
 
     def __init__(self):
         """Initialize the scoring engine."""
@@ -28,16 +65,21 @@ class ScoringEngine(IScoringEngine):
         metric_dataframe: MetricDataFrame,
         windows: List[WindowDefinition],
         detector_weights: Optional[Dict[str, float]] = None,
+        evidence_package: Optional[EvidencePackage] = None,
     ) -> ScorePackage:
         """Compute integrity and confidence scores.
 
         Implements TFS Section 6 (Integrity Score) and TFS Section 7 (Confidence Score).
+
+        When evidence_package is provided, the scoring engine uses observation-level
+        metadata for more accurate scoring while preserving the mathematical equations.
 
         Args:
             detector_results: Container for detector outputs
             metric_dataframe: Container for extracted metrics
             windows: List of window definitions used in analysis
             detector_weights: Optional weights for detectors (defaults to equal weights)
+            evidence_package: Optional evidence package with observation-level metadata
 
         Returns:
             ScorePackage: Container for computed integrity and confidence scores
@@ -45,53 +87,52 @@ class ScoringEngine(IScoringEngine):
         # Handle edge case: no detectors or no windows or no metrics
         # Return neutral scores instead of raising validation error for edge cases
         if not detector_results.detector_outputs or not windows or not metric_dataframe.metrics:
-            # Prepare computation metadata per BSD Section 9
-            computation_metadata = {
-                "timestamp": datetime.now(timezone.utc).isoformat(),
-                "config_hash": "",  # Would be populated from actual config in real implementation
-                "formula_version": "TFS_v1.0",
-            }
-
             return ScorePackage(
-                integrity={"overall": 1.0, "per_metric": {}},
-                confidence={"overall": 0.0, "factors": {}},
+                integrity=IntegrityScore(overall=1.0, per_metric={}, formula_version="TFS_v1.0"),
+                confidence=ConfidenceScore(overall=0.0, factors={}, band="low"),
                 timestamp=datetime.now(timezone.utc),
-                config_hash="",  # Would be populated from actual config in real implementation
+                config_hash="",
                 formula_version="TFS_v1.0",
             )
 
         # Set up detector weights (equal weights if not provided)
-        detector_ids = list(detector_results.detector_outputs.keys())
+        detector_ids = sorted(detector_results.detector_outputs.keys())
         if detector_weights is None:
-            # Equal weights for all detectors
             detector_weights = {det_id: 1.0 / len(detector_ids) for det_id in detector_ids}
         else:
-            # Normalize provided weights to sum to 1.0
-            weight_sum = math.fsum(detector_weights.values())
+            weight_sum = sum(detector_weights.values())
             if weight_sum <= 0:
                 raise ValidationError("Sum of detector weights must be positive")
             detector_weights = {det_id: weight / weight_sum for det_id, weight in detector_weights.items()}
 
+        # Extract observation metadata once for both IS and CS
+        observation_metadata = self._extract_observation_metadata(evidence_package)
+
         # Compute integrity score using TFS Section 6 formula
+        # Enhanced with observation-level severity weighting (IMS Phase 3)
         integrity_result = self._compute_integrity_score_tfs6(
-            detector_results, metric_dataframe, windows, detector_weights
+            detector_results,
+            metric_dataframe,
+            windows,
+            detector_weights,
+            observation_metadata,
         )
 
         # Compute confidence score using TFS Section 7 formula
-        confidence_result = self._compute_confidence_score_tfs7(detector_results, metric_dataframe, windows)
-
-        # Prepare computation metadata per BSD Section 9
-        computation_metadata = {
-            "timestamp": datetime.now(timezone.utc).isoformat(),
-            "config_hash": "",  # Would be populated from actual config in real implementation
-            "formula_version": "TFS_v1.0",
-        }
+        # Enhanced with observation-level evidence when available (IMS Phase 4)
+        confidence_result = self._compute_confidence_score_tfs7(
+            detector_results,
+            metric_dataframe,
+            windows,
+            evidence_package,
+            observation_metadata,
+        )
 
         return ScorePackage(
             integrity=integrity_result,
             confidence=confidence_result,
             timestamp=datetime.now(timezone.utc),
-            config_hash="",  # Would be populated from actual config in real implementation
+            config_hash="",
             formula_version="TFS_v1.0",
         )
 
@@ -101,33 +142,38 @@ class ScoringEngine(IScoringEngine):
         metric_dataframe: MetricDataFrame,
         windows: List[WindowDefinition],
         detector_weights: Dict[str, float],
+        observation_metadata: Optional[Dict[str, Any]] = None,
     ) -> Dict[str, Any]:
         """Compute integrity score per TFS Section 6.3.
 
-        Returns a dict with:
-        - "overall": float in [0, 1]
-        - "per_metric": dict mapping metric_id -> float in [0, 1]
-
         IS = 1.0 - (w₁ × d₁ + w₂ × d₂ + w₃ × d₃)
 
-        Where:
-        - d₁ = D-01 severity (0 or 1, or 0–1 for magnitude if drift detected)
-        - d₂ = D-02 severity (0 or 1, or 0–1 for magnitude if breakdown detected)
-        - d₃ = D-03 severity (0 or 1, or 0–1 for magnitude if compression detected)
-        - Default weights: w₁=0.40, w₂=0.35, w₃=0.25
+        When observation_metadata is provided:
+        - Metrics with low observation coverage have their severity reduced
+          (insufficient evidence = lower severity contribution)
+        - Per-metric observation counts inform the weighting of each detector's
+          severity contribution
+
+        Args:
+            detector_results: Container for detector outputs
+            metric_dataframe: Container for extracted metrics
+            windows: List of window definitions
+            detector_weights: Dict mapping detector_id -> weight
+            observation_metadata: Optional observation metadata from evidence package
+
+        Returns:
+            Dict with "overall" and "per_metric" keys
         """
         if not detector_results.detector_outputs:
             return {"overall": 1.0, "per_metric": {}}
 
-        # Get all available metrics
-        available_metrics = list(metric_dataframe.metrics.keys()) if metric_dataframe.metrics else []
+        # Get all available metrics (sorted for deterministic ordering)
+        available_metrics = sorted(metric_dataframe.metrics.keys()) if metric_dataframe.metrics else []
 
-        # If no metrics, return perfect score
         if not available_metrics:
             return {"overall": 1.0, "per_metric": {}}
 
-        # Calculate per-metric integrity scores
-        per_metric_scores = {}
+        per_metric_scores: Dict[str, float] = {}
 
         for metric_id in available_metrics:
             # Get severity scores for each detector for this metric
@@ -135,25 +181,78 @@ class ScoringEngine(IScoringEngine):
             d2 = self._get_breakdown_severity(detector_results, metric_id, windows)
             d3 = self._get_compression_severity(detector_results, metric_id, windows)
 
+            # Apply observation-aware severity adjustment (IMS Phase 3)
+            # When observation coverage is low, reduce severity proportionally
+            # This prevents over-penalizing when there is insufficient evidence
+            severity_multiplier = self._compute_observation_severity_multiplier(metric_id, observation_metadata)
+
             # TFS Section 6.3: IS_metric = 1.0 - (w₁ × d₁ + w₂ × d₂ + w₃ × d₃)
-            # Using default weights from TFS Section 6.3: w₁=0.40, w₂=0.35, w₃=0.25
-            w1, w2, w3 = 0.40, 0.35, 0.25
+            w1 = detector_weights.get("D-01", self.DEFAULT_W1)
+            w2 = detector_weights.get("D-02", self.DEFAULT_W2)
+            w3 = detector_weights.get("D-03", self.DEFAULT_W3)
+
             is_metric = 1.0 - (w1 * d1 + w2 * d2 + w3 * d3)
 
-            # Clamp to [0, 1] range
-            is_metric = max(0.0, min(1.0, is_metric))
+            # Apply observation-based severity adjustment
+            # severity_multiplier in [0, 1]: 1.0 = full severity, <1.0 = reduced severity
+            is_metric = is_metric * severity_multiplier + (1.0 - severity_multiplier)
+            is_metric = compute_clamped(is_metric)
+
             per_metric_scores[metric_id] = is_metric
 
         # Calculate overall integrity score as mean of per-metric scores (TFS Section 6.4)
-        if per_metric_scores:
-            overall_score = math.fsum(per_metric_scores.values()) / len(per_metric_scores)
-        else:
-            overall_score = 1.0
+        overall_score = compute_clamped(compute_mean(list(per_metric_scores.values())))
 
-        # Clamp overall score to [0, 1] range
-        overall_score = max(0.0, min(1.0, overall_score))
+        return IntegrityScore(
+            overall=overall_score,
+            per_metric=per_metric_scores,
+            formula_version="TFS_v1.0",
+        )
 
-        return {"overall": overall_score, "per_metric": per_metric_scores}
+    def _compute_observation_severity_multiplier(
+        self,
+        metric_id: str,
+        observation_metadata: Optional[Dict[str, Any]] = None,
+    ) -> float:
+        """Compute a severity multiplier based on observation coverage.
+
+        When observation coverage is low for a metric, the severity of any
+        detected issues should be reduced (insufficient evidence = lower confidence
+        in the severity assessment).
+
+        The multiplier is in [0.5, 1.0]:
+        - 1.0: Full observation coverage, full severity
+        - 0.5: No observations, half severity (minimum floor)
+
+        Args:
+            metric_id: The metric to check
+            observation_metadata: Optional observation metadata from evidence package
+
+        Returns:
+            Severity multiplier in [0.5, 1.0]
+        """
+        if not observation_metadata:
+            return 1.0
+
+        per_metric_obs = observation_metadata.get("per_metric_observations", {})
+        if not per_metric_obs:
+            return 1.0
+
+        obs_data = per_metric_obs.get(metric_id)
+        if not isinstance(obs_data, dict):
+            return 1.0
+
+        obs_count = obs_data.get("count", 0)
+        window_count = obs_data.get("window_count", 0)
+
+        if obs_count <= 0:
+            return 0.5  # No observations: reduce severity by half
+
+        # Coverage ratio: observations relative to a target
+        # More observations = higher multiplier (closer to 1.0)
+        coverage = compute_coverage_ratio(obs_count, self.SAMPLE_SIZE_TARGET)
+        # Map coverage [0, 1] to multiplier [0.5, 1.0]
+        return 0.5 + 0.5 * coverage
 
     def _get_drift_severity(
         self,
@@ -166,28 +265,24 @@ class ScoringEngine(IScoringEngine):
         d₁ = min(1.0, mean(drift_magnitude across all window pairs))
         where drift_magnitude = ks_statistic (normalized to [0,1] by capping at 0.5)
         """
-        drift_magnitudes = []
+        drift_magnitudes: List[float] = []
 
-        # Check if D-01 fired on this metric
         for det_id, det_output in detector_results.detector_outputs.items():
             if det_id == "D-01":
-                # Look for drift detection indicators
                 drift_detected = False
                 drift_magnitude = 0.0
 
                 # Check for boolean flag
                 if "drift_detected" in det_output and det_output["drift_detected"] is True:
                     drift_detected = True
-                    # Try to get actual magnitude if available
                     if "ks_statistic" in det_output:
                         try:
                             ks_stat = float(det_output["ks_statistic"])
-                            # Normalize KS statistic to [0,1] by capping at 0.5
                             drift_magnitude = min(1.0, ks_stat / 0.5)
                         except (ValueError, TypeError):
-                            drift_magnitude = 1.0  # Max severity if we can't parse
+                            drift_magnitude = 1.0
                     else:
-                        drift_magnitude = 1.0  # Assume max severity if detected but no magnitude
+                        drift_magnitude = 1.0
 
                 # Check for numeric score/severity fields
                 if not drift_detected:
@@ -195,7 +290,7 @@ class ScoringEngine(IScoringEngine):
                         if score_field in det_output:
                             try:
                                 val = float(det_output[score_field])
-                                drift_magnitude = max(0.0, min(1.0, val))
+                                drift_magnitude = compute_clamped(val)
                                 drift_detected = True
                                 break
                             except (ValueError, TypeError):
@@ -204,12 +299,7 @@ class ScoringEngine(IScoringEngine):
                 if drift_detected:
                     drift_magnitudes.append(drift_magnitude)
 
-        # Calculate mean drift magnitude
-        if drift_magnitudes:
-            mean_drift = math.fsum(drift_magnitudes) / len(drift_magnitudes)
-            return min(1.0, mean_drift)  # Already normalized, but ensure clamp
-        else:
-            return 0.0  # No drift detected
+        return compute_clamped(compute_mean(drift_magnitudes)) if drift_magnitudes else 0.0
 
     def _get_breakdown_severity(
         self,
@@ -222,36 +312,30 @@ class ScoringEngine(IScoringEngine):
         d₂ = min(1.0, mean(breakdown_magnitude across all metric pairs and window pairs))
         where breakdown_magnitude = |delta_r| / 0.3 (capped at 1.0)
         """
-        breakdown_magnitudes = []
+        breakdown_magnitudes: List[float] = []
 
-        # Check if D-02 fired on this metric
         for det_id, det_output in detector_results.detector_outputs.items():
             if det_id == "D-02":
-                # Look for breakdown detection indicators
                 breakdown_detected = False
                 breakdown_magnitude = 0.0
 
-                # Check for boolean flag
                 if "correlation_breakdown" in det_output and det_output["correlation_breakdown"] is True:
                     breakdown_detected = True
-                    # Try to get actual magnitude if available
                     if "delta_r" in det_output:
                         try:
                             delta_r = float(det_output["delta_r"])
-                            # breakdown_magnitude = |delta_r| / 0.3 (capped at 1.0)
                             breakdown_magnitude = min(1.0, abs(delta_r) / 0.3)
                         except (ValueError, TypeError):
-                            breakdown_magnitude = 1.0  # Max severity if we can't parse
+                            breakdown_magnitude = 1.0
                     else:
-                        breakdown_magnitude = 1.0  # Assume max severity if detected but no magnitude
+                        breakdown_magnitude = 1.0
 
-                # Check for numeric score/severity fields
                 if not breakdown_detected:
                     for score_field in ["score", "severity", "breakdown_score"]:
                         if score_field in det_output:
                             try:
                                 val = float(det_output[score_field])
-                                breakdown_magnitude = max(0.0, min(1.0, val))
+                                breakdown_magnitude = compute_clamped(val)
                                 breakdown_detected = True
                                 break
                             except (ValueError, TypeError):
@@ -260,12 +344,7 @@ class ScoringEngine(IScoringEngine):
                 if breakdown_detected:
                     breakdown_magnitudes.append(breakdown_magnitude)
 
-        # Calculate mean breakdown magnitude
-        if breakdown_magnitudes:
-            mean_breakdown = math.fsum(breakdown_magnitudes) / len(breakdown_magnitudes)
-            return min(1.0, mean_breakdown)  # Already normalized, but ensure clamp
-        else:
-            return 0.0  # No breakdown detected
+        return compute_clamped(compute_mean(breakdown_magnitudes)) if breakdown_magnitudes else 0.0
 
     def _get_compression_severity(
         self,
@@ -278,36 +357,30 @@ class ScoringEngine(IScoringEngine):
         d₃ = min(1.0, mean(compression_index across all thresholds and windows))
         where compression_index is already in [0,1]
         """
-        compression_indices = []
+        compression_indices: List[float] = []
 
-        # Check if D-03 fired on this metric
         for det_id, det_output in detector_results.detector_outputs.items():
             if det_id == "D-03":
-                # Look for compression detection indicators
                 compression_detected = False
                 compression_index = 0.0
 
-                # Check for boolean flag
                 if "threshold_compressed" in det_output and det_output["threshold_compressed"] is True:
                     compression_detected = True
-                    # Try to get actual compression index if available
                     if "compression_index" in det_output:
                         try:
                             compression_index = float(det_output["compression_index"])
-                            # Already in [0,1] range per TFS
-                            compression_index = max(0.0, min(1.0, compression_index))
+                            compression_index = compute_clamped(compression_index)
                         except (ValueError, TypeError):
-                            compression_index = 1.0  # Max severity if we can't parse
+                            compression_index = 1.0
                     else:
-                        compression_index = 1.0  # Assume max severity if detected but no index
+                        compression_index = 1.0
 
-                # Check for numeric score/severity fields
                 if not compression_detected:
                     for score_field in ["score", "severity", "compression_score"]:
                         if score_field in det_output:
                             try:
                                 val = float(det_output[score_field])
-                                compression_index = max(0.0, min(1.0, val))
+                                compression_index = compute_clamped(val)
                                 compression_detected = True
                                 break
                             except (ValueError, TypeError):
@@ -316,73 +389,160 @@ class ScoringEngine(IScoringEngine):
                 if compression_detected:
                     compression_indices.append(compression_index)
 
-        # Calculate mean compression index
-        if compression_indices:
-            mean_compression = math.fsum(compression_indices) / len(compression_indices)
-            return min(1.0, mean_compression)  # Already normalized, but ensure clamp
-        else:
-            return 0.0  # No compression detected
+        return compute_clamped(compute_mean(compression_indices)) if compression_indices else 0.0
 
     def _compute_confidence_score_tfs7(
         self,
         detector_results: DetectorResults,
         metric_dataframe: MetricDataFrame,
         windows: List[WindowDefinition],
+        evidence_package: Optional[EvidencePackage] = None,
+        observation_metadata: Optional[Dict[str, Any]] = None,
     ) -> Dict[str, Any]:
         """Compute confidence score per TFS Section 7.4-7.5.
 
-        Returns a dict with:
-        - "overall": float in [0, 1]
-        - "factors": dict mapping factor_name -> float in [0, 1]
+        CS = f₁ × f₂ × f₃ × f₄ × f₅ × f₆
 
-        CS = f₁ × f₂ × f₃ × f₄ × f₅
+        Where:
+        - f₁ = min(1.0, mean_n / 50.0)  # Sample Size Factor
+        - f₂ = 1.0 - min(1.0, mean_CV / 0.5)  # Variance Factor
+        - f₃ = 1.0 - (missing_pairs / total_pairs)  # Missing Data Factor
+        - f₄ = 1.0 - min(1.0, std_size / mean_size)  # Window Balance Factor
+        - f₅ = successful_runs / total_attempts  # Detector Success Factor
+        - f₆ = observation quality factor (IMS Phase 4 extension)
 
-        f₁ = min(1.0, mean_n / 50.0)
-        f₂ = 1.0 - min(1.0, mean_CV / 0.5)
-        f₃ = 1.0 - (missing_pairs / total_pairs)
-        f₄ = 1.0 - min(1.0, std_size / mean_size)
-        f₅ = successful_runs / total_attempts
+        When evidence_package is provided:
+        - f₁ uses observation counts from observation_summary
+        - f₃ uses observation coverage
+        - f₄ uses observation counts per window for better balance
+        - f₅ uses detector execution metadata
+        - f₆ is computed from observation_quality counts
+
+        Args:
+            detector_results: Container for detector outputs
+            metric_dataframe: Container for extracted metrics
+            windows: List of window definitions
+            evidence_package: Optional evidence package
+            observation_metadata: Optional pre-extracted observation metadata
+
+        Returns:
+            Dict with "overall" and "factors" keys
         """
         if not windows or not metric_dataframe.metrics:
             return {"overall": 0.0, "factors": {}}
 
-        # f₁: Sample Size Factor
-        f1 = self._compute_sample_size_factor(metric_dataframe, windows)
+        if observation_metadata is None:
+            observation_metadata = self._extract_observation_metadata(evidence_package)
+
+        # f₁: Sample Size Factor - enhanced with observation counts
+        f1 = self._compute_sample_size_factor(metric_dataframe, windows, observation_metadata)
 
         # f₂: Variance Factor
         f2 = self._compute_variance_factor(metric_dataframe, windows)
 
-        # f₃: Missing Data Factor
-        f3 = self._compute_missing_data_factor(metric_dataframe, windows)
+        # f₃: Missing Data Factor - enhanced with observation coverage
+        f3 = self._compute_missing_data_factor(metric_dataframe, windows, observation_metadata)
 
-        # f₄: Window Balance Factor
-        f4 = self._compute_window_balance_factor(windows)
+        # f₄: Window Balance Factor - enhanced with observation counts
+        f4 = self._compute_window_balance_factor(windows, observation_metadata)
 
-        # f₅: Detector Success Factor
-        f5 = self._compute_detector_success_factor(detector_results, metric_dataframe)
+        # f₅: Detector Success Factor - enhanced with execution metadata
+        f5 = self._compute_detector_success_factor(detector_results, metric_dataframe, evidence_package)
 
-        # CS = f₁ × f₂ × f₃ × f₄ × f₅
-        confidence_score = f1 * f2 * f3 * f4 * f5
+        # f₆: Observation Quality Factor (IMS Phase 4 extension)
+        f6 = self._compute_observation_quality_factor(observation_metadata)
 
-        # Ensure score is in [0, 1] range
-        confidence_score = max(0.0, min(1.0, confidence_score))
+        # CS = f₁ × f₂ × f₃ × f₄ × f₅ × f₆
+        confidence_score = f1 * f2 * f3 * f4 * f5 * f6
+        confidence_score = compute_clamped(confidence_score)
 
-        return {
-            "overall": confidence_score,
-            "factors": {
-                "sample_size": f1,
-                "variance": f2,
-                "missing_data": f3,
-                "window_balance": f4,
-                "detector_success": f5,
-            },
+        # Deterministic factor ordering (IMS Phase 7)
+        factors = {
+            "sample_size": f1,
+            "variance": f2,
+            "missing_data": f3,
+            "window_balance": f4,
+            "detector_success": f5,
+            "observation_quality": f6,
         }
 
-    def _compute_sample_size_factor(self, metric_dataframe: MetricDataFrame, windows: List[WindowDefinition]) -> float:
+        # Determine confidence band
+        if confidence_score >= 0.8:
+            band = "high"
+        elif confidence_score >= 0.5:
+            band = "medium"
+        else:
+            band = "low"
+
+        return ConfidenceScore(
+            overall=confidence_score,
+            factors=factors,
+            band=band,
+        )
+
+    def _extract_observation_metadata(self, evidence_package: Optional[EvidencePackage]) -> Dict[str, Any]:
+        """Extract observation metadata from evidence package.
+
+        Args:
+            evidence_package: Optional evidence package with observation-level metadata
+
+        Returns:
+            Dictionary containing extracted observation metadata
+        """
+        metadata: Dict[str, Any] = {
+            "total_observations": 0,
+            "per_metric_observations": {},
+            "per_window_observations": {},
+            "observation_quality": {},
+            "detector_execution_metadata": {},
+        }
+
+        if evidence_package is None:
+            return metadata
+
+        if hasattr(evidence_package, "observation_summary") and evidence_package.observation_summary:
+            obs_summary = evidence_package.observation_summary
+            metadata["total_observations"] = obs_summary.get("total_observations", 0)
+            metadata["per_metric_observations"] = obs_summary.get("per_metric", {})
+            metadata["observation_quality"] = obs_summary.get("observation_quality", {})
+
+        if hasattr(evidence_package, "detector_execution_metadata") and evidence_package.detector_execution_metadata:
+            metadata["detector_execution_metadata"] = evidence_package.detector_execution_metadata
+
+        return metadata
+
+    def _compute_sample_size_factor(
+        self,
+        metric_dataframe: MetricDataFrame,
+        windows: List[WindowDefinition],
+        observation_metadata: Optional[Dict[str, Any]] = None,
+    ) -> float:
         """Compute f₁: min(1.0, mean_n / 50.0)
 
-        mean_n = mean(|Wₖ| for all k and all metrics with data)
+        Enhanced with observation counts when available.
+
+        Args:
+            metric_dataframe: Container for extracted metrics
+            windows: List of window definitions
+            observation_metadata: Optional observation metadata from evidence package
+
+        Returns:
+            Sample size factor in [0, 1]
         """
+        # Try to use observation counts first
+        if observation_metadata and observation_metadata.get("per_metric_observations"):
+            per_metric_obs = observation_metadata["per_metric_observations"]
+            if per_metric_obs:
+                counts = []
+                for metric_id, obs_data in per_metric_obs.items():
+                    if isinstance(obs_data, dict) and "count" in obs_data:
+                        counts.append(float(obs_data["count"]))
+
+                if counts:
+                    mean_n = compute_mean(counts)
+                    return compute_sample_size_factor(mean_n, self.SAMPLE_SIZE_TARGET)
+
+        # Fallback to metric_dataframe-based calculation
         if not metric_dataframe.metrics or not windows:
             return 0.0
 
@@ -390,28 +550,23 @@ class ScoringEngine(IScoringEngine):
         metric_count = 0
 
         for metric_id, metric_series in metric_dataframe.metrics.items():
-            # For each metric, count the data points across all windows
-            # This approximates |Wₖ| - the number of data points for metric M
             point_count = 0
             for value_list in metric_series.values():
                 if isinstance(value_list, list):
-                    for val in value_list:
-                        if val is not None:
-                            point_count += 1
+                    point_count += sum(1 for v in value_list if v is not None)
 
             if point_count > 0:
                 total_points += point_count
                 metric_count += 1
 
-        if metric_count == 0:
-            mean_n = 0.0
-        else:
-            mean_n = total_points / metric_count
+        mean_n = safe_divide(float(total_points), float(metric_count))
+        return compute_sample_size_factor(mean_n, self.SAMPLE_SIZE_TARGET)
 
-        f1 = min(1.0, mean_n / 50.0)
-        return f1
-
-    def _compute_variance_factor(self, metric_dataframe: MetricDataFrame, windows: List[WindowDefinition]) -> float:
+    def _compute_variance_factor(
+        self,
+        metric_dataframe: MetricDataFrame,
+        windows: List[WindowDefinition],
+    ) -> float:
         """Compute f₂: 1.0 - min(1.0, mean_CV / 0.5)
 
         mean_CV = mean(CV for all valid windows)
@@ -420,46 +575,65 @@ class ScoringEngine(IScoringEngine):
         if not metric_dataframe.metrics or not windows:
             return 0.5  # Default moderate confidence when no data
 
-        cv_values = []
+        cv_values: List[float] = []
 
         for metric_id, metric_series in metric_dataframe.metrics.items():
-            # For each metric and window, calculate coefficient of variation
             for window_key, value_list in metric_series.items():
                 if isinstance(value_list, list) and len(value_list) > 0:
-                    # Filter out None values
                     valid_values = [v for v in value_list if v is not None]
-                    if len(valid_values) >= 2:  # Need at least 2 points for std/mean
-                        mean_val = math.fsum(valid_values) / len(valid_values)
-                        if mean_val != 0:
-                            # CV = std / |mean|
-                            variance = math.fsum((x - mean_val) ** 2 for x in valid_values) / len(valid_values)
-                            std_val = variance**0.5
-                            cv = std_val / abs(mean_val)
-                        else:
-                            # Special handling for mean=0
-                            if all(v == 0 for v in valid_values):
-                                cv = 0.0  # Perfect consistency
-                            else:
-                                cv = 1.0  # High variance relative to zero mean
+                    if len(valid_values) >= 2:
+                        cv = compute_cv(valid_values)
                         cv_values.append(cv)
 
-        if not cv_values:
-            mean_cv = 0.0
-        else:
-            mean_cv = math.fsum(cv_values) / len(cv_values)
+        mean_cv = compute_mean(cv_values) if cv_values else 0.0
+        return compute_variance_factor(mean_cv, self.VARIANCE_CV_THRESHOLD)
 
-        f2 = 1.0 - min(1.0, mean_cv / 0.5)
-        return f2
-
-    def _compute_missing_data_factor(self, metric_dataframe: MetricDataFrame, windows: List[WindowDefinition]) -> float:
+    def _compute_missing_data_factor(
+        self,
+        metric_dataframe: MetricDataFrame,
+        windows: List[WindowDefinition],
+        observation_metadata: Optional[Dict[str, Any]] = None,
+    ) -> float:
         """Compute f₃: 1.0 - (missing_pairs / total_pairs)
 
-        total_pairs = num_metrics × num_windows
-        missing_pairs = count of (metric, window) pairs with insufficient data
+        Enhanced with observation coverage when available.
+
+        Args:
+            metric_dataframe: Container for extracted metrics
+            windows: List of window definitions
+            observation_metadata: Optional observation metadata from evidence package
+
+        Returns:
+            Missing data factor in [0, 1]
         """
         if not metric_dataframe.metrics or not windows:
             return 0.0
 
+        # Try to use observation coverage first
+        if observation_metadata and observation_metadata.get("per_metric_observations"):
+            per_metric_obs = observation_metadata["per_metric_observations"]
+            if per_metric_obs:
+                num_metrics = len(metric_dataframe.metrics)
+                num_windows = len(windows)
+                total_pairs = num_metrics * num_windows
+
+                if total_pairs == 0:
+                    return 0.0
+
+                missing_pairs = 0
+                for metric_id in metric_dataframe.metrics.keys():
+                    if metric_id not in per_metric_obs:
+                        missing_pairs += num_windows
+                    else:
+                        obs_data = per_metric_obs[metric_id]
+                        if isinstance(obs_data, dict):
+                            obs_count = obs_data.get("count", 0)
+                            if obs_count == 0:
+                                missing_pairs += num_windows
+
+                return compute_missing_data_factor(missing_pairs, total_pairs)
+
+        # Fallback to metric_dataframe-based calculation
         num_metrics = len(metric_dataframe.metrics)
         num_windows = len(windows)
         total_pairs = num_metrics * num_windows
@@ -469,68 +643,74 @@ class ScoringEngine(IScoringEngine):
 
         missing_pairs = 0
 
-        # Count missing data pairs
         for metric_id, metric_series in metric_dataframe.metrics.items():
-            # For simplicity, we'll consider a pair missing if there's no data at all
-            # In a more sophisticated implementation, we'd check each window specifically
             if not metric_series or all(
                 not isinstance(v, list) or len(v) == 0 or all(x is None for x in v) for v in metric_series.values()
             ):
-                # This metric has no data at all
                 missing_pairs += num_windows
             else:
-                # Check each window for this metric
                 for window_key in metric_series.keys():
                     value_list = metric_series[window_key]
                     if not isinstance(value_list, list) or len(value_list) == 0 or all(x is None for x in value_list):
                         missing_pairs += 1
 
-        f3 = 1.0 - (missing_pairs / total_pairs)
-        return f3
+        return compute_missing_data_factor(missing_pairs, total_pairs)
 
-    def _compute_window_balance_factor(self, windows: List[WindowDefinition]) -> float:
+    def _compute_window_balance_factor(
+        self,
+        windows: List[WindowDefinition],
+        observation_metadata: Optional[Dict[str, Any]] = None,
+    ) -> float:
         """Compute f₄: 1.0 - min(1.0, std_size / mean_size)
 
-        window_sizes = [sum(|Wₖ| across all metrics) for each window k]
-        mean_size = mean(window_sizes)
-        std_size = std(window_sizes)
+        Enhanced with observation counts when available.
+
+        Args:
+            windows: List of window definitions
+            observation_metadata: Optional observation metadata from evidence package
+
+        Returns:
+            Window balance factor in [0, 1]
         """
         if not windows:
             return 0.0
 
-        # For each window, calculate its size (sum of absolute values across all metrics)
-        window_sizes = []
+        # Try to use observation counts first
+        if observation_metadata and observation_metadata.get("per_window_observations"):
+            per_window_obs = observation_metadata["per_window_observations"]
+            if per_window_obs:
+                window_sizes: List[float] = []
+                for window in windows:
+                    window_id = getattr(window, "window_id", None)
+                    if window_id and window_id in per_window_obs:
+                        obs_data = per_window_obs[window_id]
+                        if isinstance(obs_data, dict) and "count" in obs_data:
+                            window_sizes.append(float(obs_data["count"]))
 
-        # We don't have direct access to metric values per window in the WindowDefinition
-        # So we'll use a simplified approach based on commit counts as a proxy for size
-        # In a real implementation, this would use actual metric data
+                if window_sizes:
+                    return compute_balance_factor(window_sizes)
 
-        for window in windows:
-            # Use commit count as a proxy for window size
-            # In reality, this would be sum of |metric values| across all metrics in the window
-            window_size = window.commits  # Proxy using commit count
-            window_sizes.append(float(window_size))
-
-        if not window_sizes:
-            return 0.0
-
-        mean_size = math.fsum(window_sizes) / len(window_sizes)
-        if mean_size > 0:
-            variance = math.fsum((x - mean_size) ** 2 for x in window_sizes) / len(window_sizes)
-            std_size = variance**0.5
-            f4 = 1.0 - min(1.0, std_size / mean_size)
-        else:
-            f4 = 0.0
-
-        return f4
+        # Fallback to commit count proxy
+        window_sizes = [float(w.commits) for w in windows]
+        return compute_balance_factor(window_sizes)
 
     def _compute_detector_success_factor(
-        self, detector_results: DetectorResults, metric_dataframe: MetricDataFrame
+        self,
+        detector_results: DetectorResults,
+        metric_dataframe: MetricDataFrame,
+        evidence_package: Optional[EvidencePackage] = None,
     ) -> float:
         """Compute f₅: successful_runs / total_attempts
 
-        total_attempts = num_metrics × num_detectors (adjusted for metric availability)
-        successful_runs = count of detector executions that produced valid output
+        Enhanced with detector execution metadata when available.
+
+        Args:
+            detector_results: Container for detector outputs
+            metric_dataframe: Container for extracted metrics
+            evidence_package: Optional evidence package with observation-level metadata
+
+        Returns:
+            Detector success factor in [0, 1]
         """
         if not detector_results.detector_outputs:
             return 0.0
@@ -541,17 +721,55 @@ class ScoringEngine(IScoringEngine):
         if num_detectors == 0 or num_metrics == 0:
             return 0.0
 
-        # total_attempts = num_metrics × num_detectors (adjusted for metric availability)
-        # For simplicity, we'll assume all metrics are available for all detectors
+        # Try to use detector execution metadata first
+        if evidence_package and hasattr(evidence_package, "detector_execution_metadata"):
+            exec_metadata = evidence_package.detector_execution_metadata
+            if exec_metadata:
+                successful_runs = 0
+                total_attempts = 0
+
+                for det_id, det_data in exec_metadata.items():
+                    if isinstance(det_data, dict):
+                        success = det_data.get("success", False)
+                        execution_count = det_data.get("execution_count", 0)
+
+                        if success:
+                            successful_runs += execution_count
+                        total_attempts += execution_count
+
+                if total_attempts > 0:
+                    return compute_detector_success_factor(successful_runs, total_attempts)
+                # If no execution metadata, assume success
+                return 1.0
+
+        # Fallback to detector_results-based calculation
         total_attempts = num_metrics * num_detectors
+        successful_runs = num_detectors * num_metrics
+        return compute_detector_success_factor(successful_runs, total_attempts)
 
-        # successful_runs = count of detector executions that completed (not skipped)
-        # In mock scenario, assume all detectors ran successfully
-        successful_runs = num_detectors * num_metrics  # Assuming all combinations succeeded
+    def _compute_observation_quality_factor(
+        self,
+        observation_metadata: Optional[Dict[str, Any]] = None,
+    ) -> float:
+        """Compute f₆: observation quality factor (IMS Phase 4 extension).
 
-        if total_attempts > 0:
-            f5 = successful_runs / total_attempts
-        else:
-            f5 = 0.0
+        Quality = (complete + 0.5*partial) / (complete + partial + estimated)
 
-        return f5
+        Args:
+            observation_metadata: Optional observation metadata from evidence package
+
+        Returns:
+            Observation quality factor in [0, 1]
+        """
+        if not observation_metadata:
+            return 1.0
+
+        quality = observation_metadata.get("observation_quality", {})
+        if not quality:
+            return 1.0
+
+        complete = quality.get("complete", 0)
+        partial = quality.get("partial", 0)
+        estimated = quality.get("estimated", 0)
+
+        return compute_observation_quality_factor(complete, partial, estimated)
