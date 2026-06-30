@@ -189,6 +189,8 @@ class AnalysisPipeline:
                 "exclude_bots": exclude_bots,
                 "segmentation_strategy": segmentation_strategy,
                 "segmentation_size": segmentation_size,
+                "detector_config": detector_config or {},
+                "enabled_detectors": enabled_detectors or ["D-01", "D-02", "D-03"],
             },
         )
 

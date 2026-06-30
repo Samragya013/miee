@@ -148,15 +148,42 @@ class DetectorResult:
     Container for detector results (D-01 through D-03 output).
 
     Source: BSD-Engineering Section 8 and class DetectorResults
+    Extended: IMS Phase 6 (Evidence Refactor) for observation-level metadata
 
     Accepts both the legacy dict-based detector_outputs format and the
     new typed d_01/d_02/d_03 fields for backward compatibility.
+
+    Observation metadata fields provide structured access to observation-level
+    evidence that was previously buried in untyped detector_outputs dicts.
     """
 
+    # Legacy fields (backward compatible)
     detector_outputs: Dict[str, Dict] = field(default_factory=dict)
     d_01: Dict[str, Dict[str, D01Output]] = field(default_factory=dict)
     d_02: Dict[str, Dict[str, D02Output]] = field(default_factory=dict)
     d_03: Dict[str, Dict[str, Dict[str, D03Output]]] = field(default_factory=dict)
+
+    # Observation-level metadata fields (IMS Phase 6)
+    observation_counts: Dict[str, int] = field(default_factory=dict)
+    """Per-metric observation counts: metric_id -> count of observations used."""
+
+    window_ids: List[str] = field(default_factory=list)
+    """Ordered list of window IDs used in detection."""
+
+    sample_sizes: Dict[str, int] = field(default_factory=dict)
+    """Per-metric sample sizes: metric_id -> number of data points."""
+
+    statistical_summaries: Dict[str, Dict[str, Any]] = field(default_factory=dict)
+    """Per-metric statistical summaries: metric_id -> {mean, std, min, max, median, count}."""
+
+    threshold_metadata: Dict[str, Any] = field(default_factory=dict)
+    """Threshold configuration used: {alpha, psi_threshold, compression_threshold, etc.}."""
+
+    execution_timing: Dict[str, float] = field(default_factory=dict)
+    """Per-detector execution times in seconds: detector_id -> seconds."""
+
+    scientific_provenance: Dict[str, Any] = field(default_factory=dict)
+    """Scientific configuration: {method, version, parameters, reference, etc.}."""
 
     def __post_init__(self):
         """Validate that only frozen detectors are present."""
@@ -164,6 +191,74 @@ class DetectorResult:
         for detector_id in self.detector_outputs:
             if detector_id not in allowed_detectors:
                 raise ValueError(f"Invalid detector ID: {detector_id}. Must be one of {allowed_detectors}")
+
+    def get_observation_metadata(self, detector_id: str) -> Dict[str, Any]:
+        """
+        Extract observation-level metadata from a specific detector's output.
+
+        Args:
+            detector_id: Detector identifier (e.g., 'D-01', 'D-02', 'D-03')
+
+        Returns:
+            Dictionary containing observation-level metadata or empty dict if not found.
+        """
+        if detector_id not in self.detector_outputs:
+            return {}
+
+        output = self.detector_outputs[detector_id]
+        metadata: Dict[str, Any] = {}
+
+        # Extract observation counts
+        if "observation_counts" in output:
+            metadata["observation_counts"] = output["observation_counts"]
+
+        # Extract window pairs analyzed
+        if "window_pairs_analyzed" in output:
+            metadata["window_pairs"] = output["window_pairs_analyzed"]
+
+        # Extract per-window statistics
+        for key in ["ks_statistics", "psi_values", "drift_directions", "correlation_changes"]:
+            if key in output:
+                metadata[key] = output[key]
+
+        # Extract drift events (contain detailed observation-level info)
+        if "drift_events" in output:
+            metadata["drift_events"] = output["drift_events"]
+
+        # Extract confidence intervals
+        if "confidence_intervals" in output:
+            metadata["confidence_intervals"] = output["confidence_intervals"]
+
+        return metadata
+
+    def get_all_observation_counts(self) -> Dict[str, int]:
+        """
+        Get combined observation counts from all detectors.
+
+        Returns:
+            Dictionary mapping metric_id to total observation count.
+        """
+        combined: Dict[str, int] = {}
+
+        for detector_id, output in self.detector_outputs.items():
+            if "observation_counts" in output:
+                for metric_id, count in output["observation_counts"].items():
+                    combined[metric_id] = max(combined.get(metric_id, 0), count)
+
+        return combined
+
+    def get_execution_timing_summary(self) -> Dict[str, float]:
+        """
+        Get execution timing summary.
+
+        Returns:
+            Dictionary with total_time and per-detector times.
+        """
+        summary: Dict[str, float] = {
+            "total_time": sum(self.execution_timing.values()),
+            "detectors": dict(self.execution_timing),
+        }
+        return summary
 
 
 @dataclass
@@ -210,14 +305,93 @@ class EvidencePackage:
     Container for traceable evidence (M-09 Evidence Aggregator output).
 
     Source: ACS v1.0 Section 10.1 (Evidence Generation)
+    Extended: IMS Phase 6 (Evidence Refactor) for observation-level provenance
+
+    Observation provenance fields provide complete traceability from evidence
+    back to the raw observations, detector executions, and statistical artifacts
+    that produced the evidence.
     """
 
+    # Core evidence fields (backward compatible)
     provenance: Provenance
     windows: List[WindowDefinition]
     metrics: Dict[str, Any]  # Summary of metric data
     detector_outputs: DetectorResults
     scores: ScorePackage
     warnings: List[WarningItem] = field(default_factory=list)
+
+    # Observation-level provenance fields (IMS Phase 6)
+    observation_summary: Dict[str, Any] = field(default_factory=dict)
+    """
+    Summary of observations used in evidence generation:
+    {
+        "total_observations": int,
+        "per_metric": {
+            "M-02": {"count": int, "window_count": int, "value_range": [min, max]},
+            ...
+        },
+        "observation_quality": {"complete": int, "partial": int, "estimated": int}
+    }
+    """
+
+    detector_execution_metadata: Dict[str, Dict[str, Any]] = field(default_factory=dict)
+    """
+    Per-detector execution metadata:
+    {
+        "D-01": {
+            "method": "kolmogorov_smirnov",
+            "parameters": {"alpha": 0.05, "psi_threshold": 0.2},
+            "execution_time_seconds": float,
+            "windows_analyzed": int,
+            "observations_consumed": int,
+            "scientific_reference": "..."
+        },
+        ...
+    }
+    """
+
+    statistical_artifacts: Dict[str, Any] = field(default_factory=dict)
+    """
+    Intermediate statistical calculations and artifacts:
+    {
+        "drift_statistics": {
+            "D-01": {
+                "ks_statistics": Dict[str, float],
+                "psi_values": Dict[str, float],
+                "drift_events": List[Dict]
+            }
+        },
+        "correlation_artifacts": {
+            "D-02": {
+                "correlation_matrices": Dict[str, List[List[float]]],
+                "fisher_z_scores": Dict[str, float]
+            }
+        },
+        "compression_artifacts": {
+            "D-03": {
+                "dip_statistics": Dict[str, float],
+                "excess_mass_statistics": Dict[str, float]
+            }
+        }
+    }
+    """
+
+    configuration_snapshot: Dict[str, Any] = field(default_factory=dict)
+    """
+    Snapshot of configuration used for this evidence generation:
+    {
+        "metric_list": List[str],
+        "segmentation_strategy": str,
+        "segmentation_size": int,
+        "detector_config": Dict[str, Any],
+        "enabled_detectors": List[str],
+        "extraction_params": {
+            "since": Optional[str],
+            "until": Optional[str],
+            "exclude_bots": bool
+        }
+    }
+    """
 
     def __post_init__(self):
         """Validate EvidencePackage structure."""
@@ -242,6 +416,155 @@ class EvidencePackage:
         for i, warning in enumerate(self.warnings):
             if not isinstance(warning, WarningItem):
                 raise ValueError(f"warnings[{i}] must be a WarningItem instance")
+
+    def to_dict(self) -> Dict[str, Any]:
+        """
+        Convert EvidencePackage to a deterministic dictionary for serialization.
+
+        Returns:
+            Dictionary representation with all fields in consistent order.
+        """
+        return {
+            "provenance": {
+                "miie_version": self.provenance.miie_version,
+                "config_hash": self.provenance.config_hash,
+                "timestamp": self.provenance.timestamp,
+                "seed": self.provenance.seed,
+                "platform": self.provenance.platform,
+                "python_version": self.provenance.python_version,
+                "dependency_hash": self.provenance.dependency_hash,
+            },
+            "windows": [
+                {
+                    "window_id": w.window_id,
+                    "start_date": w.start_date.isoformat(),
+                    "end_date": w.end_date.isoformat(),
+                    "commits": w.commits,
+                    "strategy": w.strategy,
+                    "size_config": w.size_config if hasattr(w, "size_config") else {},
+                }
+                for w in self.windows
+            ],
+            "metrics": self.metrics,
+            "detector_outputs": self.detector_outputs.detector_outputs,
+            "scores": {
+                "integrity": {
+                    "overall": self.scores.integrity.overall,
+                    "per_metric": self.scores.integrity.per_metric,
+                    "formula_version": self.scores.integrity.formula_version,
+                },
+                "confidence": {
+                    "overall": self.scores.confidence.overall,
+                    "factors": self.scores.confidence.factors,
+                    "band": self.scores.confidence.band,
+                },
+                "timestamp": self.scores.timestamp.isoformat(),
+                "config_hash": self.scores.config_hash,
+                "formula_version": self.scores.formula_version,
+            },
+            "warnings": [
+                {
+                    "stage": w.stage,
+                    "message": w.message,
+                    "metric_id": w.metric_id,
+                    "detector_id": w.detector_id,
+                }
+                for w in self.warnings
+            ],
+            # Observation-level provenance fields (IMS Phase 6)
+            "observation_summary": self.observation_summary,
+            "detector_execution_metadata": self.detector_execution_metadata,
+            "statistical_artifacts": self.statistical_artifacts,
+            "configuration_snapshot": self.configuration_snapshot,
+        }
+
+    def get_observation_trace(self, metric_id: str) -> Dict[str, Any]:
+        """
+        Get complete observation trace for a specific metric.
+
+        Args:
+            metric_id: Metric identifier (e.g., 'M-02')
+
+        Returns:
+            Dictionary containing complete observation trace or empty dict if not found.
+        """
+        trace: Dict[str, Any] = {
+            "metric_id": metric_id,
+            "windows": [],
+            "detectors": {},
+            "summary": {},
+        }
+
+        # Extract metric-specific data from windows
+        for window in self.windows:
+            if hasattr(window, "metric_values") and metric_id in window.metric_values:
+                trace["windows"].append(
+                    {
+                        "window_id": window.window_id,
+                        "value": window.metric_values[metric_id],
+                        "start_date": window.start_date.isoformat(),
+                        "end_date": window.end_date.isoformat(),
+                    }
+                )
+
+        # Extract detector outputs for this metric
+        for detector_id, output in self.detector_outputs.detector_outputs.items():
+            if metric_id in str(output):
+                trace["detectors"][detector_id] = output
+
+        # Extract observation summary
+        if "per_metric" in self.observation_summary and metric_id in self.observation_summary["per_metric"]:
+            trace["summary"] = self.observation_summary["per_metric"][metric_id]
+
+        return trace
+
+    def get_evidence_completeness(self) -> Dict[str, Any]:
+        """
+        Get evidence completeness assessment.
+
+        Returns:
+            Dictionary with completeness metrics and gaps.
+        """
+        completeness: Dict[str, Any] = {
+            "has_provenance": bool(self.provenance),
+            "has_windows": bool(self.windows),
+            "has_metrics": bool(self.metrics),
+            "has_detector_outputs": bool(self.detector_outputs.detector_outputs),
+            "has_scores": bool(self.scores),
+            "has_observation_summary": bool(self.observation_summary),
+            "has_detector_execution_metadata": bool(self.detector_execution_metadata),
+            "has_statistical_artifacts": bool(self.statistical_artifacts),
+            "has_configuration_snapshot": bool(self.configuration_snapshot),
+            "window_count": len(self.windows),
+            "detector_count": len(self.detector_outputs.detector_outputs),
+            "warning_count": len(self.warnings),
+        }
+
+        # Calculate completeness score
+        required_fields = [
+            "has_provenance",
+            "has_windows",
+            "has_metrics",
+            "has_detector_outputs",
+            "has_scores",
+        ]
+        optional_fields = [
+            "has_observation_summary",
+            "has_detector_execution_metadata",
+            "has_statistical_artifacts",
+            "has_configuration_snapshot",
+        ]
+
+        required_count = sum(1 for f in required_fields if completeness[f])
+        optional_count = sum(1 for f in optional_fields if completeness[f])
+
+        completeness["required_completeness"] = required_count / len(required_fields)
+        completeness["optional_completeness"] = optional_count / len(optional_fields)
+        completeness["overall_completeness"] = (required_count + optional_count) / (
+            len(required_fields) + len(optional_fields)
+        )
+
+        return completeness
 
 
 # TODO: These are placeholder implementations for deferred schema classes.
