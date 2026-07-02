@@ -6,7 +6,7 @@ from miie import __version__
 
 def test_version_constant():
     """Test that the version constant is correctly set."""
-    assert __version__ == "1.0.0"
+    assert __version__ == "1.5.0"
 
 
 def test_cli_version_output():
