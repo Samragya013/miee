@@ -294,10 +294,20 @@ class CommitExtractor:
             idx += 1
 
             # Parse author date
+            # Python 3.10's fromisoformat() doesn't support colon in tz offset
+            # (e.g. "+00:00"). Strip the colon as a compatibility shim.
             try:
                 author_date = datetime.datetime.fromisoformat(date_str)
             except (ValueError, AttributeError):
-                continue
+                # Python 3.10 compat: "+00:00" -> "+0000"
+                if len(date_str) >= 5 and date_str[-5] == ":" and date_str[-3] != ":":
+                    fixed = date_str[:-5] + date_str[-4:]
+                    try:
+                        author_date = datetime.datetime.fromisoformat(fixed)
+                    except (ValueError, AttributeError):
+                        continue
+                else:
+                    continue
 
             # Collect shortstat lines until next commit (40-char hex SHA)
             # Git --format output is followed by a blank line, then --shortstat,
