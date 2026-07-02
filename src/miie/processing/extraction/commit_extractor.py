@@ -60,6 +60,44 @@ _INSERTIONS_RE = re.compile(r"(\d+)\s+insertion")
 _DELETIONS_RE = re.compile(r"(\d+)\s+deletion")
 
 
+def _parse_author_date(date_str: str) -> Optional[datetime.datetime]:
+    """Parse an ISO 8601 author date string.
+
+    Tries datetime.fromisoformat() first (works on 3.11+ with tz offsets).
+    Falls back to manual parsing for Python 3.10 which does not support
+    timezone offsets in fromisoformat().
+    """
+    try:
+        return datetime.datetime.fromisoformat(date_str)
+    except (ValueError, AttributeError):
+        pass
+
+    # Python 3.10 fallback: strip the tz offset and apply UTC.
+    # Handles formats: ...+00:00, ...-05:00, ...+0530, ...Z
+    tz_aware = date_str.endswith("Z")
+    if tz_aware:
+        naive_str = date_str[:-1]
+    else:
+        # Find last '+' or '-' that is followed by digits (tz offset)
+        for i in range(len(date_str) - 1, 0, -1):
+            if date_str[i] in ("+", "-") and date_str[i + 1 : i + 2].isdigit():
+                naive_str = date_str[:i]
+                break
+        else:
+            naive_str = date_str
+
+    # Strip fractional seconds if present (strptime %f handles up to 6 digits)
+    try:
+        naive_dt = datetime.datetime.strptime(naive_str, "%Y-%m-%dT%H:%M:%S.%f")
+    except ValueError:
+        try:
+            naive_dt = datetime.datetime.strptime(naive_str, "%Y-%m-%dT%H:%M:%S")
+        except ValueError:
+            return None
+
+    return naive_dt.replace(tzinfo=datetime.timezone.utc)
+
+
 class CommitExtractor:
     """Extract observations from git commit history.
 
@@ -294,20 +332,12 @@ class CommitExtractor:
             idx += 1
 
             # Parse author date
-            # Python 3.10's fromisoformat() doesn't support colon in tz offset
-            # (e.g. "+00:00"). Strip the colon as a compatibility shim.
-            try:
-                author_date = datetime.datetime.fromisoformat(date_str)
-            except (ValueError, AttributeError):
-                # Python 3.10 compat: "+00:00" -> "+0000"
-                if len(date_str) >= 5 and date_str[-5] == ":" and date_str[-3] != ":":
-                    fixed = date_str[:-5] + date_str[-4:]
-                    try:
-                        author_date = datetime.datetime.fromisoformat(fixed)
-                    except (ValueError, AttributeError):
-                        continue
-                else:
-                    continue
+            # Python 3.10's fromisoformat() doesn't support timezone offsets
+            # at all (e.g. "+00:00"). Fall back to strptime which works on
+            # all Python versions.
+            author_date = _parse_author_date(date_str)
+            if author_date is None:
+                continue
 
             # Collect shortstat lines until next commit (40-char hex SHA)
             # Git --format output is followed by a blank line, then --shortstat,
