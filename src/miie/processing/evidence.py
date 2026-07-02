@@ -96,6 +96,8 @@ class EvidenceEngine:
             detector_execution_metadata=detector_execution_metadata,
             statistical_artifacts=statistical_artifacts,
             configuration_snapshot=configuration_snapshot,
+            # Sampling framework diagnostics (PR-7B)
+            sampling_diagnostics=configuration.get("sampling_diagnostics", {}),
         )
 
     def generate_observation_evidence(

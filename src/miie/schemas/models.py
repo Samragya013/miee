@@ -394,6 +394,18 @@ class EvidencePackage:
     }
     """
 
+    sampling_diagnostics: Dict[str, Any] = field(default_factory=dict)
+    """
+    Sampling framework diagnostics (PR-7B):
+    {
+        "profile": { ... },
+        "plan": { ... },
+        "readiness": { ... },
+        "execution_traces": [ ... ],
+        "window_summary": { ... }
+    }
+    """
+
     def __post_init__(self):
         """Validate EvidencePackage structure."""
         # Validate provenance
@@ -448,23 +460,25 @@ class EvidencePackage:
             ],
             "metrics": self.metrics,
             "detector_outputs": self.detector_outputs.detector_outputs,
-            "scores": {
-                "integrity": {
-                    "overall": self.scores.integrity.overall,
-                    "per_metric": self.scores.integrity.per_metric,
-                    "formula_version": self.scores.integrity.formula_version,
-                },
-                "confidence": {
-                    "overall": self.scores.confidence.overall,
-                    "factors": self.scores.confidence.factors,
-                    "band": self.scores.confidence.band,
-                },
-                "timestamp": self.scores.timestamp.isoformat(),
-                "config_hash": self.scores.config_hash,
-                "formula_version": self.scores.formula_version,
-            }
-            if self.scores is not None
-            else None,
+            "scores": (
+                {
+                    "integrity": {
+                        "overall": self.scores.integrity.overall,
+                        "per_metric": self.scores.integrity.per_metric,
+                        "formula_version": self.scores.integrity.formula_version,
+                    },
+                    "confidence": {
+                        "overall": self.scores.confidence.overall,
+                        "factors": self.scores.confidence.factors,
+                        "band": self.scores.confidence.band,
+                    },
+                    "timestamp": self.scores.timestamp.isoformat(),
+                    "config_hash": self.scores.config_hash,
+                    "formula_version": self.scores.formula_version,
+                }
+                if self.scores is not None
+                else None
+            ),
             "warnings": [
                 {
                     "stage": w.stage,
