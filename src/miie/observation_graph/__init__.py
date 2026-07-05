@@ -13,8 +13,10 @@ Modules:
     validation: GraphValidator
     serialization: GraphSerializer
     diagnostics: GraphDiagnosticsEngine
+    state: GraphSnapshot, GraphEvent, GraphVersion, WorkingGraph, GraphStateManager
 
 Reference: PR-11E specification.
+SR-04: Unified State Model for Graph Immutability Resolution.
 """
 
 from miie.observation_graph.builder import (
@@ -44,6 +46,14 @@ from miie.observation_graph.models import (
     generate_graph_id,
 )
 from miie.observation_graph.serialization import GraphSerializer
+from miie.observation_graph.state import (
+    GraphEvent,
+    GraphSnapshot,
+    GraphStateManager,
+    GraphVersion,
+    StateType,
+    WorkingGraph,
+)
 from miie.observation_graph.validation import GraphValidator
 
 __all__ = [
@@ -80,4 +90,11 @@ __all__ = [
     "GraphSerializer",
     # Diagnostics
     "GraphDiagnosticsEngine",
+    # SR-04: State Model
+    "StateType",
+    "GraphSnapshot",
+    "GraphEvent",
+    "GraphVersion",
+    "WorkingGraph",
+    "GraphStateManager",
 ]
