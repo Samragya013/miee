@@ -1,0 +1,465 @@
+{
+  "matrices": [
+    {
+      "matrix_id": "MATRIX-MET-M01-001",
+      "metric_id": "M-01",
+      "metric_name": "Commit Entropy Ratio",
+      "unit": "ratio",
+      "version": "1.0.0",
+      "description": "Benchmark matrix for M-01 Commit Entropy Ratio (Shannon entropy, category-level tokenization)",
+      "entries": [
+        {
+          "dataset_id": "GT-SYN-M01-001",
+          "dataset_type": "synthetic",
+          "expected_min": 0.9,
+          "expected_max": 1.0,
+          "expected_trend": "stable",
+          "tolerance": 0.05,
+          "notes": "Uniform category distribution — maximum entropy"
+        },
+        {
+          "dataset_id": "GT-SYN-M01-002",
+          "dataset_type": "synthetic",
+          "expected_min": 0.0,
+          "expected_max": 0.0,
+          "expected_trend": "stable",
+          "tolerance": 0.00,
+          "notes": "All identical messages — zero entropy"
+        },
+        {
+          "dataset_id": "GT-SYN-M01-003",
+          "dataset_type": "synthetic",
+          "expected_min": 0.9,
+          "expected_max": 1.0,
+          "expected_trend": "stable",
+          "tolerance": 0.05,
+          "notes": "Two categories, 50/50 split"
+        },
+        {
+          "dataset_id": "GT-SYN-M01-004",
+          "dataset_type": "synthetic",
+          "expected_min": 0.0,
+          "expected_max": 0.0,
+          "expected_trend": "stable",
+          "tolerance": 0.00,
+          "notes": "Empty repository — no commits"
+        },
+        {
+          "dataset_id": "GT-SYN-M01-005",
+          "dataset_type": "synthetic",
+          "expected_min": 0.0,
+          "expected_max": 0.0,
+          "expected_trend": "stable",
+          "tolerance": 0.00,
+          "notes": "Single commit — no diversity"
+        },
+        {
+          "dataset_id": "GT-SYN-M01-006",
+          "dataset_type": "synthetic",
+          "expected_min": 0.0,
+          "expected_max": 1.0,
+          "expected_trend": "stable",
+          "tolerance": 0.05,
+          "notes": "Non-ASCII messages — tests classification"
+        },
+        {
+          "dataset_id": "GT-SYN-M01-007",
+          "dataset_type": "synthetic",
+          "expected_min": 0.0,
+          "expected_max": 1.0,
+          "expected_trend": "stable",
+          "tolerance": 0.10,
+          "notes": "Mix of merge and regular commits"
+        },
+        {
+          "dataset_id": "GT-REAL-HEALTHY-001",
+          "dataset_type": "real",
+          "expected_min": 0.3,
+          "expected_max": 0.9,
+          "expected_trend": "stable",
+          "tolerance": 0.10,
+          "notes": "Healthy repository — typical entropy range"
+        },
+        {
+          "dataset_id": "GT-REAL-HEALTHY-002",
+          "dataset_type": "real",
+          "expected_min": 0.3,
+          "expected_max": 0.9,
+          "expected_trend": "stable",
+          "tolerance": 0.10,
+          "notes": "Healthy repository — typical entropy range"
+        }
+      ],
+      "summary": {
+        "total_datasets": 9,
+        "synthetic_count": 7,
+        "real_count": 2,
+        "adversarial_count": 0,
+        "value_range": {"global_min": 0.0, "global_max": 1.0}
+      }
+    },
+    {
+      "matrix_id": "MATRIX-MET-M02-001",
+      "metric_id": "M-02",
+      "metric_name": "Commit Count",
+      "unit": "count",
+      "version": "1.0.0",
+      "description": "Benchmark matrix for M-02 Commit Count",
+      "entries": [
+        {
+          "dataset_id": "GT-SYN-M02-001",
+          "dataset_type": "synthetic",
+          "expected_min": 0,
+          "expected_max": 0,
+          "expected_trend": "stable",
+          "tolerance": 0,
+          "notes": "Empty repository — zero commits"
+        },
+        {
+          "dataset_id": "GT-SYN-M02-002",
+          "dataset_type": "synthetic",
+          "expected_min": 1,
+          "expected_max": 1,
+          "expected_trend": "stable",
+          "tolerance": 0,
+          "notes": "Single commit"
+        },
+        {
+          "dataset_id": "GT-SYN-M02-003",
+          "dataset_type": "synthetic",
+          "expected_min": 100,
+          "expected_max": 100,
+          "expected_trend": "stable",
+          "tolerance": 0,
+          "notes": "100 commits in window"
+        },
+        {
+          "dataset_id": "GT-SYN-M02-004",
+          "dataset_type": "synthetic",
+          "expected_min": 50,
+          "expected_max": 150,
+          "expected_trend": "stable",
+          "tolerance": 0,
+          "notes": "Multi-window distribution"
+        },
+        {
+          "dataset_id": "GT-REAL-HEALTHY-001",
+          "dataset_type": "real",
+          "expected_min": 10,
+          "expected_max": 500,
+          "expected_trend": "stable",
+          "tolerance": 0,
+          "notes": "Healthy repository — typical commit count"
+        }
+      ],
+      "summary": {
+        "total_datasets": 5,
+        "synthetic_count": 4,
+        "real_count": 1,
+        "adversarial_count": 0,
+        "value_range": {"global_min": 0, "global_max": 500}
+      }
+    },
+    {
+      "matrix_id": "MATRIX-MET-M03-001",
+      "metric_id": "M-03",
+      "metric_name": "Code Churn Ratio",
+      "unit": "ratio",
+      "version": "1.0.0",
+      "description": "Benchmark matrix for M-03 Code Churn Ratio",
+      "entries": [
+        {
+          "dataset_id": "GT-SYN-M03-001",
+          "dataset_type": "synthetic",
+          "expected_min": 0.0,
+          "expected_max": 0.0,
+          "expected_trend": "stable",
+          "tolerance": 0.00,
+          "notes": "No changes — zero churn"
+        },
+        {
+          "dataset_id": "GT-SYN-M03-002",
+          "dataset_type": "synthetic",
+          "expected_min": 0.005,
+          "expected_max": 0.015,
+          "expected_trend": "stable",
+          "tolerance": 0.01,
+          "notes": "Small changes (10/1000 lines)"
+        },
+        {
+          "dataset_id": "GT-SYN-M03-003",
+          "dataset_type": "synthetic",
+          "expected_min": 0.45,
+          "expected_max": 0.55,
+          "expected_trend": "stable",
+          "tolerance": 0.05,
+          "notes": "Large changes (500/1000 lines)"
+        },
+        {
+          "dataset_id": "GT-SYN-M03-004",
+          "dataset_type": "synthetic",
+          "expected_min": 0.95,
+          "expected_max": 1.0,
+          "expected_trend": "stable",
+          "tolerance": 0.05,
+          "notes": "Complete rewrite — all lines changed"
+        },
+        {
+          "dataset_id": "GT-SYN-M03-005",
+          "dataset_type": "synthetic",
+          "expected_min": 0.0,
+          "expected_max": 0.0,
+          "expected_trend": "shift",
+          "tolerance": 0.10,
+          "notes": "Shift pattern — churn increases mid-timeline"
+        },
+        {
+          "dataset_id": "GT-REAL-HEALTHY-001",
+          "dataset_type": "real",
+          "expected_min": 0.01,
+          "expected_max": 0.30,
+          "expected_trend": "stable",
+          "tolerance": 0.05,
+          "notes": "Healthy repository — typical churn range"
+        }
+      ],
+      "summary": {
+        "total_datasets": 6,
+        "synthetic_count": 5,
+        "real_count": 1,
+        "adversarial_count": 0,
+        "value_range": {"global_min": 0.0, "global_max": 1.0}
+      }
+    },
+    {
+      "matrix_id": "MATRIX-MET-M04-001",
+      "metric_id": "M-04",
+      "metric_name": "Test Coverage Ratio",
+      "unit": "ratio",
+      "version": "1.0.0",
+      "description": "Benchmark matrix for M-04 Test Coverage Ratio",
+      "entries": [
+        {
+          "dataset_id": "GT-SYN-M04-001",
+          "dataset_type": "synthetic",
+          "expected_min": 0.0,
+          "expected_max": 0.0,
+          "expected_trend": "stable",
+          "tolerance": 0.00,
+          "notes": "No tests — zero coverage"
+        },
+        {
+          "dataset_id": "GT-SYN-M04-002",
+          "dataset_type": "synthetic",
+          "expected_min": 0.25,
+          "expected_max": 0.35,
+          "expected_trend": "stable",
+          "tolerance": 0.05,
+          "notes": "Low coverage (~30%)"
+        },
+        {
+          "dataset_id": "GT-SYN-M04-003",
+          "dataset_type": "synthetic",
+          "expected_min": 0.85,
+          "expected_max": 0.95,
+          "expected_trend": "stable",
+          "tolerance": 0.05,
+          "notes": "High coverage (~90%)"
+        },
+        {
+          "dataset_id": "GT-SYN-M04-004",
+          "dataset_type": "synthetic",
+          "expected_min": 1.0,
+          "expected_max": 1.0,
+          "expected_trend": "stable",
+          "tolerance": 0.00,
+          "notes": "Full coverage (100%)"
+        },
+        {
+          "dataset_id": "GT-REAL-HEALTHY-001",
+          "dataset_type": "real",
+          "expected_min": 0.1,
+          "expected_max": 0.9,
+          "expected_trend": "stable",
+          "tolerance": 0.10,
+          "notes": "Healthy repository — typical coverage range"
+        }
+      ],
+      "summary": {
+        "total_datasets": 5,
+        "synthetic_count": 4,
+        "real_count": 1,
+        "adversarial_count": 0,
+        "value_range": {"global_min": 0.0, "global_max": 1.0}
+      }
+    },
+    {
+      "matrix_id": "MATRIX-MET-M05-001",
+      "metric_id": "M-05",
+      "metric_name": "Review Latency",
+      "unit": "hours",
+      "version": "1.0.0",
+      "description": "Benchmark matrix for M-05 Review Latency",
+      "entries": [
+        {
+          "dataset_id": "GT-SYN-M05-001",
+          "dataset_type": "synthetic",
+          "expected_min": null,
+          "expected_max": null,
+          "expected_trend": "stable",
+          "tolerance": null,
+          "notes": "No reviews — undefined latency"
+        },
+        {
+          "dataset_id": "GT-SYN-M05-002",
+          "dataset_type": "synthetic",
+          "expected_min": 0.5,
+          "expected_max": 1.5,
+          "expected_trend": "stable",
+          "tolerance": 0.5,
+          "notes": "Fast review (~1 hour)"
+        },
+        {
+          "dataset_id": "GT-SYN-M05-003",
+          "dataset_type": "synthetic",
+          "expected_min": 40.0,
+          "expected_max": 56.0,
+          "expected_trend": "stable",
+          "tolerance": 5.0,
+          "notes": "Slow review (~48 hours)"
+        },
+        {
+          "dataset_id": "GT-SYN-M05-004",
+          "dataset_type": "synthetic",
+          "expected_min": 1.0,
+          "expected_max": 72.0,
+          "expected_trend": "stable",
+          "tolerance": 5.0,
+          "notes": "Mixed reviews — variable latency"
+        },
+        {
+          "dataset_id": "GT-REAL-HEALTHY-001",
+          "dataset_type": "real",
+          "expected_min": 1.0,
+          "expected_max": 96.0,
+          "expected_trend": "stable",
+          "tolerance": 10.0,
+          "notes": "Healthy repository — typical review latency"
+        }
+      ],
+      "summary": {
+        "total_datasets": 5,
+        "synthetic_count": 4,
+        "real_count": 1,
+        "adversarial_count": 0,
+        "value_range": {"global_min": 0.5, "global_max": 96.0}
+      }
+    },
+    {
+      "matrix_id": "MATRIX-MET-M06-001",
+      "metric_id": "M-06",
+      "metric_name": "File Change Count",
+      "unit": "count",
+      "version": "1.0.0",
+      "description": "Benchmark matrix for M-06 File Change Count",
+      "entries": [
+        {
+          "dataset_id": "GT-SYN-M06-001",
+          "dataset_type": "synthetic",
+          "expected_min": 0,
+          "expected_max": 0,
+          "expected_trend": "stable",
+          "tolerance": 0,
+          "notes": "No changes — zero files"
+        },
+        {
+          "dataset_id": "GT-SYN-M06-002",
+          "dataset_type": "synthetic",
+          "expected_min": 1,
+          "expected_max": 1,
+          "expected_trend": "stable",
+          "tolerance": 0,
+          "notes": "Single file changed"
+        },
+        {
+          "dataset_id": "GT-SYN-M06-003",
+          "dataset_type": "synthetic",
+          "expected_min": 45,
+          "expected_max": 55,
+          "expected_trend": "stable",
+          "tolerance": 5,
+          "notes": "Many files changed (~50)"
+        },
+        {
+          "dataset_id": "GT-REAL-HEALTHY-001",
+          "dataset_type": "real",
+          "expected_min": 1,
+          "expected_max": 100,
+          "expected_trend": "stable",
+          "tolerance": 10,
+          "notes": "Healthy repository — typical file change count"
+        }
+      ],
+      "summary": {
+        "total_datasets": 4,
+        "synthetic_count": 3,
+        "real_count": 1,
+        "adversarial_count": 0,
+        "value_range": {"global_min": 0, "global_max": 100}
+      }
+    },
+    {
+      "matrix_id": "MATRIX-MET-M07-001",
+      "metric_id": "M-07",
+      "metric_name": "Branch Freshness Ratio",
+      "unit": "ratio",
+      "version": "1.0.0",
+      "description": "Benchmark matrix for M-07 Branch Freshness Ratio",
+      "entries": [
+        {
+          "dataset_id": "GT-SYN-M07-001",
+          "dataset_type": "synthetic",
+          "expected_min": 0.95,
+          "expected_max": 1.0,
+          "expected_trend": "stable",
+          "tolerance": 0.05,
+          "notes": "Fresh branch — updated today"
+        },
+        {
+          "dataset_id": "GT-SYN-M07-002",
+          "dataset_type": "synthetic",
+          "expected_min": 0.4,
+          "expected_max": 0.6,
+          "expected_trend": "decreasing",
+          "tolerance": 0.10,
+          "notes": "Stale branch — updated 90 days ago"
+        },
+        {
+          "dataset_id": "GT-SYN-M07-003",
+          "dataset_type": "synthetic",
+          "expected_min": 0.0,
+          "expected_max": 0.1,
+          "expected_trend": "decreasing",
+          "tolerance": 0.05,
+          "notes": "Very stale branch — updated 180+ days ago"
+        },
+        {
+          "dataset_id": "GT-REAL-HEALTHY-001",
+          "dataset_type": "real",
+          "expected_min": 0.3,
+          "expected_max": 1.0,
+          "expected_trend": "stable",
+          "tolerance": 0.10,
+          "notes": "Healthy repository — typical branch freshness"
+        }
+      ],
+      "summary": {
+        "total_datasets": 4,
+        "synthetic_count": 3,
+        "real_count": 1,
+        "adversarial_count": 0,
+        "value_range": {"global_min": 0.0, "global_max": 1.0}
+      }
+    }
+  ]
+}

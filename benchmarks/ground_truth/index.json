@@ -1,0 +1,41 @@
+{
+  "index_version": "1.0.0",
+  "description": "MIIE Ground Truth Dataset Registry",
+  "created_at": "2026-07-05T00:00:00Z",
+  "total_datasets": 22,
+  "datasets": [
+    {"id": "GT-SYN-DRIFT-001", "name": "No Drift Baseline", "type": "synthetic", "detector": "D-01", "status": "certified"},
+    {"id": "GT-SYN-DRIFT-002", "name": "Small Drift Below Threshold", "type": "synthetic", "detector": "D-01", "status": "certified"},
+    {"id": "GT-SYN-DRIFT-003", "name": "Medium Drift Detected", "type": "synthetic", "detector": "D-01", "status": "certified"},
+    {"id": "GT-SYN-DRIFT-004", "name": "Large Drift Detected", "type": "synthetic", "detector": "D-01", "status": "certified"},
+    {"id": "GT-SYN-DRIFT-005", "name": "Gradual Drift Detected", "type": "synthetic", "detector": "D-01", "status": "certified"},
+    {"id": "GT-SYN-DRIFT-006", "name": "Sudden Drift Detected", "type": "synthetic", "detector": "D-01", "status": "certified"},
+    {"id": "GT-SYN-DRIFT-007", "name": "Intermittent Drift Detected", "type": "synthetic", "detector": "D-01", "status": "certified"},
+    {"id": "GT-SYN-CORR-001", "name": "No Correlation Breakdown Baseline", "type": "synthetic", "detector": "D-02", "status": "certified"},
+    {"id": "GT-SYN-CORR-002", "name": "Small Correlation Weakening Below Threshold", "type": "synthetic", "detector": "D-02", "status": "certified"},
+    {"id": "GT-SYN-CORR-003", "name": "Medium Correlation Weakening Detected", "type": "synthetic", "detector": "D-02", "status": "certified"},
+    {"id": "GT-SYN-CORR-004", "name": "Large Correlation Weakening Detected", "type": "synthetic", "detector": "D-02", "status": "certified"},
+    {"id": "GT-SYN-CORR-005", "name": "Correlation Reversal Detected", "type": "synthetic", "detector": "D-02", "status": "certified"},
+    {"id": "GT-SYN-CORR-006", "name": "Correlation Emergence Detected", "type": "synthetic", "detector": "D-02", "status": "certified"},
+    {"id": "GT-SYN-THRESH-001", "name": "No Threshold Compression Baseline", "type": "synthetic", "detector": "D-03", "status": "certified"},
+    {"id": "GT-SYN-THRESH-002", "name": "Weak Compression Below Threshold", "type": "synthetic", "detector": "D-03", "status": "certified"},
+    {"id": "GT-SYN-THRESH-003", "name": "Moderate Compression Detected", "type": "synthetic", "detector": "D-03", "status": "certified"},
+    {"id": "GT-SYN-THRESH-004", "name": "Strong Compression Detected", "type": "synthetic", "detector": "D-03", "status": "certified"},
+    {"id": "GT-SYN-THRESH-005", "name": "Bimodal Distribution Detected", "type": "synthetic", "detector": "D-03", "status": "certified"},
+    {"id": "GT-REAL-HEALTHY-001", "name": "Healthy Repository Baseline 1", "type": "real", "detector": "all", "status": "certified"},
+    {"id": "GT-REAL-HEALTHY-002", "name": "Healthy Repository Baseline 2", "type": "real", "detector": "all", "status": "certified"},
+    {"id": "GT-REAL-HEALTHY-003", "name": "Healthy Repository Baseline 3", "type": "real", "detector": "all", "status": "certified"},
+    {"id": "GT-ADV-DRIFT-001", "name": "Subtle Drift May Evade Detection", "type": "adversarial", "detector": "D-01", "status": "certified"},
+    {"id": "GT-ADV-DRIFT-002", "name": "Seasonal Pattern Should Not Trigger", "type": "adversarial", "detector": "D-01", "status": "certified"},
+    {"id": "GT-ADV-CORR-001", "name": "Subtle Correlation Decoupling May Evade", "type": "adversarial", "detector": "D-02", "status": "certified"},
+    {"id": "GT-ADV-THRESH-001", "name": "Near-Threshold Gaming May Evade", "type": "adversarial", "detector": "D-03", "status": "certified"}
+  ],
+  "summary": {
+    "synthetic": 18,
+    "real": 3,
+    "adversarial": 4,
+    "certified": 25,
+    "detectors_covered": ["D-01", "D-02", "D-03"],
+    "metrics_covered": ["M-01", "M-02", "M-03", "M-04", "M-05", "M-07"]
+  }
+}

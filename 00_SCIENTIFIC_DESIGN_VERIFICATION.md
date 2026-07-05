@@ -40,7 +40,7 @@
 
 **Maturity Level: Level 3 — Defined Process**
 
-The MIIE repository contains 12 specification documents totaling approximately 20,000+ lines, covering statistical rigor, metric formalization, observation architecture, detector science, validation frameworks, knowledge graph evolution, streaming architecture, AI activity detection, statistical validation, research limitations, and implementation guidance. The repository has a coherent scientific architecture with well-separated concerns. However, several cross-document inconsistencies and missing specifications prevent classification as Level 4 (Quantitatively Managed).
+The MIIE repository contains 13 specification documents totaling approximately 21,000+ lines, covering statistical rigor, metric formalization, observation architecture, detector science, validation frameworks, knowledge graph evolution, streaming architecture, AI activity detection, statistical validation, research limitations, ground truth dataset framework, and implementation guidance. The repository has a coherent scientific architecture with well-separated concerns. However, several cross-document inconsistencies and missing specifications prevent classification as Level 4 (Quantitatively Managed).
 
 ### 1.2 Overall Scientific Maturity
 
@@ -52,7 +52,7 @@ The scientific foundation is sound: formal metric definitions (M-01 through M-07
 
 **Engineering Maturity: Level 3 — Defined Process**
 
-The implementation contains a complete metric engine, detector framework, scoring engine, evidence engine, and observation graph. All 2282 tests pass. The code implements the specification formulas faithfully with two notable deviations: (1) D-01 uses an asymptotic KS p-value approximation rather than the exact distribution, and (2) the D-03 dip test uses a KS-based approximation rather than the true Hartigan dip statistic. Both are documented limitations.
+The implementation contains a complete metric engine, detector framework, scoring engine, evidence engine, and observation graph. All 2429 tests pass. The code implements the specification formulas faithfully with two notable deviations: (1) D-01 uses an asymptotic KS p-value approximation rather than the exact distribution, and (2) the D-03 dip test uses a KS-based approximation rather than the true Hartigan dip statistic. Both are documented limitations.
 
 ### 1.4 Overall Publication Maturity
 
@@ -75,7 +75,7 @@ Implementation of the core pipeline (metrics, detectors, scoring, evidence) is c
 | Scientific | MEDIUM | Sound foundations but gaps in validation and power analysis |
 | Engineering | LOW-MEDIUM | Working implementation with documented deviations |
 | Architectural | MEDIUM | Graph immutability contradiction between Docs 06/07 |
-| Validation | HIGH | No ground truth datasets, no empirical calibration |
+| Validation | MEDIUM | Ground truth framework implemented; empirical calibration pending |
 | Publication | HIGH | Requires substantial additional work for top venues |
 
 ---
@@ -91,7 +91,7 @@ The repository follows a coherent layered architecture:
 ```
 ┌─────────────────────────────────────────────┐
 │           Specification Layer               │
-│  (12 documents: 00–11)                      │
+│  (13 documents: 00–12)                      │
 ├─────────────────────────────────────────────┤
 │           Scientific Layer                  │
 │  (Metrics, Detectors, Statistics, Scoring)  │
@@ -425,7 +425,7 @@ This is a direct architectural contradiction that must be resolved.
 | G-06 | Metric | M-03→M-07 dependency not functional | **MEDIUM** | 02 |
 | G-07 | Metric | No metric cross-validation | **MEDIUM** | 05 |
 | G-08 | Confidence | Three incompatible confidence models | **HIGH** | 01, 05 |
-| G-09 | Validation | No ground truth datasets | **CRITICAL** | 05, 09 |
+| G-09 | Validation | No ground truth datasets | **RESOLVED** | 05, 09, SR-03 |
 | G-10 | Validation | No empirical benchmark results | **HIGH** | 05, 09 |
 | G-11 | Architecture | Graph immutability contradiction | **CRITICAL** | 06, 07 |
 | G-12 | Architecture | No interface contracts between layers | **MEDIUM** | All |
@@ -443,7 +443,7 @@ This is a direct architectural contradiction that must be resolved.
 
 2. ~~**G-05: M-01 tokenization unspecified.**~~ **RESOLVED (SR-02).** M-01 now specifies category-level tokenization via conventional-commit regex patterns. Implementation in `m01_entropy_ratio.py` with comprehensive tests.
 
-3. **G-09: No ground truth datasets.** Without ground truth, the detectors cannot be calibrated or validated empirically. The validation framework (Doc 05) defines levels but cannot be executed.
+3. ~~**G-09: No ground truth datasets.**~~ **RESOLVED (SR-03).** Ground Truth Dataset Framework implemented: Doc 12 (framework spec), JSON schemas, Python models, repository taxonomy, detector/metric benchmark matrices, 75 unit tests. SDV CF-03 remediated.
 
 4. **G-11: Graph immutability contradiction.** Doc 06 and Doc 07 make incompatible claims about graph mutability. This blocks streaming implementation.
 
@@ -453,7 +453,7 @@ This is a direct architectural contradiction that must be resolved.
 
 ### 8.1 Can Implementation Begin Today?
 
-**For core pipeline: YES** — Metrics, detectors, scoring, and evidence are implemented and tested (2282 tests passing).
+**For core pipeline: YES** — Metrics, detectors, scoring, and evidence are implemented and tested (2429 tests passing).
 
 **For streaming: NO** — Blocked by graph immutability contradiction (G-11) and missing roadmap (G-13).
 
@@ -672,7 +672,7 @@ However, the repository has **4 critical findings** and **7 high-severity findin
 6. Validation level mismatch (Doc 00 vs Doc 05)
 7. No cross-document glossary
 
-The implementation is functional and tested (2282 tests passing), but cannot be considered production-ready without addressing the critical findings. The repository is suitable for internal use and research, but requires substantial additional work for publication or external deployment.
+The implementation is functional and tested (2429 tests passing), but cannot be considered production-ready without addressing the critical findings. The repository is suitable for internal use and research, but requires substantial additional work for publication or external deployment.
 
 ### Conditions for Full Approval
 
@@ -816,7 +816,7 @@ The implementation is functional and tested (2282 tests passing), but cannot be 
 | G-06 | Metric | M-03→M-07 dependency not functional | MEDIUM | 02 | Implement or remove |
 | G-07 | Metric | No metric cross-validation | MEDIUM | 05 | Add logic |
 | G-08 | Confidence | Three incompatible models | HIGH | 01, 05 | Unify/reconcile |
-| G-09 | Validation | No ground truth datasets | CRITICAL | 05, 09 | Create datasets |
+| G-09 | Validation | No ground truth datasets | RESOLVED | 05, 09, SR-03 | Doc 12 + schemas + models + matrices + tests |
 | G-10 | Validation | No empirical benchmarks | HIGH | 05, 09 | Conduct study |
 | G-11 | Architecture | Graph immutability contradiction | CRITICAL | 06, 07 | Resolve |
 | G-12 | Architecture | No interface contracts | MEDIUM | All | Define contracts |
@@ -846,6 +846,7 @@ The implementation is functional and tested (2282 tests passing), but cannot be 
 | 09 | 09_STATISTICAL_VALIDATION_PLAN.md | ~1,549 | 18 + 7 appendices | Canonical |
 | 10 | 10_RESEARCH_LIMITATIONS_AND_THREATS.md | ~2,310 | 18 + 7 appendices | Canonical |
 | 11 | 11_IMPLEMENTATION_ROADMAP_V2.md | **MISSING** | — | — |
+| 12 | 12_GROUND_TRUTH_DATASET_FRAMEWORK.md | ~1,000+ | 15 | Canonical |
 
 ## Appendix B: Implementation Verification Summary
 

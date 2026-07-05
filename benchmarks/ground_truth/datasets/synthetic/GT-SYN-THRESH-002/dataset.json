@@ -1,0 +1,47 @@
+{
+  "dataset_id": "GT-SYN-THRESH-002",
+  "dataset_name": "Weak Compression Below Threshold",
+  "dataset_version": "1.0.0",
+  "dataset_type": "synthetic",
+  "status": "certified",
+  "created_by": "miie-benchmark-team",
+  "created_at": "2026-07-05T00:00:00Z",
+  "description": "Synthetic repository with weak threshold compression below D-03 detection threshold.",
+  "repository_classification": "synthetic",
+  "language": "python",
+  "commit_count": 200,
+  "contributor_count": 5,
+  "time_span_days": 365,
+  "tags": ["threshold", "weak", "below-threshold", "negative"],
+  "provenance": {
+    "source": "generated",
+    "methodology": "BenchmarkDatasetGenerator with weak compression",
+    "tools": ["miie-benchmark-generator"],
+    "parameters": {"compression_strength": 0.2},
+    "reproducibility": "Run BenchmarkDatasetGenerator with seed=42, compression_strength=0.2"
+  },
+  "ground_truth": {
+    "anomaly_present": false,
+    "anomaly_type": null,
+    "anomaly_severity": "none",
+    "expected_detector_outputs": {
+      "D-01": {"detected": false, "severity": "none"},
+      "D-02": {"detected": false, "severity": "none"},
+      "D-03": {"detected": false, "severity": "none"}
+    },
+    "expected_metric_values": {
+      "M-01": {"range": [0.4, 0.9], "trend": "stable"}
+    },
+    "expected_scores": {
+      "integrity_score_range": [0.6, 1.0],
+      "confidence_score_range": [0.65, 1.0]
+    }
+  },
+  "acceptance_criteria": {
+    "D-03_specificity_min": 0.90,
+    "determinism_required": true
+  },
+  "versioning": {"changelog": ["Initial release"], "compatibility": "backward-compatible"},
+  "certification": {"certified_by": "scientific-board", "certified_at": "2026-07-05T00:00:00Z", "criteria": "weak-compression-no-detection", "certificate_id": "CERT-GT-SYN-THRESH-002-1.0.0"},
+  "licensing": {"license": "MIT", "attribution": "MIIE Benchmark Dataset"}
+}

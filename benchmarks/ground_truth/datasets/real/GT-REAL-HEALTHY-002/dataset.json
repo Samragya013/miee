@@ -1,0 +1,52 @@
+{
+  "dataset_id": "GT-REAL-HEALTHY-002",
+  "dataset_name": "Healthy Repository Baseline 2",
+  "dataset_version": "1.0.0",
+  "dataset_type": "real",
+  "status": "certified",
+  "created_by": "miie-benchmark-team",
+  "created_at": "2026-07-05T00:00:00Z",
+  "description": "Second real healthy repository baseline for cross-detector validation.",
+  "repository_classification": "healthy",
+  "language": "python",
+  "commit_count": 250,
+  "contributor_count": 6,
+  "time_span_days": 540,
+  "tags": ["healthy", "baseline", "positive"],
+  "provenance": {
+    "source": "annotated",
+    "methodology": "Expert annotation of public repository",
+    "tools": ["manual-annotation"],
+    "parameters": {"annotation_confidence": 0.90},
+    "reproducibility": "Clone repository and run MIIE pipeline"
+  },
+  "ground_truth": {
+    "anomaly_present": false,
+    "anomaly_type": null,
+    "anomaly_severity": "none",
+    "expected_detector_outputs": {
+      "D-01": {"detected": false, "severity": "none"},
+      "D-02": {"detected": false, "severity": "none"},
+      "D-03": {"detected": false, "severity": "none"}
+    },
+    "expected_metric_values": {
+      "M-01": {"range": [0.4, 0.9], "trend": "stable", "tolerance": 0.10},
+      "M-02": {"range": [150, 400], "trend": "stable", "tolerance": 50},
+      "M-03": {"range": [0.05, 0.30], "trend": "stable", "tolerance": 0.05},
+      "M-07": {"range": [0.4, 1.0], "trend": "stable", "tolerance": 0.10}
+    },
+    "expected_scores": {
+      "integrity_score_range": [0.7, 1.0],
+      "confidence_score_range": [0.7, 1.0]
+    }
+  },
+  "acceptance_criteria": {
+    "D-01_specificity_min": 0.90,
+    "D-02_specificity_min": 0.90,
+    "D-03_specificity_min": 0.90,
+    "determinism_required": false
+  },
+  "versioning": {"changelog": ["Initial release"], "compatibility": "backward-compatible"},
+  "certification": {"certified_by": "scientific-board", "certified_at": "2026-07-05T00:00:00Z", "criteria": "expert-annotation-verified", "certificate_id": "CERT-GT-REAL-HEALTHY-002-1.0.0"},
+  "licensing": {"license": "MIT", "attribution": "MIIE Benchmark Dataset"}
+}

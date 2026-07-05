@@ -1,0 +1,357 @@
+{
+  "matrices": [
+    {
+      "matrix_id": "MATRIX-DET-D01-001",
+      "detector_id": "D-01",
+      "detector_name": "Distribution Drift Detector",
+      "version": "1.0.0",
+      "description": "Benchmark matrix for D-01 Distribution Drift Detector (KS test, asymptotic p-value, α=0.05)",
+      "entries": [
+        {
+          "dataset_id": "GT-SYN-DRIFT-001",
+          "dataset_type": "synthetic",
+          "anomaly_type": "none",
+          "expected_detected": false,
+          "severity": "none",
+          "precision_target": null,
+          "recall_target": 0.90,
+          "notes": "Baseline: no drift present"
+        },
+        {
+          "dataset_id": "GT-SYN-DRIFT-002",
+          "dataset_type": "synthetic",
+          "anomaly_type": "metric-drift",
+          "expected_detected": false,
+          "severity": "low",
+          "precision_target": null,
+          "recall_target": null,
+          "notes": "Small drift (d=0.2) — below detection threshold"
+        },
+        {
+          "dataset_id": "GT-SYN-DRIFT-003",
+          "dataset_type": "synthetic",
+          "anomaly_type": "metric-drift",
+          "expected_detected": true,
+          "severity": "moderate",
+          "precision_target": 0.80,
+          "recall_target": 0.75,
+          "notes": "Medium drift (d=0.5)"
+        },
+        {
+          "dataset_id": "GT-SYN-DRIFT-004",
+          "dataset_type": "synthetic",
+          "anomaly_type": "metric-drift",
+          "expected_detected": true,
+          "severity": "high",
+          "precision_target": 0.80,
+          "recall_target": 0.75,
+          "notes": "Large drift (d=0.8)"
+        },
+        {
+          "dataset_id": "GT-SYN-DRIFT-005",
+          "dataset_type": "synthetic",
+          "anomaly_type": "metric-drift",
+          "expected_detected": true,
+          "severity": "moderate",
+          "precision_target": 0.80,
+          "recall_target": 0.75,
+          "notes": "Gradual drift over multiple windows"
+        },
+        {
+          "dataset_id": "GT-SYN-DRIFT-006",
+          "dataset_type": "synthetic",
+          "anomaly_type": "metric-drift",
+          "expected_detected": true,
+          "severity": "high",
+          "precision_target": 0.80,
+          "recall_target": 0.75,
+          "notes": "Sudden drift at single window"
+        },
+        {
+          "dataset_id": "GT-SYN-DRIFT-007",
+          "dataset_type": "synthetic",
+          "anomaly_type": "metric-drift",
+          "expected_detected": true,
+          "severity": "moderate",
+          "precision_target": 0.80,
+          "recall_target": 0.70,
+          "notes": "Intermittent drift pattern"
+        },
+        {
+          "dataset_id": "GT-REAL-HEALTHY-001",
+          "dataset_type": "real",
+          "anomaly_type": "none",
+          "expected_detected": false,
+          "severity": "none",
+          "precision_target": null,
+          "recall_target": 0.90,
+          "notes": "Healthy repository — no drift expected"
+        },
+        {
+          "dataset_id": "GT-REAL-HEALTHY-002",
+          "dataset_type": "real",
+          "anomaly_type": "none",
+          "expected_detected": false,
+          "severity": "none",
+          "precision_target": null,
+          "recall_target": 0.90,
+          "notes": "Healthy repository — no drift expected"
+        },
+        {
+          "dataset_id": "GT-REAL-HEALTHY-003",
+          "dataset_type": "real",
+          "anomaly_type": "none",
+          "expected_detected": false,
+          "severity": "none",
+          "precision_target": null,
+          "recall_target": 0.90,
+          "notes": "Healthy repository — no drift expected"
+        },
+        {
+          "dataset_id": "GT-ADV-DRIFT-001",
+          "dataset_type": "adversarial",
+          "anomaly_type": "metric-drift",
+          "expected_detected": false,
+          "severity": "low",
+          "precision_target": null,
+          "recall_target": null,
+          "notes": "Subtle drift (d=0.3) — may evade detection"
+        },
+        {
+          "dataset_id": "GT-ADV-DRIFT-002",
+          "dataset_type": "adversarial",
+          "anomaly_type": "seasonal",
+          "expected_detected": false,
+          "severity": "none",
+          "precision_target": null,
+          "recall_target": null,
+          "notes": "Seasonal pattern — should not trigger drift detection"
+        }
+      ],
+      "summary": {
+        "total_datasets": 12,
+        "synthetic_count": 7,
+        "real_count": 3,
+        "adversarial_count": 2,
+        "positive_count": 5,
+        "negative_count": 7,
+        "overall_precision_target": 0.80,
+        "overall_recall_target": 0.75
+      }
+    },
+    {
+      "matrix_id": "MATRIX-DET-D02-001",
+      "detector_id": "D-02",
+      "detector_name": "Correlation Breakdown Detector",
+      "version": "1.0.0",
+      "description": "Benchmark matrix for D-02 Correlation Breakdown Detector (correlation stability, Fisher z-transform, Δr>0.3)",
+      "entries": [
+        {
+          "dataset_id": "GT-SYN-CORR-001",
+          "dataset_type": "synthetic",
+          "anomaly_type": "none",
+          "expected_detected": false,
+          "severity": "none",
+          "precision_target": null,
+          "recall_target": 0.90,
+          "notes": "Baseline: no correlation breakdown"
+        },
+        {
+          "dataset_id": "GT-SYN-CORR-002",
+          "dataset_type": "synthetic",
+          "anomaly_type": "correlation-breakdown",
+          "expected_detected": false,
+          "severity": "low",
+          "precision_target": null,
+          "recall_target": null,
+          "notes": "Small weakening (Δr=0.1) — below threshold"
+        },
+        {
+          "dataset_id": "GT-SYN-CORR-003",
+          "dataset_type": "synthetic",
+          "anomaly_type": "correlation-breakdown",
+          "expected_detected": true,
+          "severity": "moderate",
+          "precision_target": 0.75,
+          "recall_target": 0.70,
+          "notes": "Medium weakening (Δr=0.3)"
+        },
+        {
+          "dataset_id": "GT-SYN-CORR-004",
+          "dataset_type": "synthetic",
+          "anomaly_type": "correlation-breakdown",
+          "expected_detected": true,
+          "severity": "high",
+          "precision_target": 0.75,
+          "recall_target": 0.70,
+          "notes": "Large weakening (Δr=0.5)"
+        },
+        {
+          "dataset_id": "GT-SYN-CORR-005",
+          "dataset_type": "synthetic",
+          "anomaly_type": "correlation-breakdown",
+          "expected_detected": true,
+          "severity": "high",
+          "precision_target": 0.75,
+          "recall_target": 0.70,
+          "notes": "Correlation reversal"
+        },
+        {
+          "dataset_id": "GT-SYN-CORR-006",
+          "dataset_type": "synthetic",
+          "anomaly_type": "correlation-breakdown",
+          "expected_detected": true,
+          "severity": "moderate",
+          "precision_target": 0.75,
+          "recall_target": 0.70,
+          "notes": "Correlation emergence"
+        },
+        {
+          "dataset_id": "GT-REAL-HEALTHY-001",
+          "dataset_type": "real",
+          "anomaly_type": "none",
+          "expected_detected": false,
+          "severity": "none",
+          "precision_target": null,
+          "recall_target": 0.90,
+          "notes": "Healthy repository — no breakdown expected"
+        },
+        {
+          "dataset_id": "GT-REAL-HEALTHY-002",
+          "dataset_type": "real",
+          "anomaly_type": "none",
+          "expected_detected": false,
+          "severity": "none",
+          "precision_target": null,
+          "recall_target": 0.90,
+          "notes": "Healthy repository — no breakdown expected"
+        },
+        {
+          "dataset_id": "GT-ADV-CORR-001",
+          "dataset_type": "adversarial",
+          "anomaly_type": "correlation-breakdown",
+          "expected_detected": false,
+          "severity": "low",
+          "precision_target": null,
+          "recall_target": null,
+          "notes": "Subtle decoupling — may evade detection"
+        }
+      ],
+      "summary": {
+        "total_datasets": 9,
+        "synthetic_count": 6,
+        "real_count": 2,
+        "adversarial_count": 1,
+        "positive_count": 4,
+        "negative_count": 5,
+        "overall_precision_target": 0.75,
+        "overall_recall_target": 0.70
+      }
+    },
+    {
+      "matrix_id": "MATRIX-DET-D03-001",
+      "detector_id": "D-03",
+      "detector_name": "Threshold Compression Detector",
+      "version": "1.0.0",
+      "description": "Benchmark matrix for D-03 Threshold Compression Detector (dip test, trimmed dip statistic, p<0.05)",
+      "entries": [
+        {
+          "dataset_id": "GT-SYN-THRESH-001",
+          "dataset_type": "synthetic",
+          "anomaly_type": "none",
+          "expected_detected": false,
+          "severity": "none",
+          "precision_target": null,
+          "recall_target": 0.90,
+          "notes": "Baseline: no compression"
+        },
+        {
+          "dataset_id": "GT-SYN-THRESH-002",
+          "dataset_type": "synthetic",
+          "anomaly_type": "threshold-compression",
+          "expected_detected": false,
+          "severity": "low",
+          "precision_target": null,
+          "recall_target": null,
+          "notes": "Weak compression — below detection threshold"
+        },
+        {
+          "dataset_id": "GT-SYN-THRESH-003",
+          "dataset_type": "synthetic",
+          "anomaly_type": "threshold-compression",
+          "expected_detected": true,
+          "severity": "moderate",
+          "precision_target": 0.85,
+          "recall_target": 0.80,
+          "notes": "Moderate compression"
+        },
+        {
+          "dataset_id": "GT-SYN-THRESH-004",
+          "dataset_type": "synthetic",
+          "anomaly_type": "threshold-compression",
+          "expected_detected": true,
+          "severity": "high",
+          "precision_target": 0.85,
+          "recall_target": 0.80,
+          "notes": "Strong compression"
+        },
+        {
+          "dataset_id": "GT-SYN-THRESH-005",
+          "dataset_type": "synthetic",
+          "anomaly_type": "threshold-compression",
+          "expected_detected": true,
+          "severity": "high",
+          "precision_target": 0.85,
+          "recall_target": 0.80,
+          "notes": "Bimodal distribution"
+        },
+        {
+          "dataset_id": "GT-REAL-HEALTHY-001",
+          "dataset_type": "real",
+          "anomaly_type": "none",
+          "expected_detected": false,
+          "severity": "none",
+          "precision_target": null,
+          "recall_target": 0.90,
+          "notes": "Healthy repository — no compression expected"
+        },
+        {
+          "dataset_id": "GT-REAL-HEALTHY-002",
+          "dataset_type": "real",
+          "anomaly_type": "none",
+          "expected_detected": false,
+          "severity": "none",
+          "precision_target": null,
+          "recall_target": 0.90,
+          "notes": "Healthy repository — no compression expected"
+        },
+        {
+          "dataset_id": "GT-ADV-THRESH-001",
+          "dataset_type": "adversarial",
+          "anomaly_type": "threshold-compression",
+          "expected_detected": false,
+          "severity": "low",
+          "precision_target": null,
+          "recall_target": null,
+          "notes": "Near-threshold gaming — may evade detection"
+        }
+      ],
+      "summary": {
+        "total_datasets": 8,
+        "synthetic_count": 5,
+        "real_count": 2,
+        "adversarial_count": 1,
+        "positive_count": 3,
+        "negative_count": 5,
+        "overall_precision_target": 0.85,
+        "overall_recall_target": 0.80
+      }
+    }
+  ],
+  "cross_detector_validation": {
+    "description": "Datasets validated across all three detectors to ensure independence",
+    "shared_datasets": ["GT-REAL-HEALTHY-001", "GT-REAL-HEALTHY-002"],
+    "cross_contamination_check": "Each detector must respond only to its target anomaly type",
+    "independent_detection_required": true
+  }
+}

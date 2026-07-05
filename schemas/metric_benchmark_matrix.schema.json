@@ -1,0 +1,113 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "MIIE Metric Benchmark Matrix Schema",
+  "description": "Schema for metric benchmark matrix mapping metrics to expected values",
+  "type": "object",
+  "required": [
+    "matrix_id",
+    "metric_id",
+    "metric_name",
+    "entries"
+  ],
+  "properties": {
+    "matrix_id": {
+      "type": "string",
+      "pattern": "^MATRIX-MET-[A-Z_]+-\\d{3}$",
+      "description": "Unique matrix identifier"
+    },
+    "metric_id": {
+      "type": "string",
+      "enum": ["M-01", "M-02", "M-03", "M-04", "M-05", "M-06", "M-07"],
+      "description": "Metric identifier"
+    },
+    "metric_name": {
+      "type": "string",
+      "description": "Metric name"
+    },
+    "unit": {
+      "type": "string",
+      "description": "Metric unit"
+    },
+    "version": {
+      "type": "string",
+      "description": "Matrix version"
+    },
+    "entries": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/metric_entry"
+      },
+      "description": "Matrix entries"
+    },
+    "summary": {
+      "$ref": "#/definitions/metric_summary"
+    }
+  },
+  "definitions": {
+    "metric_entry": {
+      "type": "object",
+      "required": [
+        "dataset_id",
+        "dataset_type",
+        "expected_min",
+        "expected_max",
+        "expected_trend"
+      ],
+      "properties": {
+        "dataset_id": {
+          "type": "string",
+          "pattern": "^GT-(SYN|REAL|ADV)-[A-Z_]+-\\d{3}$"
+        },
+        "dataset_type": {
+          "type": "string",
+          "enum": ["synthetic", "real", "adversarial"]
+        },
+        "expected_min": {
+          "type": "number",
+          "description": "Expected minimum value"
+        },
+        "expected_max": {
+          "type": "number",
+          "description": "Expected maximum value"
+        },
+        "expected_trend": {
+          "type": "string",
+          "enum": ["stable", "increasing", "decreasing", "shift", "periodic"],
+          "description": "Expected trend"
+        },
+        "tolerance": {
+          "type": "number",
+          "minimum": 0,
+          "description": "Computation tolerance"
+        },
+        "notes": {
+          "type": "string"
+        }
+      }
+    },
+    "metric_summary": {
+      "type": "object",
+      "properties": {
+        "total_datasets": {
+          "type": "integer"
+        },
+        "synthetic_count": {
+          "type": "integer"
+        },
+        "real_count": {
+          "type": "integer"
+        },
+        "adversarial_count": {
+          "type": "integer"
+        },
+        "value_range": {
+          "type": "object",
+          "properties": {
+            "global_min": {"type": "number"},
+            "global_max": {"type": "number"}
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,51 @@
+{
+  "dataset_id": "GT-SYN-CORR-005",
+  "dataset_name": "Correlation Reversal Detected",
+  "dataset_version": "1.0.0",
+  "dataset_type": "synthetic",
+  "status": "certified",
+  "created_by": "miie-benchmark-team",
+  "created_at": "2026-07-05T00:00:00Z",
+  "description": "Synthetic repository with correlation reversal (positive to negative). D-02 should detect the sign change.",
+  "repository_classification": "synthetic",
+  "language": "python",
+  "commit_count": 200,
+  "contributor_count": 5,
+  "time_span_days": 365,
+  "tags": ["correlation", "reversal", "positive"],
+  "provenance": {
+    "source": "generated",
+    "methodology": "BenchmarkDatasetGenerator with correlation reversal",
+    "tools": ["miie-benchmark-generator"],
+    "parameters": {"correlation_reversal": true, "breakdown_window": 5},
+    "reproducibility": "Run BenchmarkDatasetGenerator with seed=42, correlation_reversal=true"
+  },
+  "ground_truth": {
+    "anomaly_present": true,
+    "anomaly_type": "correlation-breakdown",
+    "anomaly_severity": "high",
+    "anomaly_window_start": 5,
+    "anomaly_window_end": 10,
+    "expected_detector_outputs": {
+      "D-01": {"detected": false, "severity": "none"},
+      "D-02": {"detected": true, "severity": "high", "confidence_min": 0.8},
+      "D-03": {"detected": false, "severity": "none"}
+    },
+    "expected_metric_values": {
+      "M-01": {"range": [0.0, 1.0], "trend": "stable"},
+      "M-03": {"range": [0.0, 1.0], "trend": "stable"}
+    },
+    "expected_scores": {
+      "integrity_score_range": [0.1, 0.4],
+      "confidence_score_range": [0.3, 0.7]
+    }
+  },
+  "acceptance_criteria": {
+    "D-02_sensitivity_min": 0.75,
+    "D-02_specificity_min": 0.85,
+    "determinism_required": true
+  },
+  "versioning": {"changelog": ["Initial release"], "compatibility": "backward-compatible"},
+  "certification": {"certified_by": "scientific-board", "certified_at": "2026-07-05T00:00:00Z", "criteria": "correlation-reversal-detected", "certificate_id": "CERT-GT-SYN-CORR-005-1.0.0"},
+  "licensing": {"license": "MIT", "attribution": "MIIE Benchmark Dataset"}
+}

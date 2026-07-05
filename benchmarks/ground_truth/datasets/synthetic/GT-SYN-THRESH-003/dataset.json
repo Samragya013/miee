@@ -1,0 +1,50 @@
+{
+  "dataset_id": "GT-SYN-THRESH-003",
+  "dataset_name": "Moderate Compression Detected",
+  "dataset_version": "1.0.0",
+  "dataset_type": "synthetic",
+  "status": "certified",
+  "created_by": "miie-benchmark-team",
+  "created_at": "2026-07-05T00:00:00Z",
+  "description": "Synthetic repository with moderate threshold compression. D-03 should detect via dip test.",
+  "repository_classification": "synthetic",
+  "language": "python",
+  "commit_count": 200,
+  "contributor_count": 5,
+  "time_span_days": 365,
+  "tags": ["threshold", "moderate", "positive"],
+  "provenance": {
+    "source": "generated",
+    "methodology": "BenchmarkDatasetGenerator with moderate compression",
+    "tools": ["miie-benchmark-generator"],
+    "parameters": {"compression_strength": 0.5, "compression_mode": "moderate"},
+    "reproducibility": "Run BenchmarkDatasetGenerator with seed=42, compression_strength=0.5"
+  },
+  "ground_truth": {
+    "anomaly_present": true,
+    "anomaly_type": "threshold-compression",
+    "anomaly_severity": "moderate",
+    "anomaly_window_start": 5,
+    "anomaly_window_end": 10,
+    "expected_detector_outputs": {
+      "D-01": {"detected": false, "severity": "none"},
+      "D-02": {"detected": false, "severity": "none"},
+      "D-03": {"detected": true, "severity": "moderate", "confidence_min": 0.7}
+    },
+    "expected_metric_values": {
+      "M-01": {"range": [0.0, 1.0], "trend": "stable"}
+    },
+    "expected_scores": {
+      "integrity_score_range": [0.4, 0.7],
+      "confidence_score_range": [0.5, 0.9]
+    }
+  },
+  "acceptance_criteria": {
+    "D-03_sensitivity_min": 0.85,
+    "D-03_specificity_min": 0.90,
+    "determinism_required": true
+  },
+  "versioning": {"changelog": ["Initial release"], "compatibility": "backward-compatible"},
+  "certification": {"certified_by": "scientific-board", "certified_at": "2026-07-05T00:00:00Z", "criteria": "compression-detection-verified", "certificate_id": "CERT-GT-SYN-THRESH-003-1.0.0"},
+  "licensing": {"license": "MIT", "attribution": "MIIE Benchmark Dataset"}
+}

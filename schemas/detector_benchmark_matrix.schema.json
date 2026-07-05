@@ -1,0 +1,128 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "MIIE Detector Benchmark Matrix Schema",
+  "description": "Schema for detector benchmark matrix mapping detectors to datasets",
+  "type": "object",
+  "required": [
+    "matrix_id",
+    "detector_id",
+    "detector_name",
+    "entries"
+  ],
+  "properties": {
+    "matrix_id": {
+      "type": "string",
+      "pattern": "^MATRIX-DET-[A-Z_]+-\\d{3}$",
+      "description": "Unique matrix identifier"
+    },
+    "detector_id": {
+      "type": "string",
+      "enum": ["D-01", "D-02", "D-03"],
+      "description": "Detector identifier"
+    },
+    "detector_name": {
+      "type": "string",
+      "description": "Detector name"
+    },
+    "version": {
+      "type": "string",
+      "description": "Matrix version"
+    },
+    "entries": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/matrix_entry"
+      },
+      "description": "Matrix entries"
+    },
+    "summary": {
+      "$ref": "#/definitions/matrix_summary"
+    }
+  },
+  "definitions": {
+    "matrix_entry": {
+      "type": "object",
+      "required": [
+        "dataset_id",
+        "dataset_type",
+        "anomaly_type",
+        "expected_detected",
+        "precision_target",
+        "recall_target"
+      ],
+      "properties": {
+        "dataset_id": {
+          "type": "string",
+          "pattern": "^GT-(SYN|REAL|ADV)-[A-Z_]+-\\d{3}$"
+        },
+        "dataset_type": {
+          "type": "string",
+          "enum": ["synthetic", "real", "adversarial"]
+        },
+        "anomaly_type": {
+          "type": "string",
+          "enum": [
+            "metric-drift",
+            "correlation-breakdown",
+            "threshold-compression",
+            "seasonal",
+            "gaming",
+            "process-decay",
+            "none"
+          ]
+        },
+        "expected_detected": {
+          "type": "boolean"
+        },
+        "severity": {
+          "type": "string",
+          "enum": ["none", "low", "moderate", "high", "critical"]
+        },
+        "precision_target": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "recall_target": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "notes": {
+          "type": "string"
+        }
+      }
+    },
+    "matrix_summary": {
+      "type": "object",
+      "properties": {
+        "total_datasets": {
+          "type": "integer"
+        },
+        "synthetic_count": {
+          "type": "integer"
+        },
+        "real_count": {
+          "type": "integer"
+        },
+        "adversarial_count": {
+          "type": "integer"
+        },
+        "positive_count": {
+          "type": "integer",
+          "description": "Datasets where detector should fire"
+        },
+        "negative_count": {
+          "type": "integer",
+          "description": "Datasets where detector should NOT fire"
+        },
+        "overall_precision_target": {
+          "type": "number"
+        },
+        "overall_recall_target": {
+          "type": "number"
+        }
+      }
+    }
+  }
+}

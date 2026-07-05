@@ -1,0 +1,50 @@
+{
+  "dataset_id": "GT-SYN-DRIFT-006",
+  "dataset_name": "Sudden Drift Detected",
+  "dataset_version": "1.0.0",
+  "dataset_type": "synthetic",
+  "status": "certified",
+  "created_by": "miie-benchmark-team",
+  "created_at": "2026-07-05T00:00:00Z",
+  "description": "Synthetic repository with sudden metric drift at window 5. Tests D-01 sensitivity to abrupt distribution changes.",
+  "repository_classification": "synthetic",
+  "language": "python",
+  "commit_count": 200,
+  "contributor_count": 5,
+  "time_span_days": 365,
+  "tags": ["drift", "sudden", "positive"],
+  "provenance": {
+    "source": "generated",
+    "methodology": "BenchmarkDatasetGenerator with sudden drift injection",
+    "tools": ["miie-benchmark-generator"],
+    "parameters": {"drift_magnitude": 0.7, "drift_onset": 5, "drift_pattern": "sudden"},
+    "reproducibility": "Run BenchmarkDatasetGenerator with seed=42, drift_pattern=sudden"
+  },
+  "ground_truth": {
+    "anomaly_present": true,
+    "anomaly_type": "metric-drift",
+    "anomaly_severity": "high",
+    "anomaly_window_start": 5,
+    "anomaly_window_end": 10,
+    "expected_detector_outputs": {
+      "D-01": {"detected": true, "severity": "high", "p_value_max": 0.01, "confidence_min": 0.8},
+      "D-02": {"detected": false, "severity": "none"},
+      "D-03": {"detected": false, "severity": "none"}
+    },
+    "expected_metric_values": {
+      "M-03": {"range": [0.0, 1.0], "trend": "shift", "tolerance": 0.10}
+    },
+    "expected_scores": {
+      "integrity_score_range": [0.2, 0.6],
+      "confidence_score_range": [0.4, 0.8]
+    }
+  },
+  "acceptance_criteria": {
+    "D-01_sensitivity_min": 0.80,
+    "D-01_specificity_min": 0.90,
+    "determinism_required": true
+  },
+  "versioning": {"changelog": ["Initial release"], "compatibility": "backward-compatible"},
+  "certification": {"certified_by": "scientific-board", "certified_at": "2026-07-05T00:00:00Z", "criteria": "sudden-drift-detection-verified", "certificate_id": "CERT-GT-SYN-DRIFT-006-1.0.0"},
+  "licensing": {"license": "MIT", "attribution": "MIIE Benchmark Dataset"}
+}

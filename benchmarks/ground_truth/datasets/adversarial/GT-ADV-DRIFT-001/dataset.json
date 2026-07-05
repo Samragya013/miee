@@ -1,0 +1,48 @@
+{
+  "dataset_id": "GT-ADV-DRIFT-001",
+  "dataset_name": "Subtle Drift May Evade Detection",
+  "dataset_version": "1.0.0",
+  "dataset_type": "adversarial",
+  "status": "certified",
+  "created_by": "miie-benchmark-team",
+  "created_at": "2026-07-05T00:00:00Z",
+  "description": "Adversarial dataset with subtle drift (d=0.3) designed to test D-01's detection boundary. May evade detection.",
+  "repository_classification": "detector-challenge",
+  "language": "python",
+  "commit_count": 200,
+  "contributor_count": 5,
+  "time_span_days": 365,
+  "tags": ["adversarial", "drift", "subtle", "challenge"],
+  "provenance": {
+    "source": "generated",
+    "methodology": "BenchmarkDatasetGenerator with adversarial drift injection",
+    "tools": ["miie-benchmark-generator"],
+    "parameters": {"drift_magnitude": 0.3, "adversarial": true},
+    "reproducibility": "Run BenchmarkDatasetGenerator with seed=42, drift_magnitude=0.3, adversarial=true"
+  },
+  "ground_truth": {
+    "anomaly_present": true,
+    "anomaly_type": "metric-drift",
+    "anomaly_severity": "low",
+    "anomaly_window_start": 5,
+    "anomaly_window_end": 10,
+    "expected_detector_outputs": {
+      "D-01": {"detected": false, "severity": "none"},
+      "D-02": {"detected": false, "severity": "none"},
+      "D-03": {"detected": false, "severity": "none"}
+    },
+    "expected_metric_values": {
+      "M-03": {"range": [0.0, 1.0], "trend": "stable"}
+    },
+    "expected_scores": {
+      "integrity_score_range": [0.5, 0.8],
+      "confidence_score_range": [0.5, 0.9]
+    }
+  },
+  "acceptance_criteria": {
+    "determinism_required": true
+  },
+  "versioning": {"changelog": ["Initial release"], "compatibility": "backward-compatible"},
+  "certification": {"certified_by": "scientific-board", "certified_at": "2026-07-05T00:00:00Z", "criteria": "adversarial-evasion-expected", "certificate_id": "CERT-GT-ADV-DRIFT-001-1.0.0"},
+  "licensing": {"license": "MIT", "attribution": "MIIE Benchmark Dataset"}
+}

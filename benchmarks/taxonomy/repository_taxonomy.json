@@ -1,0 +1,197 @@
+{
+  "taxonomy_id": "TAX-REPO-001",
+  "version": "1.0.0",
+  "description": "MIIE Repository Classification Taxonomy for benchmark purposes",
+  "created_at": "2026-07-05T00:00:00Z",
+  "categories": [
+    {
+      "id": "healthy",
+      "name": "Healthy",
+      "description": "Well-maintained, active repositories with consistent development practices",
+      "expected_behaviour": {
+        "integrity_score_range": [0.7, 1.0],
+        "confidence_score_range": [0.7, 1.0],
+        "anomaly_expected": false,
+        "detector_expected": false
+      },
+      "selection_criteria": {
+        "min_commits": 100,
+        "min_history_months": 6,
+        "min_contributors": 3,
+        "active_practice": true,
+        "test_coverage_min": 0.3,
+        "review_latency_max_hours": 48
+      },
+      "examples": ["microsoft/vscode", "facebook/react", "kubernetes/kubernetes"]
+    },
+    {
+      "id": "archived",
+      "name": "Archived",
+      "description": "Inactive, archived repositories with frozen state",
+      "expected_behaviour": {
+        "integrity_score_range": [0.5, 0.8],
+        "confidence_score_range": [0.6, 0.9],
+        "anomaly_expected": false,
+        "detector_expected": false
+      },
+      "selection_criteria": {
+        "min_commits": 50,
+        "archived_status": true,
+        "last_commit_days_min": 180
+      },
+      "examples": []
+    },
+    {
+      "id": "fast-growth",
+      "name": "Fast Growth",
+      "description": "Rapidly growing repositories with high commit velocity",
+      "expected_behaviour": {
+        "integrity_score_range": [0.3, 0.8],
+        "confidence_score_range": [0.4, 0.8],
+        "anomaly_expected": true,
+        "anomaly_type": "metric-drift",
+        "detector_expected": false
+      },
+      "selection_criteria": {
+        "min_commits": 200,
+        "min_history_months": 3,
+        "min_contributors": 5,
+        "commit_velocity_min_per_week": 10
+      },
+      "examples": []
+    },
+    {
+      "id": "enterprise",
+      "name": "Enterprise",
+      "description": "Large, established enterprise projects with mature processes",
+      "expected_behaviour": {
+        "integrity_score_range": [0.6, 0.9],
+        "confidence_score_range": [0.6, 0.9],
+        "anomaly_expected": false,
+        "detector_expected": false
+      },
+      "selection_criteria": {
+        "min_commits": 500,
+        "min_history_months": 24,
+        "min_contributors": 10,
+        "min_loc": 100000,
+        "ci_config_required": true
+      },
+      "examples": []
+    },
+    {
+      "id": "experimental",
+      "name": "Experimental",
+      "description": "Small, experimental projects with variable quality",
+      "expected_behaviour": {
+        "integrity_score_range": [0.2, 0.7],
+        "confidence_score_range": [0.3, 0.7],
+        "anomaly_expected": true,
+        "detector_expected": false
+      },
+      "selection_criteria": {
+        "min_commits": 20,
+        "min_contributors": 1,
+        "max_loc": 50000
+      },
+      "examples": []
+    },
+    {
+      "id": "fork",
+      "name": "Fork",
+      "description": "Forked repositories that may show inherited patterns",
+      "expected_behaviour": {
+        "integrity_score_range": [0.3, 0.8],
+        "confidence_score_range": [0.4, 0.8],
+        "anomaly_expected": true,
+        "anomaly_type": "metric-drift",
+        "detector_expected": false
+      },
+      "selection_criteria": {
+        "is_fork": true,
+        "min_commits": 50
+      },
+      "examples": []
+    },
+    {
+      "id": "high-risk",
+      "name": "High Risk",
+      "description": "Repositories with known integrity issues for detector validation",
+      "expected_behaviour": {
+        "integrity_score_range": [0.0, 0.4],
+        "confidence_score_range": [0.3, 0.7],
+        "anomaly_expected": true,
+        "detector_expected": true
+      },
+      "selection_criteria": {
+        "known_integrity_issues": true,
+        "min_commits": 100
+      },
+      "examples": []
+    },
+    {
+      "id": "synthetic",
+      "name": "Synthetic",
+      "description": "Generated repositories with controlled properties for testing",
+      "expected_behaviour": {
+        "integrity_score_range": [0.0, 1.0],
+        "confidence_score_range": [0.0, 1.0],
+        "anomaly_expected": "varies",
+        "detector_expected": "varies"
+      },
+      "selection_criteria": {
+        "generated_by": "miie-benchmark-generator",
+        "ground_truth_present": true
+      },
+      "examples": []
+    },
+    {
+      "id": "detector-challenge",
+      "name": "Detector Challenge",
+      "description": "Repositories designed to challenge MIIE's detection capabilities",
+      "expected_behaviour": {
+        "integrity_score_range": [0.2, 0.6],
+        "confidence_score_range": [0.3, 0.7],
+        "anomaly_expected": true,
+        "detector_expected": "may-evade"
+      },
+      "selection_criteria": {
+        "designed_to_challenge": true,
+        "ground_truth_present": true
+      },
+      "examples": []
+    },
+    {
+      "id": "metric-validation",
+      "name": "Metric Validation",
+      "description": "Repositories with known metric value distributions for calibration",
+      "expected_behaviour": {
+        "integrity_score_range": [0.0, 1.0],
+        "confidence_score_range": [0.0, 1.0],
+        "anomaly_expected": false,
+        "detector_expected": false
+      },
+      "selection_criteria": {
+        "metric_values_documented": true,
+        "ground_truth_present": true
+      },
+      "examples": []
+    }
+  ],
+  "language_coverage": {
+    "python": {"min_repositories": 5, "priority": "high"},
+    "javascript": {"min_repositories": 5, "priority": "high"},
+    "typescript": {"min_repositories": 5, "priority": "high"},
+    "java": {"min_repositories": 3, "priority": "medium"},
+    "go": {"min_repositories": 3, "priority": "medium"},
+    "rust": {"min_repositories": 2, "priority": "medium"},
+    "c": {"min_repositories": 2, "priority": "medium"},
+    "cpp": {"min_repositories": 2, "priority": "medium"}
+  },
+  "size_coverage": {
+    "small": {"max_loc": 10000, "min_repositories": 3},
+    "medium": {"min_loc": 10000, "max_loc": 100000, "min_repositories": 5},
+    "large": {"min_loc": 100000, "max_loc": 1000000, "min_repositories": 3},
+    "very_large": {"min_loc": 1000000, "min_repositories": 2}
+  }
+}

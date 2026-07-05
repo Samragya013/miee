@@ -1,0 +1,452 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "MIIE Ground Truth Dataset Schema",
+  "description": "Schema for MIIE ground truth datasets used in benchmark validation",
+  "type": "object",
+  "required": [
+    "dataset_id",
+    "dataset_name",
+    "dataset_version",
+    "dataset_type",
+    "status",
+    "created_by",
+    "created_at",
+    "description",
+    "repository_classification",
+    "provenance",
+    "ground_truth",
+    "acceptance_criteria",
+    "versioning",
+    "certification",
+    "licensing"
+  ],
+  "properties": {
+    "dataset_id": {
+      "type": "string",
+      "pattern": "^GT-(SYN|REAL|ADV)-[A-Z_]+-\\d{3}$",
+      "description": "Unique dataset identifier"
+    },
+    "dataset_name": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 200,
+      "description": "Human-readable dataset name"
+    },
+    "dataset_version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$",
+      "description": "Semantic version (MAJOR.MINOR.PATCH)"
+    },
+    "dataset_type": {
+      "type": "string",
+      "enum": ["synthetic", "real", "adversarial"],
+      "description": "Dataset type"
+    },
+    "status": {
+      "type": "string",
+      "enum": ["draft", "validated", "certified", "published", "deprecated"],
+      "description": "Lifecycle status"
+    },
+    "created_by": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Creator identifier"
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 creation timestamp"
+    },
+    "description": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Dataset description"
+    },
+    "repository_classification": {
+      "$ref": "#/definitions/repository_classification",
+      "description": "Repository classification category"
+    },
+    "language": {
+      "type": "string",
+      "description": "Primary programming language"
+    },
+    "commit_count": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Number of commits in dataset"
+    },
+    "contributor_count": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Number of contributors"
+    },
+    "time_span_days": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Time span in days"
+    },
+    "provenance": {
+      "$ref": "#/definitions/provenance",
+      "description": "Dataset provenance information"
+    },
+    "ground_truth": {
+      "$ref": "#/definitions/ground_truth",
+      "description": "Ground truth labels and expected outputs"
+    },
+    "acceptance_criteria": {
+      "$ref": "#/definitions/acceptance_criteria",
+      "description": "Acceptance criteria for benchmark validation"
+    },
+    "versioning": {
+      "$ref": "#/definitions/versioning",
+      "description": "Versioning information"
+    },
+    "certification": {
+      "$ref": "#/definitions/certification",
+      "description": "Certification information"
+    },
+    "licensing": {
+      "$ref": "#/definitions/licensing",
+      "description": "Licensing information"
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Searchable tags"
+    },
+    "language_distribution": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "number",
+        "minimum": 0,
+        "maximum": 1
+      },
+      "description": "Language breakdown (percentage per language)"
+    },
+    "size_bytes": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Repository size in bytes"
+    },
+    "branch_count": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Number of branches"
+    },
+    "pr_count": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Number of pull requests"
+    },
+    "review_count": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Number of code reviews"
+    },
+    "test_file_count": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Number of test files"
+    },
+    "ci_config_present": {
+      "type": "boolean",
+      "description": "CI configuration present"
+    },
+    "known_limitations": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Known dataset limitations"
+    },
+    "references": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Academic references"
+    }
+  },
+  "definitions": {
+    "repository_classification": {
+      "type": "string",
+      "enum": [
+        "healthy",
+        "archived",
+        "fast-growth",
+        "enterprise",
+        "experimental",
+        "fork",
+        "high-risk",
+        "synthetic",
+        "detector-challenge",
+        "metric-validation"
+      ],
+      "description": "Repository classification category"
+    },
+    "provenance": {
+      "type": "object",
+      "required": ["source", "methodology", "reproducibility"],
+      "properties": {
+        "source": {
+          "type": "string",
+          "enum": ["generated", "scraped", "annotated", "mixed"],
+          "description": "Dataset source"
+        },
+        "methodology": {
+          "type": "string",
+          "description": "Creation methodology"
+        },
+        "tools": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Tools used in creation"
+        },
+        "parameters": {
+          "type": "object",
+          "description": "Creation parameters"
+        },
+        "reproducibility": {
+          "type": "string",
+          "description": "How to reproduce the dataset"
+        },
+        "parent_dataset": {
+          "type": "string",
+          "description": "Parent dataset ID if derived"
+        }
+      },
+      "required": ["source", "methodology", "reproducibility"]
+    },
+    "ground_truth": {
+      "type": "object",
+      "required": ["anomaly_present", "expected_detector_outputs", "expected_metric_values", "expected_scores"],
+      "properties": {
+        "anomaly_present": {
+          "type": "boolean",
+          "description": "Whether an anomaly is present"
+        },
+        "anomaly_type": {
+          "type": "string",
+          "enum": [
+            "metric-drift",
+            "correlation-breakdown",
+            "threshold-compression",
+            "seasonal",
+            "gaming",
+            "process-decay"
+          ],
+          "description": "Type of anomaly (if present)"
+        },
+        "anomaly_severity": {
+          "type": "string",
+          "enum": ["none", "low", "moderate", "high", "critical"],
+          "description": "Anomaly severity"
+        },
+        "anomaly_window_start": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Window index where anomaly starts"
+        },
+        "anomaly_window_end": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Window index where anomaly ends"
+        },
+        "expected_detector_outputs": {
+          "type": "object",
+          "properties": {
+            "D-01": {
+              "$ref": "#/definitions/detector_output"
+            },
+            "D-02": {
+              "$ref": "#/definitions/detector_output"
+            },
+            "D-03": {
+              "$ref": "#/definitions/detector_output"
+            }
+          },
+          "description": "Expected detector outputs"
+        },
+        "expected_metric_values": {
+          "type": "object",
+          "description": "Expected metric values with ranges and trends"
+        },
+        "expected_scores": {
+          "$ref": "#/definitions/expected_scores",
+          "description": "Expected scoring outputs"
+        }
+      },
+      "required": ["anomaly_present", "expected_detector_outputs", "expected_metric_values", "expected_scores"]
+    },
+    "detector_output": {
+      "type": "object",
+      "properties": {
+        "detected": {
+          "type": "boolean",
+          "description": "Whether the detector should fire"
+        },
+        "severity": {
+          "type": "string",
+          "enum": ["none", "low", "moderate", "high", "critical"],
+          "description": "Expected severity"
+        },
+        "p_value_max": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "description": "Maximum p-value for detection"
+        },
+        "confidence_min": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "description": "Minimum confidence for detection"
+        }
+      },
+      "required": ["detected"]
+    },
+    "expected_scores": {
+      "type": "object",
+      "properties": {
+        "integrity_score_range": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          },
+          "minItems": 2,
+          "maxItems": 2,
+          "description": "[min, max] expected integrity score"
+        },
+        "confidence_score_range": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          },
+          "minItems": 2,
+          "maxItems": 2,
+          "description": "[min, max] expected confidence score"
+        }
+      }
+    },
+    "acceptance_criteria": {
+      "type": "object",
+      "properties": {
+        "D-01_sensitivity_min": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "description": "Minimum sensitivity for D-01"
+        },
+        "D-01_specificity_min": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "description": "Minimum specificity for D-01"
+        },
+        "D-02_sensitivity_min": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "description": "Minimum sensitivity for D-02"
+        },
+        "D-02_specificity_min": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "description": "Minimum specificity for D-02"
+        },
+        "D-03_sensitivity_min": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "description": "Minimum sensitivity for D-03"
+        },
+        "D-03_specificity_min": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "description": "Minimum specificity for D-03"
+        },
+        "metric_computation_tolerance": {
+          "type": "number",
+          "minimum": 0,
+          "description": "Tolerance for metric computation"
+        },
+        "determinism_required": {
+          "type": "boolean",
+          "description": "Whether computation must be deterministic"
+        }
+      }
+    },
+    "versioning": {
+      "type": "object",
+      "required": ["changelog", "compatibility"],
+      "properties": {
+        "changelog": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Version changelog"
+        },
+        "compatibility": {
+          "type": "string",
+          "enum": ["backward-compatible", "breaking", "forward-compatible"],
+          "description": "Version compatibility"
+        },
+        "supersedes": {
+          "type": "string",
+          "description": "Dataset ID this version supersedes"
+        }
+      },
+      "required": ["changelog", "compatibility"]
+    },
+    "certification": {
+      "type": "object",
+      "required": ["certified_by", "criteria"],
+      "properties": {
+        "certified_by": {
+          "type": "string",
+          "description": "Certification authority"
+        },
+        "certified_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Certification timestamp"
+        },
+        "criteria": {
+          "type": "string",
+          "description": "Certification criteria"
+        },
+        "certificate_id": {
+          "type": "string",
+          "description": "Certificate identifier"
+        }
+      },
+      "required": ["certified_by", "criteria"]
+    },
+    "licensing": {
+      "type": "object",
+      "required": ["license"],
+      "properties": {
+        "license": {
+          "type": "string",
+          "description": "License identifier"
+        },
+        "attribution": {
+          "type": "string",
+          "description": "Attribution text"
+        },
+        "usage_restrictions": {
+          "type": "string",
+          "description": "Usage restrictions"
+        }
+      },
+      "required": ["license"]
+    }
+  }
+}
