@@ -39,8 +39,8 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
-      - run: pip install poetry && poetry install
-      - run: poetry run pytest tests/unit/ tests/schema/ tests/contract/ tests/architecture/ -x -q --tb=short
+      - run: pip install -e .
+      - run: pytest tests/unit/ tests/schema/ tests/contract/ tests/architecture/ -x -q --tb=short
 
   integration-tests:
     runs-on: ubuntu-latest
@@ -49,8 +49,8 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - run: pip install poetry && poetry install
-      - run: poetry run pytest tests/integration/ -x -q --tb=short
+      - run: pip install -e .
+      - run: pytest tests/integration/ -x -q --tb=short
 
   regression:
     runs-on: ubuntu-latest
@@ -59,8 +59,8 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - run: pip install poetry && poetry install
-      - run: poetry run pytest tests/regression/ tests/workflow/ -x -q --tb=short
+      - run: pip install -e .
+      - run: pytest tests/regression/ tests/workflow/ -x -q --tb=short
 
   security:
     runs-on: ubuntu-latest
@@ -80,5 +80,5 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - run: pip install poetry && poetry install
+      - run: pip install -e .
       - run: grep -r "detector_output" src/ tests/

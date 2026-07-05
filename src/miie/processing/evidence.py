@@ -258,7 +258,7 @@ class EvidenceEngine:
         for detector_id, output in detector_results.detector_outputs.items():
             detector_metadata: Dict[str, Any] = {
                 "windows_analyzed": len(output.get("window_pairs_analyzed", [])),
-                "observations_consumed": sum(output.get("observation_counts", {}).values()),
+                "observations_consumed": sum((output.get("observation_counts") or {}).values()),
             }
 
             # Add detector-specific parameters
@@ -385,7 +385,7 @@ class MockEvidenceEngine:
         for detector_id, output in detector_results.detector_outputs.items():
             detector_execution_metadata[detector_id] = {
                 "windows_analyzed": len(output.get("window_pairs_analyzed", [])),
-                "observations_consumed": sum(output.get("observation_counts", {}).values()),
+                "observations_consumed": sum((output.get("observation_counts") or {}).values()),
                 "method": f"mock_{detector_id.lower()}",
                 "scientific_reference": f"Mock method for {detector_id}",
             }
@@ -483,7 +483,7 @@ class MockEvidenceEngine:
         for detector_id, output in detector_results.detector_outputs.items():
             detector_execution_metadata[detector_id] = {
                 "windows_analyzed": len(output.get("window_pairs_analyzed", [])),
-                "observations_consumed": sum(output.get("observation_counts", {}).values()),
+                "observations_consumed": sum((output.get("observation_counts") or {}).values()),
                 "method": f"mock_{detector_id.lower()}",
                 "scientific_reference": f"Mock method for {detector_id}",
             }

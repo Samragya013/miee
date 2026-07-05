@@ -1,0 +1,4 @@
+{
+  "error": "[INGESTION-ERROR] Failed to get commit count: fatal: ambiguous argument 'HEAD': unknown revision or path not in the working tree.\nUse '--' to separate paths from revisions, like this:\n'git <command> [<revision>...] -- [<file>...]'",
+  "partial": true
+}

@@ -1,0 +1,21 @@
+services:
+  miie:
+    build: .
+    volumes:
+      - ./output:/app/output
+      - ./repositories:/app/repositories
+    environment:
+      - GITHUB_TOKEN=${GITHUB_TOKEN}
+    entrypoint: ["miie"]
+    command: ["--help"]
+
+  api:
+    build: .
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./output:/app/output
+    environment:
+      - GITHUB_TOKEN=${GITHUB_TOKEN}
+    entrypoint: ["miie-api"]
+    command: ["--host", "0.0.0.0", "--port", "8000"]

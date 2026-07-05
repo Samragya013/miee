@@ -107,20 +107,54 @@ class WindowSegmentationEngine:
                     )
                 )
         elif strategy == "time":
-            # For time strategy, create a window of 'size' days ending at the run date
-            end_date = run_date
-            start_date = end_date - timedelta(days=size)
-            window_id = "w00"
-            windows.append(
-                WindowDefinition(
-                    window_id=window_id,
-                    start_date=start_date,
-                    end_date=end_date,
-                    commits=total_commits,
-                    strategy=strategy,
-                    size_config={"size": size},
+            # For time strategy, create rolling windows of 'size' days
+            # spanning from first_commit_date to last_commit_date.
+            first_date = None
+            last_date = None
+
+            if repository_context is not None:
+                if hasattr(repository_context, "first_commit_date") and repository_context.first_commit_date:
+                    first_date = repository_context.first_commit_date
+                if hasattr(repository_context, "last_commit_date") and repository_context.last_commit_date:
+                    last_date = repository_context.last_commit_date
+
+            if first_date and last_date:
+                window_start = first_date
+                window_idx = 0
+                while window_start < last_date:
+                    window_end = min(window_start + timedelta(days=size), last_date)
+                    if window_start.date() >= window_end.date():
+                        break
+                    total_days_range = max(1, (last_date - first_date).days)
+                    window_fraction = max(1, (window_end - window_start).days) / total_days_range
+                    window_commits = max(1, int(total_commits * window_fraction))
+                    window_id = f"w{window_idx:02d}"
+                    windows.append(
+                        WindowDefinition(
+                            window_id=window_id,
+                            start_date=window_start.date(),
+                            end_date=window_end.date(),
+                            commits=window_commits,
+                            strategy=strategy,
+                            size_config={"size": size},
+                        )
+                    )
+                    window_start = window_end
+                    window_idx += 1
+            else:
+                # Fallback: single window
+                end_date = run_date
+                start_date = end_date - timedelta(days=size)
+                windows.append(
+                    WindowDefinition(
+                        window_id="w00",
+                        start_date=start_date,
+                        end_date=end_date,
+                        commits=total_commits,
+                        strategy=strategy,
+                        size_config={"size": size},
+                    )
                 )
-            )
         elif strategy == "commit":
             # For commit strategy, divide the date range proportionally by commit count.
             # Each window covers 'size' commits worth of time.

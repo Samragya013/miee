@@ -187,7 +187,7 @@ class CorrelationBreakdownDetector(BaseDetector):
         Returns:
             bool: True if at least two supported metrics are present
         """
-        available_metrics = set(metric_dataframe.metrics.keys())
+        available_metrics = set(m for m in metric_dataframe.metrics.keys() if metric_dataframe.metrics[m] is not None)
         required_metrics = set(self.supported_metrics)
         return len(available_metrics.intersection(required_metrics)) >= 2
 
@@ -203,7 +203,7 @@ class CorrelationBreakdownDetector(BaseDetector):
         """
         detector_outputs: Dict[str, Any] = {}
 
-        available_metrics = [m for m in self.supported_metrics if m in metric_dataframe.metrics]
+        available_metrics = [m for m in self.supported_metrics if m in metric_dataframe.metrics and metric_dataframe.metrics[m] is not None]
 
         if len(available_metrics) < 2:
             detector_outputs[self.detector_id] = self._empty_output()

@@ -1,0 +1,92 @@
+{
+  "pr12b_version": "1.0",
+  "campaign_date": "2026-07-03",
+  "summary": {
+    "total_repositories": 10,
+    "successful": 10,
+    "failed": 0,
+    "success_rate": 1.0,
+    "metrics_computed_pr12a": 1,
+    "metrics_computed_pr12b": 2,
+    "coverage_pr12a": 0.14,
+    "coverage_pr12b": 0.29,
+    "readiness_pr12a": 2,
+    "readiness_pr12b": 3,
+    "verdict": "MINIMAL"
+  },
+  "remediations": [
+    {
+      "id": "P0",
+      "finding": "M-06 unit='ratio' in Git provider",
+      "severity": "critical",
+      "status": "resolved",
+      "file": "src/miie/providers/git.py",
+      "line": 287,
+      "fix": "unit='ratio' -> unit='count'"
+    },
+    {
+      "id": "P0",
+      "finding": "M-06 unit='ratio' in Observation model",
+      "severity": "critical",
+      "status": "resolved",
+      "file": "src/miie/processing/observation/models.py",
+      "line": 45,
+      "fix": "_METRIC_UNITS['M-06'] = 'ratio' -> 'count'"
+    },
+    {
+      "id": "P1",
+      "finding": "Auth: single env var (GITHUB_TOKEN only)",
+      "severity": "environment",
+      "status": "resolved",
+      "file": "src/miie/providers/github/authentication.py",
+      "fix": "Multi-source token discovery: GITHUB_TOKEN -> GH_TOKEN -> GITHUB_PAT"
+    },
+    {
+      "id": "P1",
+      "finding": "Auth: no diagnostics",
+      "severity": "environment",
+      "status": "resolved",
+      "file": "src/miie/providers/github/authentication.py",
+      "fix": "Added diagnostics() method and summarize_auth_status() helper"
+    },
+    {
+      "id": "P2",
+      "finding": "M-01, M-03, M-04, M-07 no providers",
+      "severity": "architectural",
+      "status": "documented",
+      "fix": "Not in scope for PR-12B"
+    }
+  ],
+  "regression": {
+    "pytest": {
+      "passed": 1302,
+      "skipped": 4,
+      "errors": 1,
+      "status": "green",
+      "note": "1 error is pre-existing (test_cli_usability.py)"
+    },
+    "black": {
+      "unchanged": 251,
+      "status": "green"
+    },
+    "isort": {
+      "status": "green"
+    },
+    "flake8": {
+      "status": "green",
+      "note": "Pre-existing unused imports in test files only"
+    }
+  },
+  "per_repository": [
+    {"repository": "tiangolo/typer", "category": "small", "m02": 500.0, "m06": 84490.0, "confidence": 0.898, "coverage": 0.2857},
+    {"repository": "tiangolo/full-stack-fastapi-template", "category": "small", "m02": 500.0, "m06": 101478.0, "confidence": 0.899, "coverage": 0.2857},
+    {"repository": "pypa/sampleproject", "category": "small", "m02": 139.0, "m06": 2060.0, "confidence": 0.898, "coverage": 0.2857},
+    {"repository": "tiangolo/uvicorn", "category": "medium", "m02": 500.0, "m06": 27060.0, "confidence": 0.899, "coverage": 0.2857},
+    {"repository": "encode/httpx", "category": "medium", "m02": 500.0, "m06": 54350.0, "confidence": 0.898, "coverage": 0.2857},
+    {"repository": "encode/starlette", "category": "medium", "m02": 500.0, "m06": 45233.0, "confidence": 0.898, "coverage": 0.2857},
+    {"repository": "pallets/flask", "category": "large", "m02": 1584.0, "m06": 726585.0, "confidence": 0.900, "coverage": 0.2857},
+    {"repository": "psf/requests", "category": "large", "m02": 1411.0, "m06": 227381.0, "confidence": 0.899, "coverage": 0.2857},
+    {"repository": "pypa/pip", "category": "archived", "m02": 11260.0, "m06": 2087635.0, "confidence": 0.900, "coverage": 0.2857},
+    {"repository": "python/cpython", "category": "experimental", "m02": 500.0, "m06": 3204713.0, "confidence": 0.896, "coverage": 0.2857}
+  ]
+}

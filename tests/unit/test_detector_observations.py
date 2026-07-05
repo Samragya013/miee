@@ -65,7 +65,7 @@ _METRIC_UNIT_MAP = {
     "M-03": "ratio",
     "M-04": "ratio",
     "M-05": "hours",
-    "M-06": "ratio",
+    "M-06": "count",
     "M-07": "ratio",
 }
 

@@ -1,0 +1,219 @@
+{
+  "total_repos": 23,
+  "ready_count": 0,
+  "partial_count": 0,
+  "skipped_count": 23,
+  "failed_count": 0,
+  "overall_verdict": "PARTIAL",
+  "overall_confidence": 0.0,
+  "warnings": [],
+  "certifications": [
+    {
+      "repo_id": "A-02",
+      "repo_name": "git/git",
+      "verdict": "SKIPPED",
+      "confidence": 0.0,
+      "strategy": "",
+      "windows": 0,
+      "observations": 0
+    },
+    {
+      "repo_id": "A-03",
+      "repo_name": "golang/go",
+      "verdict": "SKIPPED",
+      "confidence": 0.0,
+      "strategy": "",
+      "windows": 0,
+      "observations": 0
+    },
+    {
+      "repo_id": "A-05",
+      "repo_name": "golang/go (golang)",
+      "verdict": "SKIPPED",
+      "confidence": 0.0,
+      "strategy": "",
+      "windows": 0,
+      "observations": 0
+    },
+    {
+      "repo_id": "B-01",
+      "repo_name": "kubernetes/kubernetes",
+      "verdict": "SKIPPED",
+      "confidence": 0.0,
+      "strategy": "",
+      "windows": 0,
+      "observations": 0
+    },
+    {
+      "repo_id": "B-02",
+      "repo_name": "ansible/ansible",
+      "verdict": "SKIPPED",
+      "confidence": 0.0,
+      "strategy": "",
+      "windows": 0,
+      "observations": 0
+    },
+    {
+      "repo_id": "B-03",
+      "repo_name": "docker/cli",
+      "verdict": "SKIPPED",
+      "confidence": 0.0,
+      "strategy": "",
+      "windows": 0,
+      "observations": 0
+    },
+    {
+      "repo_id": "B-04",
+      "repo_name": "hashicorp/terraform",
+      "verdict": "SKIPPED",
+      "confidence": 0.0,
+      "strategy": "",
+      "windows": 0,
+      "observations": 0
+    },
+    {
+      "repo_id": "B-05",
+      "repo_name": "grafana/grafana",
+      "verdict": "SKIPPED",
+      "confidence": 0.0,
+      "strategy": "",
+      "windows": 0,
+      "observations": 0
+    },
+    {
+      "repo_id": "C-01",
+      "repo_name": "django/django",
+      "verdict": "SKIPPED",
+      "confidence": 0.0,
+      "strategy": "",
+      "windows": 0,
+      "observations": 0
+    },
+    {
+      "repo_id": "C-02",
+      "repo_name": "facebookresearch/ParlAI",
+      "verdict": "SKIPPED",
+      "confidence": 0.0,
+      "strategy": "",
+      "windows": 0,
+      "observations": 0
+    },
+    {
+      "repo_id": "C-03",
+      "repo_name": "pallets/flask",
+      "verdict": "SKIPPED",
+      "confidence": 0.0,
+      "strategy": "",
+      "windows": 0,
+      "observations": 0
+    },
+    {
+      "repo_id": "C-04",
+      "repo_name": "pallets/jinja",
+      "verdict": "SKIPPED",
+      "confidence": 0.0,
+      "strategy": "",
+      "windows": 0,
+      "observations": 0
+    },
+    {
+      "repo_id": "C-05",
+      "repo_name": "encode/httpx",
+      "verdict": "SKIPPED",
+      "confidence": 0.0,
+      "strategy": "",
+      "windows": 0,
+      "observations": 0
+    },
+    {
+      "repo_id": "D-02",
+      "repo_name": "oracle/node",
+      "verdict": "SKIPPED",
+      "confidence": 0.0,
+      "strategy": "",
+      "windows": 0,
+      "observations": 0
+    },
+    {
+      "repo_id": "D-03",
+      "repo_name": "phpmyadmin/phpmyadmin",
+      "verdict": "SKIPPED",
+      "confidence": 0.0,
+      "strategy": "",
+      "windows": 0,
+      "observations": 0
+    },
+    {
+      "repo_id": "D-04",
+      "repo_name": "Homebrew/brew",
+      "verdict": "SKIPPED",
+      "confidence": 0.0,
+      "strategy": "",
+      "windows": 0,
+      "observations": 0
+    },
+    {
+      "repo_id": "E-01",
+      "repo_name": "vuejs/vue",
+      "verdict": "SKIPPED",
+      "confidence": 0.0,
+      "strategy": "",
+      "windows": 0,
+      "observations": 0
+    },
+    {
+      "repo_id": "E-02",
+      "repo_name": "angular/angular",
+      "verdict": "SKIPPED",
+      "confidence": 0.0,
+      "strategy": "",
+      "windows": 0,
+      "observations": 0
+    },
+    {
+      "repo_id": "E-03",
+      "repo_name": "sveltejs/svelte",
+      "verdict": "SKIPPED",
+      "confidence": 0.0,
+      "strategy": "",
+      "windows": 0,
+      "observations": 0
+    },
+    {
+      "repo_id": "E-04",
+      "repo_name": "emberjs/ember.js",
+      "verdict": "SKIPPED",
+      "confidence": 0.0,
+      "strategy": "",
+      "windows": 0,
+      "observations": 0
+    },
+    {
+      "repo_id": "E-05",
+      "repo_name": "preactjs/preact",
+      "verdict": "SKIPPED",
+      "confidence": 0.0,
+      "strategy": "",
+      "windows": 0,
+      "observations": 0
+    },
+    {
+      "repo_id": "F-01",
+      "repo_name": "microsoft/vscode",
+      "verdict": "SKIPPED",
+      "confidence": 0.0,
+      "strategy": "",
+      "windows": 0,
+      "observations": 0
+    },
+    {
+      "repo_id": "F-02",
+      "repo_name": "atom/atom",
+      "verdict": "SKIPPED",
+      "confidence": 0.0,
+      "strategy": "",
+      "windows": 0,
+      "observations": 0
+    }
+  ]
+}

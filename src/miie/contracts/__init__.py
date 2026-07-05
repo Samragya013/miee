@@ -43,3 +43,116 @@ from .interfaces import (
     IScoringEngine,
     ISegmentationEngine,
 )
+
+# Observation Errors
+from .observation_errors import (  # Base; Provider Errors; Extraction Errors; Validation Errors; Registry Errors; Pipeline Errors; Factory Functions
+    AuthenticationError,
+    ConfigurationError,
+    ConnectionError,
+    DataFormatError,
+    DependencyViolationError,
+    DiscoveryError,
+    DuplicateProviderError,
+    ExtractionError,
+    ExtractionTimeoutError,
+    FreshnessViolationError,
+    IncompatibleProviderError,
+    ObservationError,
+    PartialExtractionError,
+    PipelineConsolidationError,
+    PipelineError,
+    PipelineStageError,
+    PipelineTimeoutError,
+    ProviderDisposedError,
+    ProviderError,
+    ProviderExtractionError,
+    ProviderNotFoundError,
+    ProviderNotInitializedError,
+    ProviderNotReadyError,
+    ProviderPausedError,
+    RangeViolationError,
+    RateLimitError,
+    RegistrationError,
+    RegistryError,
+    SchemaViolationError,
+    TimeoutError,
+    ValidationError,
+    create_extraction_error,
+    create_provider_error,
+)
+
+# Observation Interfaces
+from .observation_interfaces import (  # Protocols; Abstract Base Classes
+    CommitObservationProvider,
+    GitObservationProvider,
+    IGitProvider,
+    IObservationProvider,
+    IObservationTransformer,
+    IObservationValidator,
+    IProviderFactory,
+    IProviderHealthReporter,
+    IProviderRegistry,
+)
+
+# Observation Types
+from .observation_types import (  # Enums; Dataclasses; Constants
+    CAPABILITY_API_REQUIRED,
+    CAPABILITY_BATCH,
+    CAPABILITY_GIT_NATIVE,
+    CAPABILITY_LOCAL_ONLY,
+    CAPABILITY_REAL_TIME,
+    CAPABILITY_REMOTE_ONLY,
+    METRIC_BOUNDS,
+    VALID_METRIC_IDS,
+    VALID_QUALITY_TRANSITIONS,
+    ExtractionPhase,
+    ExtractionResult,
+    HealthStatus,
+    MetricBounds,
+    ObservationMetrics,
+    ObservationState,
+    ObservationTransition,
+    PriorityLevel,
+    ProviderCapability,
+    ProviderContext,
+    ProviderEntry,
+    ProviderErrorContext,
+    ProviderFactoryResult,
+    ProviderHealth,
+    ProviderPausedState,
+    ProviderRegistrationConfig,
+    ProviderState,
+    QualityState,
+    QualityStateTransition,
+    ValidationResult,
+)
+
+# Quality State Machine
+from .quality_state_machine import (
+    InvalidTransitionError,
+    QualityStateMachine,
+    calculate_quality_score,
+    create_quality_state_machine,
+    get_recovery_path,
+    is_recoverable_state,
+    is_terminal_state,
+)
+
+# Validation Rules
+from .validation_rules import (
+    CompositeValidationRule,
+    ConfidenceValidationRule,
+    DependencyValidationRule,
+    FreshnessValidationRule,
+    RangeValidationRule,
+    SchemaValidationRule,
+    UnitValidationRule,
+    ValidationContext,
+    ValidationRule,
+    create_all_validation_rules,
+    create_metric_validation_rules,
+)
+
+# ---------------------------------------------------------------------------
+# Observation Provider Architecture (v1.6) — PR-10
+# ---------------------------------------------------------------------------

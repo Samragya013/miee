@@ -1,0 +1,4 @@
+provider_id,supported_metrics,source_types,requires_network,requires_token,observation_schema_compliant,unit_validation_pass
+git.observation.v1,M-02;M-06,commit,false,false,true,true
+github.pr.observation.v1,M-02;M-05,pull_request;review,true,false,true,true
+repository.metadata.observation.v1,M-02;M-05,repository,true,false,true,true

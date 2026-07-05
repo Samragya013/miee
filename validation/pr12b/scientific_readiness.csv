@@ -1,0 +1,11 @@
+metric_id,metric_name,provider,observation_coverage,metric_computation,scientific_status,pr12a_status,pr12b_status,change
+M-01,Entropy Ratio,None,0 observations,Not computed,NOT_IMPLEMENTED,NOT_IMPLEMENTED,NOT_IMPLEMENTED,unchanged
+M-02,Commit Count,git.observation.v1,Per-commit (unlimited),Sum aggregation,READY,READY,READY,unchanged
+M-02,Commit Count,github.pr.observation.v1,Per-PR creation,Sum aggregation,READY,READY,READY,unchanged
+M-02,Commit Count,repository.metadata.observation.v1,Stars/forks/watchers,Sum aggregation,READY,READY,READY,unchanged
+M-03,Churn Ratio,None,0 observations,Depends on M-07,BLOCKED,BLOCKED,BLOCKED,unchanged
+M-04,Test Coverage,None,0 observations,Not computed,NOT_IMPLEMENTED,NOT_IMPLEMENTED,NOT_IMPLEMENTED,unchanged
+M-05,Review Latency,github.pr.observation.v1,Per-PR merge/close,Mean aggregation,READY,BLOCKED,BLOCKED,unchanged
+M-05,Review Latency,repository.metadata.observation.v1,Last push/update,Mean aggregation,READY,BLOCKED,BLOCKED,unchanged
+M-06,File Change Count,git.observation.v1,Per-commit churn,Sum aggregation,READY,SILENTLY_REJECTED,READY,FIXED
+M-07,Branch Freshness,None,0 observations (not wired),Not computed,NOT_IMPLEMENTED,NOT_IMPLEMENTED,NOT_IMPLEMENTED,unchanged

@@ -269,6 +269,10 @@ class ScoringEngine(IScoringEngine):
 
         for det_id, det_output in detector_results.detector_outputs.items():
             if det_id == "D-01":
+                # Detector failed — assign moderate uncertainty penalty
+                if isinstance(det_output, dict) and det_output.get("status") in ("error", "skipped"):
+                    return 0.3  # Moderate penalty for unknown detector state
+
                 drift_detected = False
                 drift_magnitude = 0.0
 
@@ -316,6 +320,8 @@ class ScoringEngine(IScoringEngine):
 
         for det_id, det_output in detector_results.detector_outputs.items():
             if det_id == "D-02":
+                if isinstance(det_output, dict) and det_output.get("status") in ("error", "skipped"):
+                    return 0.3
                 breakdown_detected = False
                 breakdown_magnitude = 0.0
 
@@ -361,6 +367,8 @@ class ScoringEngine(IScoringEngine):
 
         for det_id, det_output in detector_results.detector_outputs.items():
             if det_id == "D-03":
+                if isinstance(det_output, dict) and det_output.get("status") in ("error", "skipped"):
+                    return 0.3
                 compression_detected = False
                 compression_index = 0.0
 
@@ -550,6 +558,8 @@ class ScoringEngine(IScoringEngine):
         metric_count = 0
 
         for metric_id, metric_series in metric_dataframe.metrics.items():
+            if metric_series is None or not isinstance(metric_series, dict):
+                continue
             point_count = 0
             for value_list in metric_series.values():
                 if isinstance(value_list, list):
@@ -578,6 +588,8 @@ class ScoringEngine(IScoringEngine):
         cv_values: List[float] = []
 
         for metric_id, metric_series in metric_dataframe.metrics.items():
+            if metric_series is None or not isinstance(metric_series, dict):
+                continue
             for window_key, value_list in metric_series.items():
                 if isinstance(value_list, list) and len(value_list) > 0:
                     valid_values = [v for v in value_list if v is not None]
@@ -744,7 +756,17 @@ class ScoringEngine(IScoringEngine):
 
         # Fallback to detector_results-based calculation
         total_attempts = num_metrics * num_detectors
-        successful_runs = num_detectors * num_metrics
+        successful_runs = 0
+
+        for det_id, det_data in detector_results.detector_outputs.items():
+            if isinstance(det_data, dict):
+                status = det_data.get("status", "executed")
+                if status in ("error", "skipped"):
+                    # Detector failed — count as unsuccessful for all metrics
+                    continue
+                # Detector ran (whether it found something or not)
+                successful_runs += num_metrics
+
         return compute_detector_success_factor(successful_runs, total_attempts)
 
     def _compute_observation_quality_factor(

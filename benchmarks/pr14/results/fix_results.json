@@ -1,0 +1,143 @@
+[
+  {
+    "repo_id": "numpy/numpy",
+    "category": "healthy",
+    "size": "large",
+    "language": "python",
+    "success": true,
+    "metric_values": {
+      "M-01": 0.10570106392359872,
+      "M-02": 22069.0,
+      "M-03": 0.00211457247723058,
+      "M-04": 0.10172413793103448,
+      "M-05": null,
+      "M-06": 16176721.0,
+      "M-07": 0.9986431305338863
+    },
+    "detector_results": {
+      "D-01": {
+        "detected": false,
+        "severity": 0.0,
+        "events_count": 0,
+        "status": "executed"
+      },
+      "D-02": {
+        "detected": false,
+        "severity": 0.0,
+        "events_count": 0,
+        "status": "executed"
+      },
+      "D-03": {
+        "detected": false,
+        "severity": 0.0,
+        "events_count": 0,
+        "status": "executed"
+      }
+    },
+    "detector_execution": {
+      "D-01": true,
+      "D-02": true,
+      "D-03": true
+    },
+    "integrity_score": 1.0,
+    "confidence_score": 0.017055097301127014,
+    "confidence_band": "low",
+    "pipeline_time_s": 35.19098424911499,
+    "clone_time_s": 0.0,
+    "windows_count": 778
+  },
+  {
+    "repo_id": "twisted/twisted",
+    "category": "enterprise",
+    "size": "large",
+    "language": "python",
+    "success": true,
+    "metric_values": {
+      "M-01": 0.18675077946234656,
+      "M-02": 12072.0,
+      "M-03": 0.00174399148537606,
+      "M-04": 0.22987721691678034,
+      "M-05": null,
+      "M-06": 3406292.0,
+      "M-07": 0.9895946686771476
+    },
+    "detector_results": {
+      "D-01": {
+        "detected": false,
+        "severity": 0.0,
+        "events_count": 0,
+        "status": "executed"
+      },
+      "D-02": {
+        "detected": false,
+        "severity": 0.0,
+        "events_count": 0,
+        "status": "executed"
+      },
+      "D-03": {
+        "detected": false,
+        "severity": 0.0,
+        "events_count": 0,
+        "status": "executed"
+      }
+    },
+    "detector_execution": {
+      "D-01": true,
+      "D-02": true,
+      "D-03": true
+    },
+    "integrity_score": 1.0,
+    "confidence_score": 0.017052536485818424,
+    "confidence_band": "low",
+    "pipeline_time_s": 12.580026865005493,
+    "clone_time_s": 0.0,
+    "windows_count": 1000
+  },
+  {
+    "repo_id": "rails/rails",
+    "category": "healthy",
+    "size": "large",
+    "language": "ruby",
+    "success": true,
+    "metric_values": {
+      "M-01": 0.2261440379152272,
+      "M-02": 54948.0,
+      "M-03": 0.0006842209613513728,
+      "M-04": 0.00020132876988121604,
+      "M-05": null,
+      "M-06": 9435313.0,
+      "M-07": 0.9995599068251029
+    },
+    "detector_results": {
+      "D-01": {
+        "detected": false,
+        "severity": 0.0,
+        "events_count": 0,
+        "status": "executed"
+      },
+      "D-02": {
+        "detected": false,
+        "severity": 0.0,
+        "events_count": 0,
+        "status": "executed"
+      },
+      "D-03": {
+        "detected": false,
+        "severity": 0.0,
+        "events_count": 0,
+        "status": "executed"
+      }
+    },
+    "detector_execution": {
+      "D-01": true,
+      "D-02": true,
+      "D-03": true
+    },
+    "integrity_score": 1.0,
+    "confidence_score": 0.017052112632534706,
+    "confidence_band": "low",
+    "pipeline_time_s": 46.81618928909302,
+    "clone_time_s": 0.0,
+    "windows_count": 844
+  }
+]

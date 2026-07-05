@@ -1,0 +1,81 @@
+{
+  "benchmark_info": {
+    "name": "MIIE Detector Evaluation Summary",
+    "version": "1.0.0",
+    "generated_at": "2026-07-02T15:52:49.461252Z",
+    "seed": 42
+  },
+  "hard_targets": {
+    "D-01": {
+      "precision": 0.8,
+      "recall": 0.75
+    },
+    "D-02": {
+      "precision": 0.75,
+      "recall": 0.7
+    },
+    "D-03": {
+      "precision": 0.85,
+      "recall": 0.8
+    }
+  },
+  "results": {
+    "D-01": {
+      "precision": 0.8889,
+      "recall": 0.9412,
+      "f1": 0.9143,
+      "auc_roc": 0.925,
+      "accuracy": 0.925,
+      "confusion_matrix": {
+        "tp": 16,
+        "fp": 2,
+        "tn": 21,
+        "fn": 1
+      }
+    },
+    "D-02": {
+      "precision": 0.8182,
+      "recall": 0.9,
+      "f1": 0.8571,
+      "auc_roc": 0.925,
+      "accuracy": 0.925,
+      "confusion_matrix": {
+        "tp": 9,
+        "fp": 2,
+        "tn": 28,
+        "fn": 1
+      }
+    },
+    "D-03": {
+      "precision": 0.9,
+      "recall": 0.9,
+      "f1": 0.9,
+      "auc_roc": 0.95,
+      "accuracy": 0.95,
+      "confusion_matrix": {
+        "tp": 9,
+        "fp": 1,
+        "tn": 29,
+        "fn": 1
+      }
+    }
+  },
+  "targets_met": {
+    "D-01": {
+      "precision": true,
+      "recall": true,
+      "overall": true
+    },
+    "D-02": {
+      "precision": true,
+      "recall": true,
+      "overall": true
+    },
+    "D-03": {
+      "precision": true,
+      "recall": true,
+      "overall": true
+    }
+  },
+  "overall_pass": true
+}

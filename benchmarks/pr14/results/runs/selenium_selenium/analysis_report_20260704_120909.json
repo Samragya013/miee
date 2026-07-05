@@ -1,0 +1,1002 @@
+{
+  "analysis_result": {
+    "detector_results": {
+      "d_01": {},
+      "d_02": {},
+      "d_03": {},
+      "detector_outputs": {
+        "D-01": {
+          "drift_detected": false,
+          "drift_directions": {},
+          "drift_events": [],
+          "drift_magnitude": 0.0,
+          "ks_statistics": {},
+          "metrics_analyzed": [
+            "M-01",
+            "M-02",
+            "M-03",
+            "M-04",
+            "M-06",
+            "M-07"
+          ],
+          "psi_values": {},
+          "window_pairs_analyzed": []
+        },
+        "D-02": {
+          "breakdown_detected": false,
+          "breakdown_events": [],
+          "breakdown_type": null,
+          "confidence_intervals": {},
+          "metric_pairs_analyzed": [
+            "M-01_M-02",
+            "M-01_M-03",
+            "M-01_M-04",
+            "M-01_M-06",
+            "M-01_M-07",
+            "M-02_M-03",
+            "M-02_M-04",
+            "M-02_M-06",
+            "M-02_M-07",
+            "M-03_M-04",
+            "M-03_M-06",
+            "M-03_M-07",
+            "M-04_M-06",
+            "M-04_M-07",
+            "M-06_M-07"
+          ],
+          "pearson_trajectories": {
+            "M-01_M-02": [
+              null
+            ],
+            "M-01_M-03": [
+              null
+            ],
+            "M-01_M-04": [
+              null
+            ],
+            "M-01_M-06": [
+              null
+            ],
+            "M-01_M-07": [
+              null
+            ],
+            "M-02_M-03": [
+              null
+            ],
+            "M-02_M-04": [
+              null
+            ],
+            "M-02_M-06": [
+              null
+            ],
+            "M-02_M-07": [
+              null
+            ],
+            "M-03_M-04": [
+              null
+            ],
+            "M-03_M-06": [
+              null
+            ],
+            "M-03_M-07": [
+              null
+            ],
+            "M-04_M-06": [
+              null
+            ],
+            "M-04_M-07": [
+              null
+            ],
+            "M-06_M-07": [
+              null
+            ]
+          },
+          "spearman_trajectories": {
+            "M-01_M-02": [
+              null
+            ],
+            "M-01_M-03": [
+              null
+            ],
+            "M-01_M-04": [
+              null
+            ],
+            "M-01_M-06": [
+              null
+            ],
+            "M-01_M-07": [
+              null
+            ],
+            "M-02_M-03": [
+              null
+            ],
+            "M-02_M-04": [
+              null
+            ],
+            "M-02_M-06": [
+              null
+            ],
+            "M-02_M-07": [
+              null
+            ],
+            "M-03_M-04": [
+              null
+            ],
+            "M-03_M-06": [
+              null
+            ],
+            "M-03_M-07": [
+              null
+            ],
+            "M-04_M-06": [
+              null
+            ],
+            "M-04_M-07": [
+              null
+            ],
+            "M-06_M-07": [
+              null
+            ]
+          },
+          "window_pairs_flagged": []
+        },
+        "D-03": {
+          "compression_detected": false,
+          "compression_events": [],
+          "compression_index": 0.0,
+          "dip_test_p_values": {},
+          "dip_test_statistics": {},
+          "excess_mass_z_scores": {},
+          "metrics_analyzed": [
+            "M-01",
+            "M-02",
+            "M-03",
+            "M-04",
+            "M-06",
+            "M-07"
+          ],
+          "thresholds_used": {
+            "M-01": [],
+            "M-02": [
+              500.0
+            ],
+            "M-03": [
+              0.0
+            ],
+            "M-04": [
+              0.0
+            ],
+            "M-06": [
+              1807429.0
+            ],
+            "M-07": [
+              0.0
+            ]
+          },
+          "windows_analyzed": []
+        }
+      }
+    },
+    "evidence_package": {
+      "configuration_snapshot": {
+        "detector_config": {},
+        "enabled_detectors": [
+          "D-01",
+          "D-02",
+          "D-03"
+        ],
+        "extraction_params": {
+          "exclude_bots": false,
+          "since": null,
+          "until": null
+        },
+        "metric_list": [
+          "M-01",
+          "M-02",
+          "M-03",
+          "M-04",
+          "M-05",
+          "M-06",
+          "M-07"
+        ],
+        "segmentation_size": 7,
+        "segmentation_strategy": "time"
+      },
+      "detector_execution_metadata": {
+        "D-01": {
+          "method": "kolmogorov_smirnov",
+          "observations_consumed": 0,
+          "scientific_reference": "KS test for distribution drift",
+          "windows_analyzed": 0
+        },
+        "D-02": {
+          "method": "pearson_correlation",
+          "observations_consumed": 0,
+          "scientific_reference": "Pearson correlation with Fisher z-transformation",
+          "windows_analyzed": 0
+        },
+        "D-03": {
+          "method": "dip_test_excess_mass",
+          "observations_consumed": 0,
+          "scientific_reference": "Dip test for unimodality with excess mass",
+          "windows_analyzed": 0
+        }
+      },
+      "detector_outputs": {
+        "d_01": {},
+        "d_02": {},
+        "d_03": {},
+        "detector_outputs": {
+          "D-01": {
+            "drift_detected": false,
+            "drift_directions": {},
+            "drift_events": [],
+            "drift_magnitude": 0.0,
+            "ks_statistics": {},
+            "metrics_analyzed": [
+              "M-01",
+              "M-02",
+              "M-03",
+              "M-04",
+              "M-06",
+              "M-07"
+            ],
+            "psi_values": {},
+            "window_pairs_analyzed": []
+          },
+          "D-02": {
+            "breakdown_detected": false,
+            "breakdown_events": [],
+            "breakdown_type": null,
+            "confidence_intervals": {},
+            "metric_pairs_analyzed": [
+              "M-01_M-02",
+              "M-01_M-03",
+              "M-01_M-04",
+              "M-01_M-06",
+              "M-01_M-07",
+              "M-02_M-03",
+              "M-02_M-04",
+              "M-02_M-06",
+              "M-02_M-07",
+              "M-03_M-04",
+              "M-03_M-06",
+              "M-03_M-07",
+              "M-04_M-06",
+              "M-04_M-07",
+              "M-06_M-07"
+            ],
+            "pearson_trajectories": {
+              "M-01_M-02": [
+                null
+              ],
+              "M-01_M-03": [
+                null
+              ],
+              "M-01_M-04": [
+                null
+              ],
+              "M-01_M-06": [
+                null
+              ],
+              "M-01_M-07": [
+                null
+              ],
+              "M-02_M-03": [
+                null
+              ],
+              "M-02_M-04": [
+                null
+              ],
+              "M-02_M-06": [
+                null
+              ],
+              "M-02_M-07": [
+                null
+              ],
+              "M-03_M-04": [
+                null
+              ],
+              "M-03_M-06": [
+                null
+              ],
+              "M-03_M-07": [
+                null
+              ],
+              "M-04_M-06": [
+                null
+              ],
+              "M-04_M-07": [
+                null
+              ],
+              "M-06_M-07": [
+                null
+              ]
+            },
+            "spearman_trajectories": {
+              "M-01_M-02": [
+                null
+              ],
+              "M-01_M-03": [
+                null
+              ],
+              "M-01_M-04": [
+                null
+              ],
+              "M-01_M-06": [
+                null
+              ],
+              "M-01_M-07": [
+                null
+              ],
+              "M-02_M-03": [
+                null
+              ],
+              "M-02_M-04": [
+                null
+              ],
+              "M-02_M-06": [
+                null
+              ],
+              "M-02_M-07": [
+                null
+              ],
+              "M-03_M-04": [
+                null
+              ],
+              "M-03_M-06": [
+                null
+              ],
+              "M-03_M-07": [
+                null
+              ],
+              "M-04_M-06": [
+                null
+              ],
+              "M-04_M-07": [
+                null
+              ],
+              "M-06_M-07": [
+                null
+              ]
+            },
+            "window_pairs_flagged": []
+          },
+          "D-03": {
+            "compression_detected": false,
+            "compression_events": [],
+            "compression_index": 0.0,
+            "dip_test_p_values": {},
+            "dip_test_statistics": {},
+            "excess_mass_z_scores": {},
+            "metrics_analyzed": [
+              "M-01",
+              "M-02",
+              "M-03",
+              "M-04",
+              "M-06",
+              "M-07"
+            ],
+            "thresholds_used": {
+              "M-01": [],
+              "M-02": [
+                500.0
+              ],
+              "M-03": [
+                0.0
+              ],
+              "M-04": [
+                0.0
+              ],
+              "M-06": [
+                1807429.0
+              ],
+              "M-07": [
+                0.0
+              ]
+            },
+            "windows_analyzed": []
+          }
+        }
+      },
+      "metrics": {
+        "M-01": {
+          "w00": [
+            0.23304589256445052
+          ]
+        },
+        "M-02": {
+          "w00": [
+            500.0
+          ]
+        },
+        "M-03": {
+          "w00": [
+            0.0029757971761310963
+          ]
+        },
+        "M-04": {
+          "w00": [
+            0.001442852725961043
+          ]
+        },
+        "M-05": null,
+        "M-06": {
+          "w00": [
+            1807429.0
+          ]
+        },
+        "M-07": {
+          "w00": [
+            0.0
+          ]
+        }
+      },
+      "observation_summary": {
+        "observation_quality": {
+          "complete": 0,
+          "estimated": 0,
+          "partial": 0
+        },
+        "per_metric": {},
+        "total_observations": 0
+      },
+      "provenance": {
+        "config_hash": "foundation",
+        "dependency_hash": "foundation",
+        "miie_version": "1.0.0",
+        "platform": "test",
+        "python_version": "3.9.0",
+        "seed": 42,
+        "timestamp": "2026-07-04T06:39:09Z"
+      },
+      "sampling_diagnostics": {},
+      "scores": {
+        "confidence": {
+          "band": "low",
+          "factors": {
+            "detector_success": 1.0,
+            "missing_data": 0.8571428571428572,
+            "observation_quality": 1.0,
+            "sample_size": 0.02,
+            "variance": 1.0,
+            "window_balance": 0.7982803305806128
+          },
+          "overall": 0.01368480566709622
+        },
+        "config_hash": "",
+        "formula_version": "TFS_v1.0",
+        "integrity": {
+          "formula_version": "TFS_v1.0",
+          "overall": 1.0,
+          "per_metric": {
+            "M-01": 1.0,
+            "M-02": 1.0,
+            "M-03": 1.0,
+            "M-04": 1.0,
+            "M-05": 1.0,
+            "M-06": 1.0,
+            "M-07": 1.0
+          }
+        },
+        "timestamp": "2026-07-04T06:39:09.809109+00:00"
+      },
+      "statistical_artifacts": {
+        "compression_artifacts": {
+          "D-03": {}
+        },
+        "correlation_artifacts": {
+          "D-02": {}
+        },
+        "drift_statistics": {
+          "D-01": {
+            "drift_events": [],
+            "ks_statistics": {},
+            "psi_values": {}
+          }
+        }
+      },
+      "warnings": [],
+      "windows": [
+        {
+          "commits": 26,
+          "end_date": "2013-09-16",
+          "size_config": {
+            "size": 7
+          },
+          "start_date": "2013-09-09",
+          "strategy": "time",
+          "window_id": "w00"
+        },
+        {
+          "commits": 26,
+          "end_date": "2013-09-23",
+          "size_config": {
+            "size": 7
+          },
+          "start_date": "2013-09-16",
+          "strategy": "time",
+          "window_id": "w01"
+        },
+        {
+          "commits": 26,
+          "end_date": "2013-09-30",
+          "size_config": {
+            "size": 7
+          },
+          "start_date": "2013-09-23",
+          "strategy": "time",
+          "window_id": "w02"
+        },
+        {
+          "commits": 26,
+          "end_date": "2013-10-07",
+          "size_config": {
+            "size": 7
+          },
+          "start_date": "2013-09-30",
+          "strategy": "time",
+          "window_id": "w03"
+        },
+        {
+          "commits": 26,
+          "end_date": "2013-10-14",
+          "size_config": {
+            "size": 7
+          },
+          "start_date": "2013-10-07",
+          "strategy": "time",
+          "window_id": "w04"
+        },
+        {
+          "commits": 26,
+          "end_date": "2013-10-21",
+          "size_config": {
+            "size": 7
+          },
+          "start_date": "2013-10-14",
+          "strategy": "time",
+          "window_id": "w05"
+        },
+        {
+          "commits": 26,
+          "end_date": "2013-10-28",
+          "size_config": {
+            "size": 7
+          },
+          "start_date": "2013-10-21",
+          "strategy": "time",
+          "window_id": "w06"
+        },
+        {
+          "commits": 26,
+          "end_date": "2013-11-04",
+          "size_config": {
+            "size": 7
+          },
+          "start_date": "2013-10-28",
+          "strategy": "time",
+          "window_id": "w07"
+        },
+        {
+          "commits": 26,
+          "end_date": "2013-11-11",
+          "size_config": {
+            "size": 7
+          },
+          "start_date": "2013-11-04",
+          "strategy": "time",
+          "window_id": "w08"
+        },
+        {
+          "commits": 26,
+          "end_date": "2013-11-18",
+          "size_config": {
+            "size": 7
+          },
+          "start_date": "2013-11-11",
+          "strategy": "time",
+          "window_id": "w09"
+        },
+        {
+          "commits": 26,
+          "end_date": "2013-11-25",
+          "size_config": {
+            "size": 7
+          },
+          "start_date": "2013-11-18",
+          "strategy": "time",
+          "window_id": "w10"
+        },
+        {
+          "commits": 26,
+          "end_date": "2013-12-02",
+          "size_config": {
+            "size": 7
+          },
+          "start_date": "2013-11-25",
+          "strategy": "time",
+          "window_id": "w11"
+        },
+        {
+          "commits": 26,
+          "end_date": "2013-12-09",
+          "size_config": {
+            "size": 7
+          },
+          "start_date": "2013-12-02",
+          "strategy": "time",
+          "window_id": "w12"
+        },
+        {
+          "commits": 26,
+          "end_date": "2013-12-16",
+          "size_config": {
+            "size": 7
+          },
+          "start_date": "2013-12-09",
+          "strategy": "time",
+          "window_id": "w13"
+        },
+        {
+          "commits": 26,
+          "end_date": "2013-12-23",
+          "size_config": {
+            "size": 7
+          },
+          "start_date": "2013-12-16",
+          "strategy": "time",
+          "window_id": "w14"
+        },
+        {
+          "commits": 26,
+          "end_date": "2013-12-30",
+          "size_config": {
+            "size": 7
+          },
+          "start_date": "2013-12-23",
+          "strategy": "time",
+          "window_id": "w15"
+        },
+        {
+          "commits": 26,
+          "end_date": "2014-01-06",
+          "size_config": {
+            "size": 7
+          },
+          "start_date": "2013-12-30",
+          "strategy": "time",
+          "window_id": "w16"
+        },
+        {
+          "commits": 26,
+          "end_date": "2014-01-13",
+          "size_config": {
+            "size": 7
+          },
+          "start_date": "2014-01-06",
+          "strategy": "time",
+          "window_id": "w17"
+        },
+        {
+          "commits": 26,
+          "end_date": "2014-01-20",
+          "size_config": {
+            "size": 7
+          },
+          "start_date": "2014-01-13",
+          "strategy": "time",
+          "window_id": "w18"
+        },
+        {
+          "commits": 3,
+          "end_date": "2014-01-21",
+          "size_config": {
+            "size": 7
+          },
+          "start_date": "2014-01-20",
+          "strategy": "time",
+          "window_id": "w19"
+        }
+      ]
+    },
+    "explanation_report": {
+      "explanations": [],
+      "narratives": [
+        "Integrity score is high (1.00), indicating strong data consistency and reliability.",
+        "Confidence score is low (0.01), indicating limited data quality, sample size, or temporal coverage.",
+        "Sample size factor is low (0.02), indicating limited number of analysis windows.",
+        "Analysis performed across 20 temporal windows.",
+        "Results based on outputs from 3 detectors: D-01, D-02, D-03."
+      ],
+      "recommendations": [
+        "Consider increasing analysis window count or adjusting window segmentation parameters."
+      ],
+      "summary": ""
+    },
+    "metric_dataframe": {
+      "metrics": {
+        "M-01": {
+          "w00": [
+            0.23304589256445052
+          ]
+        },
+        "M-02": {
+          "w00": [
+            500.0
+          ]
+        },
+        "M-03": {
+          "w00": [
+            0.0029757971761310963
+          ]
+        },
+        "M-04": {
+          "w00": [
+            0.001442852725961043
+          ]
+        },
+        "M-05": null,
+        "M-06": {
+          "w00": [
+            1807429.0
+          ]
+        },
+        "M-07": {
+          "w00": [
+            0.0
+          ]
+        }
+      },
+      "timestamp": "2026-07-04T06:39:07.901664+00:00"
+    },
+    "repository_context": {
+      "contributor_count": 31,
+      "first_commit_date": "2013-09-09T14:57:52+00:00",
+      "is_fork": false,
+      "is_remote": false,
+      "is_shallow": true,
+      "language_distribution": null,
+      "last_commit_date": "2014-01-21T13:15:50+00:00",
+      "remote_url": null,
+      "total_commits": 500
+    },
+    "score_package": {
+      "confidence": {
+        "band": "low",
+        "factors": {
+          "detector_success": 1.0,
+          "missing_data": 0.8571428571428572,
+          "observation_quality": 1.0,
+          "sample_size": 0.02,
+          "variance": 1.0,
+          "window_balance": 0.7982803305806128
+        },
+        "overall": 0.01368480566709622
+      },
+      "config_hash": "",
+      "formula_version": "TFS_v1.0",
+      "integrity": {
+        "formula_version": "TFS_v1.0",
+        "overall": 1.0,
+        "per_metric": {
+          "M-01": 1.0,
+          "M-02": 1.0,
+          "M-03": 1.0,
+          "M-04": 1.0,
+          "M-05": 1.0,
+          "M-06": 1.0,
+          "M-07": 1.0
+        }
+      },
+      "timestamp": "2026-07-04T06:39:09.809109+00:00"
+    },
+    "windows": [
+      {
+        "commits": 26,
+        "end_date": "2013-09-16",
+        "size_config": {
+          "size": 7
+        },
+        "start_date": "2013-09-09",
+        "strategy": "time",
+        "window_id": "w00"
+      },
+      {
+        "commits": 26,
+        "end_date": "2013-09-23",
+        "size_config": {
+          "size": 7
+        },
+        "start_date": "2013-09-16",
+        "strategy": "time",
+        "window_id": "w01"
+      },
+      {
+        "commits": 26,
+        "end_date": "2013-09-30",
+        "size_config": {
+          "size": 7
+        },
+        "start_date": "2013-09-23",
+        "strategy": "time",
+        "window_id": "w02"
+      },
+      {
+        "commits": 26,
+        "end_date": "2013-10-07",
+        "size_config": {
+          "size": 7
+        },
+        "start_date": "2013-09-30",
+        "strategy": "time",
+        "window_id": "w03"
+      },
+      {
+        "commits": 26,
+        "end_date": "2013-10-14",
+        "size_config": {
+          "size": 7
+        },
+        "start_date": "2013-10-07",
+        "strategy": "time",
+        "window_id": "w04"
+      },
+      {
+        "commits": 26,
+        "end_date": "2013-10-21",
+        "size_config": {
+          "size": 7
+        },
+        "start_date": "2013-10-14",
+        "strategy": "time",
+        "window_id": "w05"
+      },
+      {
+        "commits": 26,
+        "end_date": "2013-10-28",
+        "size_config": {
+          "size": 7
+        },
+        "start_date": "2013-10-21",
+        "strategy": "time",
+        "window_id": "w06"
+      },
+      {
+        "commits": 26,
+        "end_date": "2013-11-04",
+        "size_config": {
+          "size": 7
+        },
+        "start_date": "2013-10-28",
+        "strategy": "time",
+        "window_id": "w07"
+      },
+      {
+        "commits": 26,
+        "end_date": "2013-11-11",
+        "size_config": {
+          "size": 7
+        },
+        "start_date": "2013-11-04",
+        "strategy": "time",
+        "window_id": "w08"
+      },
+      {
+        "commits": 26,
+        "end_date": "2013-11-18",
+        "size_config": {
+          "size": 7
+        },
+        "start_date": "2013-11-11",
+        "strategy": "time",
+        "window_id": "w09"
+      },
+      {
+        "commits": 26,
+        "end_date": "2013-11-25",
+        "size_config": {
+          "size": 7
+        },
+        "start_date": "2013-11-18",
+        "strategy": "time",
+        "window_id": "w10"
+      },
+      {
+        "commits": 26,
+        "end_date": "2013-12-02",
+        "size_config": {
+          "size": 7
+        },
+        "start_date": "2013-11-25",
+        "strategy": "time",
+        "window_id": "w11"
+      },
+      {
+        "commits": 26,
+        "end_date": "2013-12-09",
+        "size_config": {
+          "size": 7
+        },
+        "start_date": "2013-12-02",
+        "strategy": "time",
+        "window_id": "w12"
+      },
+      {
+        "commits": 26,
+        "end_date": "2013-12-16",
+        "size_config": {
+          "size": 7
+        },
+        "start_date": "2013-12-09",
+        "strategy": "time",
+        "window_id": "w13"
+      },
+      {
+        "commits": 26,
+        "end_date": "2013-12-23",
+        "size_config": {
+          "size": 7
+        },
+        "start_date": "2013-12-16",
+        "strategy": "time",
+        "window_id": "w14"
+      },
+      {
+        "commits": 26,
+        "end_date": "2013-12-30",
+        "size_config": {
+          "size": 7
+        },
+        "start_date": "2013-12-23",
+        "strategy": "time",
+        "window_id": "w15"
+      },
+      {
+        "commits": 26,
+        "end_date": "2014-01-06",
+        "size_config": {
+          "size": 7
+        },
+        "start_date": "2013-12-30",
+        "strategy": "time",
+        "window_id": "w16"
+      },
+      {
+        "commits": 26,
+        "end_date": "2014-01-13",
+        "size_config": {
+          "size": 7
+        },
+        "start_date": "2014-01-06",
+        "strategy": "time",
+        "window_id": "w17"
+      },
+      {
+        "commits": 26,
+        "end_date": "2014-01-20",
+        "size_config": {
+          "size": 7
+        },
+        "start_date": "2014-01-13",
+        "strategy": "time",
+        "window_id": "w18"
+      },
+      {
+        "commits": 3,
+        "end_date": "2014-01-21",
+        "size_config": {
+          "size": 7
+        },
+        "start_date": "2014-01-20",
+        "strategy": "time",
+        "window_id": "w19"
+      }
+    ]
+  },
+  "metadata": {
+    "generated_at": "2026-07-04T12:09:09.811615",
+    "generator": "MIIE Report Generator",
+    "report_version": "1.0.0"
+  }
+}

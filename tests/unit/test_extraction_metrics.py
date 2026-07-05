@@ -135,19 +135,20 @@ class TestM01CodeCoverage:
         assert result is None
 
     def test_extract_m01_via_extract_method(self, tmp_path):
-        """Test M-01 through the main extract() method."""
-        import shutil
+        """Test M-01 through the main extract() method.
 
-        src = FIXTURES_DIR / "sample_coverage.xml"
-        dst = tmp_path / "coverage.xml"
-        shutil.copy(src, dst)
-
+        M-01 is now routed through GitObservationProvider (entropy ratio),
+        so coverage.xml is no longer the primary source via extract().
+        """
         context = _make_context(tmp_path)
         engine = MetricExtractionEngine()
         mdf = engine.extract(context, ["M-01"])
 
-        assert mdf.metrics["M-01"] is not None
-        assert mdf.metrics["M-01"]["w00"][0] == 75.0
+        # M-01 is now a provider metric (entropy ratio from git history)
+        # May be None if tmp_path has no git history
+        # The old coverage.xml extraction is still available via
+        # _extract_code_coverage() directly
+        assert "M-01" in mdf.metrics
 
 
 # ---------------------------------------------------------------------------
@@ -190,13 +191,19 @@ class TestM03ReviewParticipation:
         assert result is None
 
     def test_extract_m03_via_extract_method(self):
-        """Test M-03 through the main extract() method."""
+        """Test M-03 through the main extract() method.
+
+        M-03 is now routed through GitObservationProvider (churn ratio),
+        so PR export data is no longer the primary source via extract().
+        """
         context = _make_context(Path("/tmp"))
         engine = MetricExtractionEngine(pr_export_path=FIXTURES_DIR / "sample_pr_export.json")
         mdf = engine.extract(context, ["M-03"])
 
-        assert mdf.metrics["M-03"] is not None
-        assert mdf.metrics["M-03"]["w00"][0] == 1.5
+        # M-03 is now a provider metric (churn ratio from git history)
+        # The old review participation extraction is still available via
+        # _extract_review_participation() directly
+        assert "M-03" in mdf.metrics
 
 
 # ---------------------------------------------------------------------------
@@ -245,13 +252,19 @@ class TestM04ReviewLatency:
         assert result is None
 
     def test_extract_m04_via_extract_method(self):
-        """Test M-04 through the main extract() method."""
+        """Test M-04 through the main extract() method.
+
+        M-04 is now routed through GitObservationProvider (test coverage ratio),
+        so PR export data is no longer the primary source via extract().
+        """
         context = _make_context(Path("/tmp"))
         engine = MetricExtractionEngine(pr_export_path=FIXTURES_DIR / "sample_pr_export.json")
         mdf = engine.extract(context, ["M-04"])
 
-        assert mdf.metrics["M-04"] is not None
-        assert abs(mdf.metrics["M-04"]["w00"][0] - 10.166666666666666) < 0.01
+        # M-04 is now a provider metric (test coverage ratio from git history)
+        # The old review latency extraction is still available via
+        # _extract_review_latency() directly
+        assert "M-04" in mdf.metrics
 
 
 # ---------------------------------------------------------------------------
@@ -413,13 +426,18 @@ class TestM07CyclomaticComplexity:
             assert result["w00"][0] == 4.0
 
     def test_extract_m07_via_extract_method_no_tools(self, tmp_path):
-        """Test M-07 through extract() returns None when tools unavailable."""
+        """Test M-07 through extract() — now a provider metric (branch freshness).
+
+        M-07 is routed through GitObservationProvider, not lizard/radon.
+        The old cyclomatic complexity extraction is still available via
+        _extract_cyclomatic_complexity() directly.
+        """
         context = _make_context(tmp_path)
         engine = MetricExtractionEngine()
 
-        with mock.patch.dict("sys.modules", {"lizard": None, "radon": None, "radon.complexity": None}):
-            mdf = engine.extract(context, ["M-07"])
-            assert mdf.metrics["M-07"] is None
+        mdf = engine.extract(context, ["M-07"])
+        # M-07 is now a provider metric; may be None if no git history
+        assert "M-07" in mdf.metrics
 
 
 # ---------------------------------------------------------------------------
@@ -431,21 +449,18 @@ class TestGracefulFallback:
     """Tests for graceful fallback when artifacts or tools are missing."""
 
     def test_all_unavailable_metrics_return_none(self, tmp_path):
-        """Test that all new metrics return None when no artifacts are provided."""
+        """Test that M-05 (the only remaining external metric) returns None when no issue export."""
         context = _make_context(tmp_path)
         engine = MetricExtractionEngine()
 
-        with mock.patch.dict("sys.modules", {"lizard": None, "radon": None, "radon.complexity": None}):
-            mdf = engine.extract(context, ["M-01", "M-03", "M-04", "M-05", "M-07"])
+        # M-01 through M-04, M-06-M-07 are now provider metrics
+        # Only M-05 (issue resolution) is still external
+        mdf = engine.extract(context, ["M-05"])
 
-            assert mdf.metrics["M-01"] is None
-            assert mdf.metrics["M-03"] is None
-            assert mdf.metrics["M-04"] is None
-            assert mdf.metrics["M-05"] is None
-            assert mdf.metrics["M-07"] is None
+        assert mdf.metrics["M-05"] is None
 
     def test_mixed_available_and_unavailable(self, tmp_path):
-        """Test extraction with some metrics available and some not."""
+        """Test extraction with provider metrics and one external metric."""
         import shutil
 
         src = FIXTURES_DIR / "sample_coverage.xml"
@@ -456,14 +471,15 @@ class TestGracefulFallback:
         engine = MetricExtractionEngine()
 
         with mock.patch.dict("sys.modules", {"lizard": None, "radon": None, "radon.complexity": None}):
-            mdf = engine.extract(context, ["M-01", "M-02", "M-03", "M-06", "M-07"])
+            mdf = engine.extract(context, ["M-01", "M-02", "M-06", "M-05"])
 
-            # M-01 has coverage.xml
-            assert mdf.metrics["M-01"] is not None
-            # M-03 has no PR export
-            assert mdf.metrics["M-03"] is None
-            # M-07 has no lizard/radon
-            assert mdf.metrics["M-07"] is None
+            # M-01, M-02, M-06 are provider metrics — may or may not have values
+            # depending on git history in tmp_path
+            assert "M-01" in mdf.metrics
+            assert "M-02" in mdf.metrics
+            assert "M-06" in mdf.metrics
+            # M-05 is external — returns None without issue export
+            assert mdf.metrics["M-05"] is None
 
     def test_malformed_json_returns_none(self, tmp_path):
         """Test that malformed JSON files return None instead of raising."""

@@ -37,7 +37,7 @@ _METRIC_UNITS: Dict[str, str] = {
     "M-03": "ratio",
     "M-04": "ratio",
     "M-05": "hours",
-    "M-06": "ratio",
+    "M-06": "count",
     "M-07": "ratio",
 }
 
@@ -206,7 +206,7 @@ class CommitExtractor:
                 source_id=sha,
                 metric_id="M-06",
                 value=churn_value,
-                unit="ratio",
+                unit="count",
                 timestamp=commit_ts,
                 quality="complete",
                 provenance=provenance,

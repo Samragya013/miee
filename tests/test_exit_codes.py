@@ -8,7 +8,7 @@ from miie.cli import cli
 
 @pytest.fixture
 def runner():
-    return CliRunner(mix_stderr=False)
+    return CliRunner()
 
 
 class TestExitCodeInvalidArgs:

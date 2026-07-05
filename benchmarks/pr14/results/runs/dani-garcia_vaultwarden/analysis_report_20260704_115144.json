@@ -1,0 +1,3698 @@
+{
+  "analysis_result": {
+    "detector_results": {
+      "d_01": {},
+      "d_02": {},
+      "d_03": {},
+      "detector_outputs": {
+        "D-01": {
+          "drift_detected": false,
+          "drift_directions": {},
+          "drift_events": [],
+          "drift_magnitude": 0.0,
+          "ks_statistics": {},
+          "metrics_analyzed": [
+            "M-01",
+            "M-02",
+            "M-03",
+            "M-04",
+            "M-06",
+            "M-07"
+          ],
+          "psi_values": {},
+          "window_pairs_analyzed": []
+        },
+        "D-02": {
+          "breakdown_detected": false,
+          "breakdown_events": [],
+          "breakdown_type": null,
+          "confidence_intervals": {},
+          "metric_pairs_analyzed": [
+            "M-01_M-02",
+            "M-01_M-03",
+            "M-01_M-04",
+            "M-01_M-06",
+            "M-01_M-07",
+            "M-02_M-03",
+            "M-02_M-04",
+            "M-02_M-06",
+            "M-02_M-07",
+            "M-03_M-04",
+            "M-03_M-06",
+            "M-03_M-07",
+            "M-04_M-06",
+            "M-04_M-07",
+            "M-06_M-07"
+          ],
+          "pearson_trajectories": {
+            "M-01_M-02": [
+              null
+            ],
+            "M-01_M-03": [
+              null
+            ],
+            "M-01_M-04": [
+              null
+            ],
+            "M-01_M-06": [
+              null
+            ],
+            "M-01_M-07": [
+              null
+            ],
+            "M-02_M-03": [
+              null
+            ],
+            "M-02_M-04": [
+              null
+            ],
+            "M-02_M-06": [
+              null
+            ],
+            "M-02_M-07": [
+              null
+            ],
+            "M-03_M-04": [
+              null
+            ],
+            "M-03_M-06": [
+              null
+            ],
+            "M-03_M-07": [
+              null
+            ],
+            "M-04_M-06": [
+              null
+            ],
+            "M-04_M-07": [
+              null
+            ],
+            "M-06_M-07": [
+              null
+            ]
+          },
+          "spearman_trajectories": {
+            "M-01_M-02": [
+              null
+            ],
+            "M-01_M-03": [
+              null
+            ],
+            "M-01_M-04": [
+              null
+            ],
+            "M-01_M-06": [
+              null
+            ],
+            "M-01_M-07": [
+              null
+            ],
+            "M-02_M-03": [
+              null
+            ],
+            "M-02_M-04": [
+              null
+            ],
+            "M-02_M-06": [
+              null
+            ],
+            "M-02_M-07": [
+              null
+            ],
+            "M-03_M-04": [
+              null
+            ],
+            "M-03_M-06": [
+              null
+            ],
+            "M-03_M-07": [
+              null
+            ],
+            "M-04_M-06": [
+              null
+            ],
+            "M-04_M-07": [
+              null
+            ],
+            "M-06_M-07": [
+              null
+            ]
+          },
+          "window_pairs_flagged": []
+        },
+        "D-03": {
+          "compression_detected": false,
+          "compression_events": [],
+          "compression_index": 0.0,
+          "dip_test_p_values": {},
+          "dip_test_statistics": {},
+          "excess_mass_z_scores": {},
+          "metrics_analyzed": [
+            "M-01",
+            "M-02",
+            "M-03",
+            "M-04",
+            "M-06",
+            "M-07"
+          ],
+          "thresholds_used": {
+            "M-01": [],
+            "M-02": [
+              517.0
+            ],
+            "M-03": [
+              0.0
+            ],
+            "M-04": [
+              0.0
+            ],
+            "M-06": [
+              307131.0
+            ],
+            "M-07": []
+          },
+          "windows_analyzed": []
+        }
+      }
+    },
+    "evidence_package": {
+      "configuration_snapshot": {
+        "detector_config": {},
+        "enabled_detectors": [
+          "D-01",
+          "D-02",
+          "D-03"
+        ],
+        "extraction_params": {
+          "exclude_bots": false,
+          "since": null,
+          "until": null
+        },
+        "metric_list": [
+          "M-01",
+          "M-02",
+          "M-03",
+          "M-04",
+          "M-05",
+          "M-06",
+          "M-07"
+        ],
+        "segmentation_size": 7,
+        "segmentation_strategy": "time"
+      },
+      "detector_execution_metadata": {
+        "D-01": {
+          "method": "kolmogorov_smirnov",
+          "observations_consumed": 0,
+          "scientific_reference": "KS test for distribution drift",
+          "windows_analyzed": 0
+        },
+        "D-02": {
+          "method": "pearson_correlation",
+          "observations_consumed": 0,
+          "scientific_reference": "Pearson correlation with Fisher z-transformation",
+          "windows_analyzed": 0
+        },
+        "D-03": {
+          "method": "dip_test_excess_mass",
+          "observations_consumed": 0,
+          "scientific_reference": "Dip test for unimodality with excess mass",
+          "windows_analyzed": 0
+        }
+      },
+      "detector_outputs": {
+        "d_01": {},
+        "d_02": {},
+        "d_03": {},
+        "detector_outputs": {
+          "D-01": {
+            "drift_detected": false,
+            "drift_directions": {},
+            "drift_events": [],
+            "drift_magnitude": 0.0,
+            "ks_statistics": {},
+            "metrics_analyzed": [
+              "M-01",
+              "M-02",
+              "M-03",
+              "M-04",
+              "M-06",
+              "M-07"
+            ],
+            "psi_values": {},
+            "window_pairs_analyzed": []
+          },
+          "D-02": {
+            "breakdown_detected": false,
+            "breakdown_events": [],
+            "breakdown_type": null,
+            "confidence_intervals": {},
+            "metric_pairs_analyzed": [
+              "M-01_M-02",
+              "M-01_M-03",
+              "M-01_M-04",
+              "M-01_M-06",
+              "M-01_M-07",
+              "M-02_M-03",
+              "M-02_M-04",
+              "M-02_M-06",
+              "M-02_M-07",
+              "M-03_M-04",
+              "M-03_M-06",
+              "M-03_M-07",
+              "M-04_M-06",
+              "M-04_M-07",
+              "M-06_M-07"
+            ],
+            "pearson_trajectories": {
+              "M-01_M-02": [
+                null
+              ],
+              "M-01_M-03": [
+                null
+              ],
+              "M-01_M-04": [
+                null
+              ],
+              "M-01_M-06": [
+                null
+              ],
+              "M-01_M-07": [
+                null
+              ],
+              "M-02_M-03": [
+                null
+              ],
+              "M-02_M-04": [
+                null
+              ],
+              "M-02_M-06": [
+                null
+              ],
+              "M-02_M-07": [
+                null
+              ],
+              "M-03_M-04": [
+                null
+              ],
+              "M-03_M-06": [
+                null
+              ],
+              "M-03_M-07": [
+                null
+              ],
+              "M-04_M-06": [
+                null
+              ],
+              "M-04_M-07": [
+                null
+              ],
+              "M-06_M-07": [
+                null
+              ]
+            },
+            "spearman_trajectories": {
+              "M-01_M-02": [
+                null
+              ],
+              "M-01_M-03": [
+                null
+              ],
+              "M-01_M-04": [
+                null
+              ],
+              "M-01_M-06": [
+                null
+              ],
+              "M-01_M-07": [
+                null
+              ],
+              "M-02_M-03": [
+                null
+              ],
+              "M-02_M-04": [
+                null
+              ],
+              "M-02_M-06": [
+                null
+              ],
+              "M-02_M-07": [
+                null
+              ],
+              "M-03_M-04": [
+                null
+              ],
+              "M-03_M-06": [
+                null
+              ],
+              "M-03_M-07": [
+                null
+              ],
+              "M-04_M-06": [
+                null
+              ],
+              "M-04_M-07": [
+                null
+              ],
+              "M-06_M-07": [
+                null
+              ]
+            },
+            "window_pairs_flagged": []
+          },
+          "D-03": {
+            "compression_detected": false,
+            "compression_events": [],
+            "compression_index": 0.0,
+            "dip_test_p_values": {},
+            "dip_test_statistics": {},
+            "excess_mass_z_scores": {},
+            "metrics_analyzed": [
+              "M-01",
+              "M-02",
+              "M-03",
+              "M-04",
+              "M-06",
+              "M-07"
+            ],
+            "thresholds_used": {
+              "M-01": [],
+              "M-02": [
+                517.0
+              ],
+              "M-03": [
+                0.0
+              ],
+              "M-04": [
+                0.0
+              ],
+              "M-06": [
+                307131.0
+              ],
+              "M-07": []
+            },
+            "windows_analyzed": []
+          }
+        }
+      },
+      "metrics": {
+        "M-01": {
+          "w00": [
+            0.4322256000607545
+          ]
+        },
+        "M-02": {
+          "w00": [
+            517.0
+          ]
+        },
+        "M-03": {
+          "w00": [
+            0.01382121783414541
+          ]
+        },
+        "M-04": {
+          "w00": [
+            0.0162748643761302
+          ]
+        },
+        "M-05": null,
+        "M-06": {
+          "w00": [
+            307131.0
+          ]
+        },
+        "M-07": {
+          "w00": [
+            0.8420182310691873
+          ]
+        }
+      },
+      "observation_summary": {
+        "observation_quality": {
+          "complete": 0,
+          "estimated": 0,
+          "partial": 0
+        },
+        "per_metric": {},
+        "total_observations": 0
+      },
+      "provenance": {
+        "config_hash": "foundation",
+        "dependency_hash": "foundation",
+        "miie_version": "1.0.0",
+        "platform": "test",
+        "python_version": "3.9.0",
+        "seed": 42,
+        "timestamp": "2026-07-04T06:21:44Z"
+      },
+      "sampling_diagnostics": {},
+      "scores": {
+        "confidence": {
+          "band": "low",
+          "factors": {
+            "detector_success": 1.0,
+            "missing_data": 0.8571428571428572,
+            "observation_quality": 1.0,
+            "sample_size": 0.02,
+            "variance": 1.0,
+            "window_balance": 0.9463944982894563
+          },
+          "overall": 0.016223905684962108
+        },
+        "config_hash": "",
+        "formula_version": "TFS_v1.0",
+        "integrity": {
+          "formula_version": "TFS_v1.0",
+          "overall": 1.0,
+          "per_metric": {
+            "M-01": 1.0,
+            "M-02": 1.0,
+            "M-03": 1.0,
+            "M-04": 1.0,
+            "M-05": 1.0,
+            "M-06": 1.0,
+            "M-07": 1.0
+          }
+        },
+        "timestamp": "2026-07-04T06:21:44.537538+00:00"
+      },
+      "statistical_artifacts": {
+        "compression_artifacts": {
+          "D-03": {}
+        },
+        "correlation_artifacts": {
+          "D-02": {}
+        },
+        "drift_statistics": {
+          "D-01": {
+            "drift_events": [],
+            "ks_statistics": {},
+            "psi_values": {}
+          }
+        }
+      },
+      "warnings": [],
+      "windows": [
+        {
+          "commits": 3,
+          "end_date": "2023-06-28",
+          "size_config": {
+            "size": 7
+          },
+          "start_date": "2023-06-21",
+          "strategy": "time",
+          "window_id": "w00"
+        },
+        {
+          "commits": 3,
+          "end_date": "2023-07-05",
+          "size_config": {
+            "size": 7
+          },
+          "start_date": "2023-06-28",
+          "strategy": "time",
+          "window_id": "w01"
+        },
+        {
+          "commits": 3,
+          "end_date": "2023-07-12",
+          "size_config": {
+            "size": 7
+          },
+          "start_date": "2023-07-05",
+          "strategy": "time",
+          "window_id": "w02"
+        },
+        {
+          "commits": 3,
+          "end_date": "2023-07-19",
+          "size_config": {
+            "size": 7
+          },
+          "start_date": "2023-07-12",
+          "strategy": "time",
+          "window_id": "w03"
+        },
+        {
+          "commits": 3,
+          "end_date": "2023-07-26",
+          "size_config": {
+            "size": 7
+          },
+          "start_date": "2023-07-19",
+          "strategy": "time",
+          "window_id": "w04"
+        },
+        {
+          "commits": 3,
+          "end_date": "2023-08-02",
+          "size_config": {
+            "size": 7
+          },
+          "start_date": "2023-07-26",
+          "strategy": "time",
+          "window_id": "w05"
+        },
+        {
+          "commits": 3,
+          "end_date": "2023-08-09",
+          "size_config": {
+            "size": 7
+          },
+          "start_date": "2023-08-02",
+          "strategy": "time",
+          "window_id": "w06"
+        },
+        {
+          "commits": 3,
+          "end_date": "2023-08-16",
+          "size_config": {
+            "size": 7
+          },
+          "start_date": "2023-08-09",
+          "strategy": "time",
+          "window_id": "w07"
+        },
+        {
+          "commits": 3,
+          "end_date": "2023-08-23",
+          "size_config": {
+            "size": 7
+          },
+          "start_date": "2023-08-16",
+          "strategy": "time",
+          "window_id": "w08"
+        },
+        {
+          "commits": 3,
+          "end_date": "2023-08-30",
+          "size_config": {
+            "size": 7
+          },
+          "start_date": "2023-08-23",
+          "strategy": "time",
+          "window_id": "w09"
+        },
+        {
+          "commits": 3,
+          "end_date": "2023-09-06",
+          "size_config": {
+            "size": 7
+          },
+          "start_date": "2023-08-30",
+          "strategy": "time",
+          "window_id": "w10"
+        },
+        {
+          "commits": 3,
+          "end_date": "2023-09-13",
+          "size_config": {
+            "size": 7
+          },
+          "start_date": "2023-09-06",
+          "strategy": "time",
+          "window_id": "w11"
+        },
+        {
+          "commits": 3,
+          "end_date": "2023-09-20",
+          "size_config": {
+            "size": 7
+          },
+          "start_date": "2023-09-13",
+          "strategy": "time",
+          "window_id": "w12"
+        },
+        {
+          "commits": 3,
+          "end_date": "2023-09-27",
+          "size_config": {
+            "size": 7
+          },
+          "start_date": "2023-09-20",
+          "strategy": "time",
+          "window_id": "w13"
+        },
+        {
+          "commits": 3,
+          "end_date": "2023-10-04",
+          "size_config": {
+            "size": 7
+          },
+          "start_date": "2023-09-27",
+          "strategy": "time",
+          "window_id": "w14"
+        },
+        {
+          "commits": 3,
+          "end_date": "2023-10-11",
+          "size_config": {
+            "size": 7
+          },
+          "start_date": "2023-10-04",
+          "strategy": "time",
+          "window_id": "w15"
+        },
+        {
+          "commits": 3,
+          "end_date": "2023-10-18",
+          "size_config": {
+            "size": 7
+          },
+          "start_date": "2023-10-11",
+          "strategy": "time",
+          "window_id": "w16"
+        },
+        {
+          "commits": 3,
+          "end_date": "2023-10-25",
+          "size_config": {
+            "size": 7
+          },
+          "start_date": "2023-10-18",
+          "strategy": "time",
+          "window_id": "w17"
+        },
+        {
+          "commits": 3,
+          "end_date": "2023-11-01",
+          "size_config": {
+            "size": 7
+          },
+          "start_date": "2023-10-25",
+          "strategy": "time",
+          "window_id": "w18"
+        },
+        {
+          "commits": 3,
+          "end_date": "2023-11-08",
+          "size_config": {
+            "size": 7
+          },
+          "start_date": "2023-11-01",
+          "strategy": "time",
+          "window_id": "w19"
+        },
+        {
+          "commits": 3,
+          "end_date": "2023-11-15",
+          "size_config": {
+            "size": 7
+          },
+          "start_date": "2023-11-08",
+          "strategy": "time",
+          "window_id": "w20"
+        },
+        {
+          "commits": 3,
+          "end_date": "2023-11-22",
+          "size_config": {
+            "size": 7
+          },
+          "start_date": "2023-11-15",
+          "strategy": "time",
+          "window_id": "w21"
+        },
+        {
+          "commits": 3,
+          "end_date": "2023-11-29",
+          "size_config": {
+            "size": 7
+          },
+          "start_date": "2023-11-22",
+          "strategy": "time",
+          "window_id": "w22"
+        },
+        {
+          "commits": 3,
+          "end_date": "2023-12-06",
+          "size_config": {
+            "size": 7
+          },
+          "start_date": "2023-11-29",
+          "strategy": "time",
+          "window_id": "w23"
+        },
+        {
+          "commits": 3,
+          "end_date": "2023-12-13",
+          "size_config": {
+            "size": 7
+          },
+          "start_date": "2023-12-06",
+          "strategy": "time",
+          "window_id": "w24"
+        },
+        {
+          "commits": 3,
+          "end_date": "2023-12-20",
+          "size_config": {
+            "size": 7
+          },
+          "start_date": "2023-12-13",
+          "strategy": "time",
+          "window_id": "w25"
+        },
+        {
+          "commits": 3,
+          "end_date": "2023-12-27",
+          "size_config": {
+            "size": 7
+          },
+          "start_date": "2023-12-20",
+          "strategy": "time",
+          "window_id": "w26"
+        },
+        {
+          "commits": 3,
+          "end_date": "2024-01-03",
+          "size_config": {
+            "size": 7
+          },
+          "start_date": "2023-12-27",
+          "strategy": "time",
+          "window_id": "w27"
+        },
+        {
+          "commits": 3,
+          "end_date": "2024-01-10",
+          "size_config": {
+            "size": 7
+          },
+          "start_date": "2024-01-03",
+          "strategy": "time",
+          "window_id": "w28"
+        },
+        {
+          "commits": 3,
+          "end_date": "2024-01-17",
+          "size_config": {
+            "size": 7
+          },
+          "start_date": "2024-01-10",
+          "strategy": "time",
+          "window_id": "w29"
+        },
+        {
+          "commits": 3,
+          "end_date": "2024-01-24",
+          "size_config": {
+            "size": 7
+          },
+          "start_date": "2024-01-17",
+          "strategy": "time",
+          "window_id": "w30"
+        },
+        {
+          "commits": 3,
+          "end_date": "2024-01-31",
+          "size_config": {
+            "size": 7
+          },
+          "start_date": "2024-01-24",
+          "strategy": "time",
+          "window_id": "w31"
+        },
+        {
+          "commits": 3,
+          "end_date": "2024-02-07",
+          "size_config": {
+            "size": 7
+          },
+          "start_date": "2024-01-31",
+          "strategy": "time",
+          "window_id": "w32"
+        },
+        {
+          "commits": 3,
+          "end_date": "2024-02-14",
+          "size_config": {
+            "size": 7
+          },
+          "start_date": "2024-02-07",
+          "strategy": "time",
+          "window_id": "w33"
+        },
+        {
+          "commits": 3,
+          "end_date": "2024-02-21",
+          "size_config": {
+            "size": 7
+          },
+          "start_date": "2024-02-14",
+          "strategy": "time",
+          "window_id": "w34"
+        },
+        {
+          "commits": 3,
+          "end_date": "2024-02-28",
+          "size_config": {
+            "size": 7
+          },
+          "start_date": "2024-02-21",
+          "strategy": "time",
+          "window_id": "w35"
+        },
+        {
+          "commits": 3,
+          "end_date": "2024-03-06",
+          "size_config": {
+            "size": 7
+          },
+          "start_date": "2024-02-28",
+          "strategy": "time",
+          "window_id": "w36"
+        },
+        {
+          "commits": 3,
+          "end_date": "2024-03-13",
+          "size_config": {
+            "size": 7
+          },
+          "start_date": "2024-03-06",
+          "strategy": "time",
+          "window_id": "w37"
+        },
+        {
+          "commits": 3,
+          "end_date": "2024-03-20",
+          "size_config": {
+            "size": 7
+          },
+          "start_date": "2024-03-13",
+          "strategy": "time",
+          "window_id": "w38"
+        },
+        {
+          "commits": 3,
+          "end_date": "2024-03-27",
+          "size_config": {
+            "size": 7
+          },
+          "start_date": "2024-03-20",
+          "strategy": "time",
+          "window_id": "w39"
+        },
+        {
+          "commits": 3,
+          "end_date": "2024-04-03",
+          "size_config": {
+            "size": 7
+          },
+          "start_date": "2024-03-27",
+          "strategy": "time",
+          "window_id": "w40"
+        },
+        {
+          "commits": 3,
+          "end_date": "2024-04-10",
+          "size_config": {
+            "size": 7
+          },
+          "start_date": "2024-04-03",
+          "strategy": "time",
+          "window_id": "w41"
+        },
+        {
+          "commits": 3,
+          "end_date": "2024-04-17",
+          "size_config": {
+            "size": 7
+          },
+          "start_date": "2024-04-10",
+          "strategy": "time",
+          "window_id": "w42"
+        },
+        {
+          "commits": 3,
+          "end_date": "2024-04-24",
+          "size_config": {
+            "size": 7
+          },
+          "start_date": "2024-04-17",
+          "strategy": "time",
+          "window_id": "w43"
+        },
+        {
+          "commits": 3,
+          "end_date": "2024-05-01",
+          "size_config": {
+            "size": 7
+          },
+          "start_date": "2024-04-24",
+          "strategy": "time",
+          "window_id": "w44"
+        },
+        {
+          "commits": 3,
+          "end_date": "2024-05-08",
+          "size_config": {
+            "size": 7
+          },
+          "start_date": "2024-05-01",
+          "strategy": "time",
+          "window_id": "w45"
+        },
+        {
+          "commits": 3,
+          "end_date": "2024-05-15",
+          "size_config": {
+            "size": 7
+          },
+          "start_date": "2024-05-08",
+          "strategy": "time",
+          "window_id": "w46"
+        },
+        {
+          "commits": 3,
+          "end_date": "2024-05-22",
+          "size_config": {
+            "size": 7
+          },
+          "start_date": "2024-05-15",
+          "strategy": "time",
+          "window_id": "w47"
+        },
+        {
+          "commits": 3,
+          "end_date": "2024-05-29",
+          "size_config": {
+            "size": 7
+          },
+          "start_date": "2024-05-22",
+          "strategy": "time",
+          "window_id": "w48"
+        },
+        {
+          "commits": 3,
+          "end_date": "2024-06-05",
+          "size_config": {
+            "size": 7
+          },
+          "start_date": "2024-05-29",
+          "strategy": "time",
+          "window_id": "w49"
+        },
+        {
+          "commits": 3,
+          "end_date": "2024-06-12",
+          "size_config": {
+            "size": 7
+          },
+          "start_date": "2024-06-05",
+          "strategy": "time",
+          "window_id": "w50"
+        },
+        {
+          "commits": 3,
+          "end_date": "2024-06-19",
+          "size_config": {
+            "size": 7
+          },
+          "start_date": "2024-06-12",
+          "strategy": "time",
+          "window_id": "w51"
+        },
+        {
+          "commits": 3,
+          "end_date": "2024-06-26",
+          "size_config": {
+            "size": 7
+          },
+          "start_date": "2024-06-19",
+          "strategy": "time",
+          "window_id": "w52"
+        },
+        {
+          "commits": 3,
+          "end_date": "2024-07-03",
+          "size_config": {
+            "size": 7
+          },
+          "start_date": "2024-06-26",
+          "strategy": "time",
+          "window_id": "w53"
+        },
+        {
+          "commits": 3,
+          "end_date": "2024-07-10",
+          "size_config": {
+            "size": 7
+          },
+          "start_date": "2024-07-03",
+          "strategy": "time",
+          "window_id": "w54"
+        },
+        {
+          "commits": 3,
+          "end_date": "2024-07-17",
+          "size_config": {
+            "size": 7
+          },
+          "start_date": "2024-07-10",
+          "strategy": "time",
+          "window_id": "w55"
+        },
+        {
+          "commits": 3,
+          "end_date": "2024-07-24",
+          "size_config": {
+            "size": 7
+          },
+          "start_date": "2024-07-17",
+          "strategy": "time",
+          "window_id": "w56"
+        },
+        {
+          "commits": 3,
+          "end_date": "2024-07-31",
+          "size_config": {
+            "size": 7
+          },
+          "start_date": "2024-07-24",
+          "strategy": "time",
+          "window_id": "w57"
+        },
+        {
+          "commits": 3,
+          "end_date": "2024-08-07",
+          "size_config": {
+            "size": 7
+          },
+          "start_date": "2024-07-31",
+          "strategy": "time",
+          "window_id": "w58"
+        },
+        {
+          "commits": 3,
+          "end_date": "2024-08-14",
+          "size_config": {
+            "size": 7
+          },
+          "start_date": "2024-08-07",
+          "strategy": "time",
+          "window_id": "w59"
+        },
+        {
+          "commits": 3,
+          "end_date": "2024-08-21",
+          "size_config": {
+            "size": 7
+          },
+          "start_date": "2024-08-14",
+          "strategy": "time",
+          "window_id": "w60"
+        },
+        {
+          "commits": 3,
+          "end_date": "2024-08-28",
+          "size_config": {
+            "size": 7
+          },
+          "start_date": "2024-08-21",
+          "strategy": "time",
+          "window_id": "w61"
+        },
+        {
+          "commits": 3,
+          "end_date": "2024-09-04",
+          "size_config": {
+            "size": 7
+          },
+          "start_date": "2024-08-28",
+          "strategy": "time",
+          "window_id": "w62"
+        },
+        {
+          "commits": 3,
+          "end_date": "2024-09-11",
+          "size_config": {
+            "size": 7
+          },
+          "start_date": "2024-09-04",
+          "strategy": "time",
+          "window_id": "w63"
+        },
+        {
+          "commits": 3,
+          "end_date": "2024-09-18",
+          "size_config": {
+            "size": 7
+          },
+          "start_date": "2024-09-11",
+          "strategy": "time",
+          "window_id": "w64"
+        },
+        {
+          "commits": 3,
+          "end_date": "2024-09-25",
+          "size_config": {
+            "size": 7
+          },
+          "start_date": "2024-09-18",
+          "strategy": "time",
+          "window_id": "w65"
+        },
+        {
+          "commits": 3,
+          "end_date": "2024-10-02",
+          "size_config": {
+            "size": 7
+          },
+          "start_date": "2024-09-25",
+          "strategy": "time",
+          "window_id": "w66"
+        },
+        {
+          "commits": 3,
+          "end_date": "2024-10-09",
+          "size_config": {
+            "size": 7
+          },
+          "start_date": "2024-10-02",
+          "strategy": "time",
+          "window_id": "w67"
+        },
+        {
+          "commits": 3,
+          "end_date": "2024-10-16",
+          "size_config": {
+            "size": 7
+          },
+          "start_date": "2024-10-09",
+          "strategy": "time",
+          "window_id": "w68"
+        },
+        {
+          "commits": 3,
+          "end_date": "2024-10-23",
+          "size_config": {
+            "size": 7
+          },
+          "start_date": "2024-10-16",
+          "strategy": "time",
+          "window_id": "w69"
+        },
+        {
+          "commits": 3,
+          "end_date": "2024-10-30",
+          "size_config": {
+            "size": 7
+          },
+          "start_date": "2024-10-23",
+          "strategy": "time",
+          "window_id": "w70"
+        },
+        {
+          "commits": 3,
+          "end_date": "2024-11-06",
+          "size_config": {
+            "size": 7
+          },
+          "start_date": "2024-10-30",
+          "strategy": "time",
+          "window_id": "w71"
+        },
+        {
+          "commits": 3,
+          "end_date": "2024-11-13",
+          "size_config": {
+            "size": 7
+          },
+          "start_date": "2024-11-06",
+          "strategy": "time",
+          "window_id": "w72"
+        },
+        {
+          "commits": 3,
+          "end_date": "2024-11-20",
+          "size_config": {
+            "size": 7
+          },
+          "start_date": "2024-11-13",
+          "strategy": "time",
+          "window_id": "w73"
+        },
+        {
+          "commits": 3,
+          "end_date": "2024-11-27",
+          "size_config": {
+            "size": 7
+          },
+          "start_date": "2024-11-20",
+          "strategy": "time",
+          "window_id": "w74"
+        },
+        {
+          "commits": 3,
+          "end_date": "2024-12-04",
+          "size_config": {
+            "size": 7
+          },
+          "start_date": "2024-11-27",
+          "strategy": "time",
+          "window_id": "w75"
+        },
+        {
+          "commits": 3,
+          "end_date": "2024-12-11",
+          "size_config": {
+            "size": 7
+          },
+          "start_date": "2024-12-04",
+          "strategy": "time",
+          "window_id": "w76"
+        },
+        {
+          "commits": 3,
+          "end_date": "2024-12-18",
+          "size_config": {
+            "size": 7
+          },
+          "start_date": "2024-12-11",
+          "strategy": "time",
+          "window_id": "w77"
+        },
+        {
+          "commits": 3,
+          "end_date": "2024-12-25",
+          "size_config": {
+            "size": 7
+          },
+          "start_date": "2024-12-18",
+          "strategy": "time",
+          "window_id": "w78"
+        },
+        {
+          "commits": 3,
+          "end_date": "2025-01-01",
+          "size_config": {
+            "size": 7
+          },
+          "start_date": "2024-12-25",
+          "strategy": "time",
+          "window_id": "w79"
+        },
+        {
+          "commits": 3,
+          "end_date": "2025-01-08",
+          "size_config": {
+            "size": 7
+          },
+          "start_date": "2025-01-01",
+          "strategy": "time",
+          "window_id": "w80"
+        },
+        {
+          "commits": 3,
+          "end_date": "2025-01-15",
+          "size_config": {
+            "size": 7
+          },
+          "start_date": "2025-01-08",
+          "strategy": "time",
+          "window_id": "w81"
+        },
+        {
+          "commits": 3,
+          "end_date": "2025-01-22",
+          "size_config": {
+            "size": 7
+          },
+          "start_date": "2025-01-15",
+          "strategy": "time",
+          "window_id": "w82"
+        },
+        {
+          "commits": 3,
+          "end_date": "2025-01-29",
+          "size_config": {
+            "size": 7
+          },
+          "start_date": "2025-01-22",
+          "strategy": "time",
+          "window_id": "w83"
+        },
+        {
+          "commits": 3,
+          "end_date": "2025-02-05",
+          "size_config": {
+            "size": 7
+          },
+          "start_date": "2025-01-29",
+          "strategy": "time",
+          "window_id": "w84"
+        },
+        {
+          "commits": 3,
+          "end_date": "2025-02-12",
+          "size_config": {
+            "size": 7
+          },
+          "start_date": "2025-02-05",
+          "strategy": "time",
+          "window_id": "w85"
+        },
+        {
+          "commits": 3,
+          "end_date": "2025-02-19",
+          "size_config": {
+            "size": 7
+          },
+          "start_date": "2025-02-12",
+          "strategy": "time",
+          "window_id": "w86"
+        },
+        {
+          "commits": 3,
+          "end_date": "2025-02-26",
+          "size_config": {
+            "size": 7
+          },
+          "start_date": "2025-02-19",
+          "strategy": "time",
+          "window_id": "w87"
+        },
+        {
+          "commits": 3,
+          "end_date": "2025-03-05",
+          "size_config": {
+            "size": 7
+          },
+          "start_date": "2025-02-26",
+          "strategy": "time",
+          "window_id": "w88"
+        },
+        {
+          "commits": 3,
+          "end_date": "2025-03-12",
+          "size_config": {
+            "size": 7
+          },
+          "start_date": "2025-03-05",
+          "strategy": "time",
+          "window_id": "w89"
+        },
+        {
+          "commits": 3,
+          "end_date": "2025-03-19",
+          "size_config": {
+            "size": 7
+          },
+          "start_date": "2025-03-12",
+          "strategy": "time",
+          "window_id": "w90"
+        },
+        {
+          "commits": 3,
+          "end_date": "2025-03-26",
+          "size_config": {
+            "size": 7
+          },
+          "start_date": "2025-03-19",
+          "strategy": "time",
+          "window_id": "w91"
+        },
+        {
+          "commits": 3,
+          "end_date": "2025-04-02",
+          "size_config": {
+            "size": 7
+          },
+          "start_date": "2025-03-26",
+          "strategy": "time",
+          "window_id": "w92"
+        },
+        {
+          "commits": 3,
+          "end_date": "2025-04-09",
+          "size_config": {
+            "size": 7
+          },
+          "start_date": "2025-04-02",
+          "strategy": "time",
+          "window_id": "w93"
+        },
+        {
+          "commits": 3,
+          "end_date": "2025-04-16",
+          "size_config": {
+            "size": 7
+          },
+          "start_date": "2025-04-09",
+          "strategy": "time",
+          "window_id": "w94"
+        },
+        {
+          "commits": 3,
+          "end_date": "2025-04-23",
+          "size_config": {
+            "size": 7
+          },
+          "start_date": "2025-04-16",
+          "strategy": "time",
+          "window_id": "w95"
+        },
+        {
+          "commits": 3,
+          "end_date": "2025-04-30",
+          "size_config": {
+            "size": 7
+          },
+          "start_date": "2025-04-23",
+          "strategy": "time",
+          "window_id": "w96"
+        },
+        {
+          "commits": 3,
+          "end_date": "2025-05-07",
+          "size_config": {
+            "size": 7
+          },
+          "start_date": "2025-04-30",
+          "strategy": "time",
+          "window_id": "w97"
+        },
+        {
+          "commits": 3,
+          "end_date": "2025-05-14",
+          "size_config": {
+            "size": 7
+          },
+          "start_date": "2025-05-07",
+          "strategy": "time",
+          "window_id": "w98"
+        },
+        {
+          "commits": 3,
+          "end_date": "2025-05-21",
+          "size_config": {
+            "size": 7
+          },
+          "start_date": "2025-05-14",
+          "strategy": "time",
+          "window_id": "w99"
+        },
+        {
+          "commits": 3,
+          "end_date": "2025-05-28",
+          "size_config": {
+            "size": 7
+          },
+          "start_date": "2025-05-21",
+          "strategy": "time",
+          "window_id": "w100"
+        },
+        {
+          "commits": 3,
+          "end_date": "2025-06-04",
+          "size_config": {
+            "size": 7
+          },
+          "start_date": "2025-05-28",
+          "strategy": "time",
+          "window_id": "w101"
+        },
+        {
+          "commits": 3,
+          "end_date": "2025-06-11",
+          "size_config": {
+            "size": 7
+          },
+          "start_date": "2025-06-04",
+          "strategy": "time",
+          "window_id": "w102"
+        },
+        {
+          "commits": 3,
+          "end_date": "2025-06-18",
+          "size_config": {
+            "size": 7
+          },
+          "start_date": "2025-06-11",
+          "strategy": "time",
+          "window_id": "w103"
+        },
+        {
+          "commits": 3,
+          "end_date": "2025-06-25",
+          "size_config": {
+            "size": 7
+          },
+          "start_date": "2025-06-18",
+          "strategy": "time",
+          "window_id": "w104"
+        },
+        {
+          "commits": 3,
+          "end_date": "2025-07-02",
+          "size_config": {
+            "size": 7
+          },
+          "start_date": "2025-06-25",
+          "strategy": "time",
+          "window_id": "w105"
+        },
+        {
+          "commits": 3,
+          "end_date": "2025-07-09",
+          "size_config": {
+            "size": 7
+          },
+          "start_date": "2025-07-02",
+          "strategy": "time",
+          "window_id": "w106"
+        },
+        {
+          "commits": 3,
+          "end_date": "2025-07-16",
+          "size_config": {
+            "size": 7
+          },
+          "start_date": "2025-07-09",
+          "strategy": "time",
+          "window_id": "w107"
+        },
+        {
+          "commits": 3,
+          "end_date": "2025-07-23",
+          "size_config": {
+            "size": 7
+          },
+          "start_date": "2025-07-16",
+          "strategy": "time",
+          "window_id": "w108"
+        },
+        {
+          "commits": 3,
+          "end_date": "2025-07-30",
+          "size_config": {
+            "size": 7
+          },
+          "start_date": "2025-07-23",
+          "strategy": "time",
+          "window_id": "w109"
+        },
+        {
+          "commits": 3,
+          "end_date": "2025-08-06",
+          "size_config": {
+            "size": 7
+          },
+          "start_date": "2025-07-30",
+          "strategy": "time",
+          "window_id": "w110"
+        },
+        {
+          "commits": 3,
+          "end_date": "2025-08-13",
+          "size_config": {
+            "size": 7
+          },
+          "start_date": "2025-08-06",
+          "strategy": "time",
+          "window_id": "w111"
+        },
+        {
+          "commits": 3,
+          "end_date": "2025-08-20",
+          "size_config": {
+            "size": 7
+          },
+          "start_date": "2025-08-13",
+          "strategy": "time",
+          "window_id": "w112"
+        },
+        {
+          "commits": 3,
+          "end_date": "2025-08-27",
+          "size_config": {
+            "size": 7
+          },
+          "start_date": "2025-08-20",
+          "strategy": "time",
+          "window_id": "w113"
+        },
+        {
+          "commits": 3,
+          "end_date": "2025-09-03",
+          "size_config": {
+            "size": 7
+          },
+          "start_date": "2025-08-27",
+          "strategy": "time",
+          "window_id": "w114"
+        },
+        {
+          "commits": 3,
+          "end_date": "2025-09-10",
+          "size_config": {
+            "size": 7
+          },
+          "start_date": "2025-09-03",
+          "strategy": "time",
+          "window_id": "w115"
+        },
+        {
+          "commits": 3,
+          "end_date": "2025-09-17",
+          "size_config": {
+            "size": 7
+          },
+          "start_date": "2025-09-10",
+          "strategy": "time",
+          "window_id": "w116"
+        },
+        {
+          "commits": 3,
+          "end_date": "2025-09-24",
+          "size_config": {
+            "size": 7
+          },
+          "start_date": "2025-09-17",
+          "strategy": "time",
+          "window_id": "w117"
+        },
+        {
+          "commits": 3,
+          "end_date": "2025-10-01",
+          "size_config": {
+            "size": 7
+          },
+          "start_date": "2025-09-24",
+          "strategy": "time",
+          "window_id": "w118"
+        },
+        {
+          "commits": 3,
+          "end_date": "2025-10-08",
+          "size_config": {
+            "size": 7
+          },
+          "start_date": "2025-10-01",
+          "strategy": "time",
+          "window_id": "w119"
+        },
+        {
+          "commits": 3,
+          "end_date": "2025-10-15",
+          "size_config": {
+            "size": 7
+          },
+          "start_date": "2025-10-08",
+          "strategy": "time",
+          "window_id": "w120"
+        },
+        {
+          "commits": 3,
+          "end_date": "2025-10-22",
+          "size_config": {
+            "size": 7
+          },
+          "start_date": "2025-10-15",
+          "strategy": "time",
+          "window_id": "w121"
+        },
+        {
+          "commits": 3,
+          "end_date": "2025-10-29",
+          "size_config": {
+            "size": 7
+          },
+          "start_date": "2025-10-22",
+          "strategy": "time",
+          "window_id": "w122"
+        },
+        {
+          "commits": 3,
+          "end_date": "2025-11-05",
+          "size_config": {
+            "size": 7
+          },
+          "start_date": "2025-10-29",
+          "strategy": "time",
+          "window_id": "w123"
+        },
+        {
+          "commits": 3,
+          "end_date": "2025-11-12",
+          "size_config": {
+            "size": 7
+          },
+          "start_date": "2025-11-05",
+          "strategy": "time",
+          "window_id": "w124"
+        },
+        {
+          "commits": 3,
+          "end_date": "2025-11-19",
+          "size_config": {
+            "size": 7
+          },
+          "start_date": "2025-11-12",
+          "strategy": "time",
+          "window_id": "w125"
+        },
+        {
+          "commits": 3,
+          "end_date": "2025-11-26",
+          "size_config": {
+            "size": 7
+          },
+          "start_date": "2025-11-19",
+          "strategy": "time",
+          "window_id": "w126"
+        },
+        {
+          "commits": 3,
+          "end_date": "2025-12-03",
+          "size_config": {
+            "size": 7
+          },
+          "start_date": "2025-11-26",
+          "strategy": "time",
+          "window_id": "w127"
+        },
+        {
+          "commits": 3,
+          "end_date": "2025-12-10",
+          "size_config": {
+            "size": 7
+          },
+          "start_date": "2025-12-03",
+          "strategy": "time",
+          "window_id": "w128"
+        },
+        {
+          "commits": 3,
+          "end_date": "2025-12-17",
+          "size_config": {
+            "size": 7
+          },
+          "start_date": "2025-12-10",
+          "strategy": "time",
+          "window_id": "w129"
+        },
+        {
+          "commits": 3,
+          "end_date": "2025-12-24",
+          "size_config": {
+            "size": 7
+          },
+          "start_date": "2025-12-17",
+          "strategy": "time",
+          "window_id": "w130"
+        },
+        {
+          "commits": 3,
+          "end_date": "2025-12-31",
+          "size_config": {
+            "size": 7
+          },
+          "start_date": "2025-12-24",
+          "strategy": "time",
+          "window_id": "w131"
+        },
+        {
+          "commits": 3,
+          "end_date": "2026-01-07",
+          "size_config": {
+            "size": 7
+          },
+          "start_date": "2025-12-31",
+          "strategy": "time",
+          "window_id": "w132"
+        },
+        {
+          "commits": 3,
+          "end_date": "2026-01-14",
+          "size_config": {
+            "size": 7
+          },
+          "start_date": "2026-01-07",
+          "strategy": "time",
+          "window_id": "w133"
+        },
+        {
+          "commits": 3,
+          "end_date": "2026-01-21",
+          "size_config": {
+            "size": 7
+          },
+          "start_date": "2026-01-14",
+          "strategy": "time",
+          "window_id": "w134"
+        },
+        {
+          "commits": 3,
+          "end_date": "2026-01-28",
+          "size_config": {
+            "size": 7
+          },
+          "start_date": "2026-01-21",
+          "strategy": "time",
+          "window_id": "w135"
+        },
+        {
+          "commits": 3,
+          "end_date": "2026-02-04",
+          "size_config": {
+            "size": 7
+          },
+          "start_date": "2026-01-28",
+          "strategy": "time",
+          "window_id": "w136"
+        },
+        {
+          "commits": 3,
+          "end_date": "2026-02-11",
+          "size_config": {
+            "size": 7
+          },
+          "start_date": "2026-02-04",
+          "strategy": "time",
+          "window_id": "w137"
+        },
+        {
+          "commits": 3,
+          "end_date": "2026-02-18",
+          "size_config": {
+            "size": 7
+          },
+          "start_date": "2026-02-11",
+          "strategy": "time",
+          "window_id": "w138"
+        },
+        {
+          "commits": 3,
+          "end_date": "2026-02-25",
+          "size_config": {
+            "size": 7
+          },
+          "start_date": "2026-02-18",
+          "strategy": "time",
+          "window_id": "w139"
+        },
+        {
+          "commits": 3,
+          "end_date": "2026-03-04",
+          "size_config": {
+            "size": 7
+          },
+          "start_date": "2026-02-25",
+          "strategy": "time",
+          "window_id": "w140"
+        },
+        {
+          "commits": 3,
+          "end_date": "2026-03-11",
+          "size_config": {
+            "size": 7
+          },
+          "start_date": "2026-03-04",
+          "strategy": "time",
+          "window_id": "w141"
+        },
+        {
+          "commits": 3,
+          "end_date": "2026-03-18",
+          "size_config": {
+            "size": 7
+          },
+          "start_date": "2026-03-11",
+          "strategy": "time",
+          "window_id": "w142"
+        },
+        {
+          "commits": 3,
+          "end_date": "2026-03-25",
+          "size_config": {
+            "size": 7
+          },
+          "start_date": "2026-03-18",
+          "strategy": "time",
+          "window_id": "w143"
+        },
+        {
+          "commits": 3,
+          "end_date": "2026-04-01",
+          "size_config": {
+            "size": 7
+          },
+          "start_date": "2026-03-25",
+          "strategy": "time",
+          "window_id": "w144"
+        },
+        {
+          "commits": 3,
+          "end_date": "2026-04-08",
+          "size_config": {
+            "size": 7
+          },
+          "start_date": "2026-04-01",
+          "strategy": "time",
+          "window_id": "w145"
+        },
+        {
+          "commits": 3,
+          "end_date": "2026-04-15",
+          "size_config": {
+            "size": 7
+          },
+          "start_date": "2026-04-08",
+          "strategy": "time",
+          "window_id": "w146"
+        },
+        {
+          "commits": 3,
+          "end_date": "2026-04-22",
+          "size_config": {
+            "size": 7
+          },
+          "start_date": "2026-04-15",
+          "strategy": "time",
+          "window_id": "w147"
+        },
+        {
+          "commits": 3,
+          "end_date": "2026-04-29",
+          "size_config": {
+            "size": 7
+          },
+          "start_date": "2026-04-22",
+          "strategy": "time",
+          "window_id": "w148"
+        },
+        {
+          "commits": 3,
+          "end_date": "2026-05-06",
+          "size_config": {
+            "size": 7
+          },
+          "start_date": "2026-04-29",
+          "strategy": "time",
+          "window_id": "w149"
+        },
+        {
+          "commits": 3,
+          "end_date": "2026-05-13",
+          "size_config": {
+            "size": 7
+          },
+          "start_date": "2026-05-06",
+          "strategy": "time",
+          "window_id": "w150"
+        },
+        {
+          "commits": 3,
+          "end_date": "2026-05-20",
+          "size_config": {
+            "size": 7
+          },
+          "start_date": "2026-05-13",
+          "strategy": "time",
+          "window_id": "w151"
+        },
+        {
+          "commits": 3,
+          "end_date": "2026-05-27",
+          "size_config": {
+            "size": 7
+          },
+          "start_date": "2026-05-20",
+          "strategy": "time",
+          "window_id": "w152"
+        },
+        {
+          "commits": 3,
+          "end_date": "2026-06-03",
+          "size_config": {
+            "size": 7
+          },
+          "start_date": "2026-05-27",
+          "strategy": "time",
+          "window_id": "w153"
+        },
+        {
+          "commits": 1,
+          "end_date": "2026-06-05",
+          "size_config": {
+            "size": 7
+          },
+          "start_date": "2026-06-03",
+          "strategy": "time",
+          "window_id": "w154"
+        }
+      ]
+    },
+    "explanation_report": {
+      "explanations": [],
+      "narratives": [
+        "Integrity score is high (1.00), indicating strong data consistency and reliability.",
+        "Confidence score is low (0.02), indicating limited data quality, sample size, or temporal coverage.",
+        "Sample size factor is low (0.02), indicating limited number of analysis windows.",
+        "Analysis performed across 155 temporal windows.",
+        "Results based on outputs from 3 detectors: D-01, D-02, D-03."
+      ],
+      "recommendations": [
+        "Consider increasing analysis window count or adjusting window segmentation parameters."
+      ],
+      "summary": ""
+    },
+    "metric_dataframe": {
+      "metrics": {
+        "M-01": {
+          "w00": [
+            0.4322256000607545
+          ]
+        },
+        "M-02": {
+          "w00": [
+            517.0
+          ]
+        },
+        "M-03": {
+          "w00": [
+            0.01382121783414541
+          ]
+        },
+        "M-04": {
+          "w00": [
+            0.0162748643761302
+          ]
+        },
+        "M-05": null,
+        "M-06": {
+          "w00": [
+            307131.0
+          ]
+        },
+        "M-07": {
+          "w00": [
+            0.8420182310691873
+          ]
+        }
+      },
+      "timestamp": "2026-07-04T06:21:43.862782+00:00"
+    },
+    "repository_context": {
+      "contributor_count": 74,
+      "first_commit_date": "2023-06-21T21:29:15+00:00",
+      "is_fork": false,
+      "is_remote": false,
+      "is_shallow": true,
+      "language_distribution": null,
+      "last_commit_date": "2026-06-05T19:52:52+00:00",
+      "remote_url": null,
+      "total_commits": 556
+    },
+    "score_package": {
+      "confidence": {
+        "band": "low",
+        "factors": {
+          "detector_success": 1.0,
+          "missing_data": 0.8571428571428572,
+          "observation_quality": 1.0,
+          "sample_size": 0.02,
+          "variance": 1.0,
+          "window_balance": 0.9463944982894563
+        },
+        "overall": 0.016223905684962108
+      },
+      "config_hash": "",
+      "formula_version": "TFS_v1.0",
+      "integrity": {
+        "formula_version": "TFS_v1.0",
+        "overall": 1.0,
+        "per_metric": {
+          "M-01": 1.0,
+          "M-02": 1.0,
+          "M-03": 1.0,
+          "M-04": 1.0,
+          "M-05": 1.0,
+          "M-06": 1.0,
+          "M-07": 1.0
+        }
+      },
+      "timestamp": "2026-07-04T06:21:44.537538+00:00"
+    },
+    "windows": [
+      {
+        "commits": 3,
+        "end_date": "2023-06-28",
+        "size_config": {
+          "size": 7
+        },
+        "start_date": "2023-06-21",
+        "strategy": "time",
+        "window_id": "w00"
+      },
+      {
+        "commits": 3,
+        "end_date": "2023-07-05",
+        "size_config": {
+          "size": 7
+        },
+        "start_date": "2023-06-28",
+        "strategy": "time",
+        "window_id": "w01"
+      },
+      {
+        "commits": 3,
+        "end_date": "2023-07-12",
+        "size_config": {
+          "size": 7
+        },
+        "start_date": "2023-07-05",
+        "strategy": "time",
+        "window_id": "w02"
+      },
+      {
+        "commits": 3,
+        "end_date": "2023-07-19",
+        "size_config": {
+          "size": 7
+        },
+        "start_date": "2023-07-12",
+        "strategy": "time",
+        "window_id": "w03"
+      },
+      {
+        "commits": 3,
+        "end_date": "2023-07-26",
+        "size_config": {
+          "size": 7
+        },
+        "start_date": "2023-07-19",
+        "strategy": "time",
+        "window_id": "w04"
+      },
+      {
+        "commits": 3,
+        "end_date": "2023-08-02",
+        "size_config": {
+          "size": 7
+        },
+        "start_date": "2023-07-26",
+        "strategy": "time",
+        "window_id": "w05"
+      },
+      {
+        "commits": 3,
+        "end_date": "2023-08-09",
+        "size_config": {
+          "size": 7
+        },
+        "start_date": "2023-08-02",
+        "strategy": "time",
+        "window_id": "w06"
+      },
+      {
+        "commits": 3,
+        "end_date": "2023-08-16",
+        "size_config": {
+          "size": 7
+        },
+        "start_date": "2023-08-09",
+        "strategy": "time",
+        "window_id": "w07"
+      },
+      {
+        "commits": 3,
+        "end_date": "2023-08-23",
+        "size_config": {
+          "size": 7
+        },
+        "start_date": "2023-08-16",
+        "strategy": "time",
+        "window_id": "w08"
+      },
+      {
+        "commits": 3,
+        "end_date": "2023-08-30",
+        "size_config": {
+          "size": 7
+        },
+        "start_date": "2023-08-23",
+        "strategy": "time",
+        "window_id": "w09"
+      },
+      {
+        "commits": 3,
+        "end_date": "2023-09-06",
+        "size_config": {
+          "size": 7
+        },
+        "start_date": "2023-08-30",
+        "strategy": "time",
+        "window_id": "w10"
+      },
+      {
+        "commits": 3,
+        "end_date": "2023-09-13",
+        "size_config": {
+          "size": 7
+        },
+        "start_date": "2023-09-06",
+        "strategy": "time",
+        "window_id": "w11"
+      },
+      {
+        "commits": 3,
+        "end_date": "2023-09-20",
+        "size_config": {
+          "size": 7
+        },
+        "start_date": "2023-09-13",
+        "strategy": "time",
+        "window_id": "w12"
+      },
+      {
+        "commits": 3,
+        "end_date": "2023-09-27",
+        "size_config": {
+          "size": 7
+        },
+        "start_date": "2023-09-20",
+        "strategy": "time",
+        "window_id": "w13"
+      },
+      {
+        "commits": 3,
+        "end_date": "2023-10-04",
+        "size_config": {
+          "size": 7
+        },
+        "start_date": "2023-09-27",
+        "strategy": "time",
+        "window_id": "w14"
+      },
+      {
+        "commits": 3,
+        "end_date": "2023-10-11",
+        "size_config": {
+          "size": 7
+        },
+        "start_date": "2023-10-04",
+        "strategy": "time",
+        "window_id": "w15"
+      },
+      {
+        "commits": 3,
+        "end_date": "2023-10-18",
+        "size_config": {
+          "size": 7
+        },
+        "start_date": "2023-10-11",
+        "strategy": "time",
+        "window_id": "w16"
+      },
+      {
+        "commits": 3,
+        "end_date": "2023-10-25",
+        "size_config": {
+          "size": 7
+        },
+        "start_date": "2023-10-18",
+        "strategy": "time",
+        "window_id": "w17"
+      },
+      {
+        "commits": 3,
+        "end_date": "2023-11-01",
+        "size_config": {
+          "size": 7
+        },
+        "start_date": "2023-10-25",
+        "strategy": "time",
+        "window_id": "w18"
+      },
+      {
+        "commits": 3,
+        "end_date": "2023-11-08",
+        "size_config": {
+          "size": 7
+        },
+        "start_date": "2023-11-01",
+        "strategy": "time",
+        "window_id": "w19"
+      },
+      {
+        "commits": 3,
+        "end_date": "2023-11-15",
+        "size_config": {
+          "size": 7
+        },
+        "start_date": "2023-11-08",
+        "strategy": "time",
+        "window_id": "w20"
+      },
+      {
+        "commits": 3,
+        "end_date": "2023-11-22",
+        "size_config": {
+          "size": 7
+        },
+        "start_date": "2023-11-15",
+        "strategy": "time",
+        "window_id": "w21"
+      },
+      {
+        "commits": 3,
+        "end_date": "2023-11-29",
+        "size_config": {
+          "size": 7
+        },
+        "start_date": "2023-11-22",
+        "strategy": "time",
+        "window_id": "w22"
+      },
+      {
+        "commits": 3,
+        "end_date": "2023-12-06",
+        "size_config": {
+          "size": 7
+        },
+        "start_date": "2023-11-29",
+        "strategy": "time",
+        "window_id": "w23"
+      },
+      {
+        "commits": 3,
+        "end_date": "2023-12-13",
+        "size_config": {
+          "size": 7
+        },
+        "start_date": "2023-12-06",
+        "strategy": "time",
+        "window_id": "w24"
+      },
+      {
+        "commits": 3,
+        "end_date": "2023-12-20",
+        "size_config": {
+          "size": 7
+        },
+        "start_date": "2023-12-13",
+        "strategy": "time",
+        "window_id": "w25"
+      },
+      {
+        "commits": 3,
+        "end_date": "2023-12-27",
+        "size_config": {
+          "size": 7
+        },
+        "start_date": "2023-12-20",
+        "strategy": "time",
+        "window_id": "w26"
+      },
+      {
+        "commits": 3,
+        "end_date": "2024-01-03",
+        "size_config": {
+          "size": 7
+        },
+        "start_date": "2023-12-27",
+        "strategy": "time",
+        "window_id": "w27"
+      },
+      {
+        "commits": 3,
+        "end_date": "2024-01-10",
+        "size_config": {
+          "size": 7
+        },
+        "start_date": "2024-01-03",
+        "strategy": "time",
+        "window_id": "w28"
+      },
+      {
+        "commits": 3,
+        "end_date": "2024-01-17",
+        "size_config": {
+          "size": 7
+        },
+        "start_date": "2024-01-10",
+        "strategy": "time",
+        "window_id": "w29"
+      },
+      {
+        "commits": 3,
+        "end_date": "2024-01-24",
+        "size_config": {
+          "size": 7
+        },
+        "start_date": "2024-01-17",
+        "strategy": "time",
+        "window_id": "w30"
+      },
+      {
+        "commits": 3,
+        "end_date": "2024-01-31",
+        "size_config": {
+          "size": 7
+        },
+        "start_date": "2024-01-24",
+        "strategy": "time",
+        "window_id": "w31"
+      },
+      {
+        "commits": 3,
+        "end_date": "2024-02-07",
+        "size_config": {
+          "size": 7
+        },
+        "start_date": "2024-01-31",
+        "strategy": "time",
+        "window_id": "w32"
+      },
+      {
+        "commits": 3,
+        "end_date": "2024-02-14",
+        "size_config": {
+          "size": 7
+        },
+        "start_date": "2024-02-07",
+        "strategy": "time",
+        "window_id": "w33"
+      },
+      {
+        "commits": 3,
+        "end_date": "2024-02-21",
+        "size_config": {
+          "size": 7
+        },
+        "start_date": "2024-02-14",
+        "strategy": "time",
+        "window_id": "w34"
+      },
+      {
+        "commits": 3,
+        "end_date": "2024-02-28",
+        "size_config": {
+          "size": 7
+        },
+        "start_date": "2024-02-21",
+        "strategy": "time",
+        "window_id": "w35"
+      },
+      {
+        "commits": 3,
+        "end_date": "2024-03-06",
+        "size_config": {
+          "size": 7
+        },
+        "start_date": "2024-02-28",
+        "strategy": "time",
+        "window_id": "w36"
+      },
+      {
+        "commits": 3,
+        "end_date": "2024-03-13",
+        "size_config": {
+          "size": 7
+        },
+        "start_date": "2024-03-06",
+        "strategy": "time",
+        "window_id": "w37"
+      },
+      {
+        "commits": 3,
+        "end_date": "2024-03-20",
+        "size_config": {
+          "size": 7
+        },
+        "start_date": "2024-03-13",
+        "strategy": "time",
+        "window_id": "w38"
+      },
+      {
+        "commits": 3,
+        "end_date": "2024-03-27",
+        "size_config": {
+          "size": 7
+        },
+        "start_date": "2024-03-20",
+        "strategy": "time",
+        "window_id": "w39"
+      },
+      {
+        "commits": 3,
+        "end_date": "2024-04-03",
+        "size_config": {
+          "size": 7
+        },
+        "start_date": "2024-03-27",
+        "strategy": "time",
+        "window_id": "w40"
+      },
+      {
+        "commits": 3,
+        "end_date": "2024-04-10",
+        "size_config": {
+          "size": 7
+        },
+        "start_date": "2024-04-03",
+        "strategy": "time",
+        "window_id": "w41"
+      },
+      {
+        "commits": 3,
+        "end_date": "2024-04-17",
+        "size_config": {
+          "size": 7
+        },
+        "start_date": "2024-04-10",
+        "strategy": "time",
+        "window_id": "w42"
+      },
+      {
+        "commits": 3,
+        "end_date": "2024-04-24",
+        "size_config": {
+          "size": 7
+        },
+        "start_date": "2024-04-17",
+        "strategy": "time",
+        "window_id": "w43"
+      },
+      {
+        "commits": 3,
+        "end_date": "2024-05-01",
+        "size_config": {
+          "size": 7
+        },
+        "start_date": "2024-04-24",
+        "strategy": "time",
+        "window_id": "w44"
+      },
+      {
+        "commits": 3,
+        "end_date": "2024-05-08",
+        "size_config": {
+          "size": 7
+        },
+        "start_date": "2024-05-01",
+        "strategy": "time",
+        "window_id": "w45"
+      },
+      {
+        "commits": 3,
+        "end_date": "2024-05-15",
+        "size_config": {
+          "size": 7
+        },
+        "start_date": "2024-05-08",
+        "strategy": "time",
+        "window_id": "w46"
+      },
+      {
+        "commits": 3,
+        "end_date": "2024-05-22",
+        "size_config": {
+          "size": 7
+        },
+        "start_date": "2024-05-15",
+        "strategy": "time",
+        "window_id": "w47"
+      },
+      {
+        "commits": 3,
+        "end_date": "2024-05-29",
+        "size_config": {
+          "size": 7
+        },
+        "start_date": "2024-05-22",
+        "strategy": "time",
+        "window_id": "w48"
+      },
+      {
+        "commits": 3,
+        "end_date": "2024-06-05",
+        "size_config": {
+          "size": 7
+        },
+        "start_date": "2024-05-29",
+        "strategy": "time",
+        "window_id": "w49"
+      },
+      {
+        "commits": 3,
+        "end_date": "2024-06-12",
+        "size_config": {
+          "size": 7
+        },
+        "start_date": "2024-06-05",
+        "strategy": "time",
+        "window_id": "w50"
+      },
+      {
+        "commits": 3,
+        "end_date": "2024-06-19",
+        "size_config": {
+          "size": 7
+        },
+        "start_date": "2024-06-12",
+        "strategy": "time",
+        "window_id": "w51"
+      },
+      {
+        "commits": 3,
+        "end_date": "2024-06-26",
+        "size_config": {
+          "size": 7
+        },
+        "start_date": "2024-06-19",
+        "strategy": "time",
+        "window_id": "w52"
+      },
+      {
+        "commits": 3,
+        "end_date": "2024-07-03",
+        "size_config": {
+          "size": 7
+        },
+        "start_date": "2024-06-26",
+        "strategy": "time",
+        "window_id": "w53"
+      },
+      {
+        "commits": 3,
+        "end_date": "2024-07-10",
+        "size_config": {
+          "size": 7
+        },
+        "start_date": "2024-07-03",
+        "strategy": "time",
+        "window_id": "w54"
+      },
+      {
+        "commits": 3,
+        "end_date": "2024-07-17",
+        "size_config": {
+          "size": 7
+        },
+        "start_date": "2024-07-10",
+        "strategy": "time",
+        "window_id": "w55"
+      },
+      {
+        "commits": 3,
+        "end_date": "2024-07-24",
+        "size_config": {
+          "size": 7
+        },
+        "start_date": "2024-07-17",
+        "strategy": "time",
+        "window_id": "w56"
+      },
+      {
+        "commits": 3,
+        "end_date": "2024-07-31",
+        "size_config": {
+          "size": 7
+        },
+        "start_date": "2024-07-24",
+        "strategy": "time",
+        "window_id": "w57"
+      },
+      {
+        "commits": 3,
+        "end_date": "2024-08-07",
+        "size_config": {
+          "size": 7
+        },
+        "start_date": "2024-07-31",
+        "strategy": "time",
+        "window_id": "w58"
+      },
+      {
+        "commits": 3,
+        "end_date": "2024-08-14",
+        "size_config": {
+          "size": 7
+        },
+        "start_date": "2024-08-07",
+        "strategy": "time",
+        "window_id": "w59"
+      },
+      {
+        "commits": 3,
+        "end_date": "2024-08-21",
+        "size_config": {
+          "size": 7
+        },
+        "start_date": "2024-08-14",
+        "strategy": "time",
+        "window_id": "w60"
+      },
+      {
+        "commits": 3,
+        "end_date": "2024-08-28",
+        "size_config": {
+          "size": 7
+        },
+        "start_date": "2024-08-21",
+        "strategy": "time",
+        "window_id": "w61"
+      },
+      {
+        "commits": 3,
+        "end_date": "2024-09-04",
+        "size_config": {
+          "size": 7
+        },
+        "start_date": "2024-08-28",
+        "strategy": "time",
+        "window_id": "w62"
+      },
+      {
+        "commits": 3,
+        "end_date": "2024-09-11",
+        "size_config": {
+          "size": 7
+        },
+        "start_date": "2024-09-04",
+        "strategy": "time",
+        "window_id": "w63"
+      },
+      {
+        "commits": 3,
+        "end_date": "2024-09-18",
+        "size_config": {
+          "size": 7
+        },
+        "start_date": "2024-09-11",
+        "strategy": "time",
+        "window_id": "w64"
+      },
+      {
+        "commits": 3,
+        "end_date": "2024-09-25",
+        "size_config": {
+          "size": 7
+        },
+        "start_date": "2024-09-18",
+        "strategy": "time",
+        "window_id": "w65"
+      },
+      {
+        "commits": 3,
+        "end_date": "2024-10-02",
+        "size_config": {
+          "size": 7
+        },
+        "start_date": "2024-09-25",
+        "strategy": "time",
+        "window_id": "w66"
+      },
+      {
+        "commits": 3,
+        "end_date": "2024-10-09",
+        "size_config": {
+          "size": 7
+        },
+        "start_date": "2024-10-02",
+        "strategy": "time",
+        "window_id": "w67"
+      },
+      {
+        "commits": 3,
+        "end_date": "2024-10-16",
+        "size_config": {
+          "size": 7
+        },
+        "start_date": "2024-10-09",
+        "strategy": "time",
+        "window_id": "w68"
+      },
+      {
+        "commits": 3,
+        "end_date": "2024-10-23",
+        "size_config": {
+          "size": 7
+        },
+        "start_date": "2024-10-16",
+        "strategy": "time",
+        "window_id": "w69"
+      },
+      {
+        "commits": 3,
+        "end_date": "2024-10-30",
+        "size_config": {
+          "size": 7
+        },
+        "start_date": "2024-10-23",
+        "strategy": "time",
+        "window_id": "w70"
+      },
+      {
+        "commits": 3,
+        "end_date": "2024-11-06",
+        "size_config": {
+          "size": 7
+        },
+        "start_date": "2024-10-30",
+        "strategy": "time",
+        "window_id": "w71"
+      },
+      {
+        "commits": 3,
+        "end_date": "2024-11-13",
+        "size_config": {
+          "size": 7
+        },
+        "start_date": "2024-11-06",
+        "strategy": "time",
+        "window_id": "w72"
+      },
+      {
+        "commits": 3,
+        "end_date": "2024-11-20",
+        "size_config": {
+          "size": 7
+        },
+        "start_date": "2024-11-13",
+        "strategy": "time",
+        "window_id": "w73"
+      },
+      {
+        "commits": 3,
+        "end_date": "2024-11-27",
+        "size_config": {
+          "size": 7
+        },
+        "start_date": "2024-11-20",
+        "strategy": "time",
+        "window_id": "w74"
+      },
+      {
+        "commits": 3,
+        "end_date": "2024-12-04",
+        "size_config": {
+          "size": 7
+        },
+        "start_date": "2024-11-27",
+        "strategy": "time",
+        "window_id": "w75"
+      },
+      {
+        "commits": 3,
+        "end_date": "2024-12-11",
+        "size_config": {
+          "size": 7
+        },
+        "start_date": "2024-12-04",
+        "strategy": "time",
+        "window_id": "w76"
+      },
+      {
+        "commits": 3,
+        "end_date": "2024-12-18",
+        "size_config": {
+          "size": 7
+        },
+        "start_date": "2024-12-11",
+        "strategy": "time",
+        "window_id": "w77"
+      },
+      {
+        "commits": 3,
+        "end_date": "2024-12-25",
+        "size_config": {
+          "size": 7
+        },
+        "start_date": "2024-12-18",
+        "strategy": "time",
+        "window_id": "w78"
+      },
+      {
+        "commits": 3,
+        "end_date": "2025-01-01",
+        "size_config": {
+          "size": 7
+        },
+        "start_date": "2024-12-25",
+        "strategy": "time",
+        "window_id": "w79"
+      },
+      {
+        "commits": 3,
+        "end_date": "2025-01-08",
+        "size_config": {
+          "size": 7
+        },
+        "start_date": "2025-01-01",
+        "strategy": "time",
+        "window_id": "w80"
+      },
+      {
+        "commits": 3,
+        "end_date": "2025-01-15",
+        "size_config": {
+          "size": 7
+        },
+        "start_date": "2025-01-08",
+        "strategy": "time",
+        "window_id": "w81"
+      },
+      {
+        "commits": 3,
+        "end_date": "2025-01-22",
+        "size_config": {
+          "size": 7
+        },
+        "start_date": "2025-01-15",
+        "strategy": "time",
+        "window_id": "w82"
+      },
+      {
+        "commits": 3,
+        "end_date": "2025-01-29",
+        "size_config": {
+          "size": 7
+        },
+        "start_date": "2025-01-22",
+        "strategy": "time",
+        "window_id": "w83"
+      },
+      {
+        "commits": 3,
+        "end_date": "2025-02-05",
+        "size_config": {
+          "size": 7
+        },
+        "start_date": "2025-01-29",
+        "strategy": "time",
+        "window_id": "w84"
+      },
+      {
+        "commits": 3,
+        "end_date": "2025-02-12",
+        "size_config": {
+          "size": 7
+        },
+        "start_date": "2025-02-05",
+        "strategy": "time",
+        "window_id": "w85"
+      },
+      {
+        "commits": 3,
+        "end_date": "2025-02-19",
+        "size_config": {
+          "size": 7
+        },
+        "start_date": "2025-02-12",
+        "strategy": "time",
+        "window_id": "w86"
+      },
+      {
+        "commits": 3,
+        "end_date": "2025-02-26",
+        "size_config": {
+          "size": 7
+        },
+        "start_date": "2025-02-19",
+        "strategy": "time",
+        "window_id": "w87"
+      },
+      {
+        "commits": 3,
+        "end_date": "2025-03-05",
+        "size_config": {
+          "size": 7
+        },
+        "start_date": "2025-02-26",
+        "strategy": "time",
+        "window_id": "w88"
+      },
+      {
+        "commits": 3,
+        "end_date": "2025-03-12",
+        "size_config": {
+          "size": 7
+        },
+        "start_date": "2025-03-05",
+        "strategy": "time",
+        "window_id": "w89"
+      },
+      {
+        "commits": 3,
+        "end_date": "2025-03-19",
+        "size_config": {
+          "size": 7
+        },
+        "start_date": "2025-03-12",
+        "strategy": "time",
+        "window_id": "w90"
+      },
+      {
+        "commits": 3,
+        "end_date": "2025-03-26",
+        "size_config": {
+          "size": 7
+        },
+        "start_date": "2025-03-19",
+        "strategy": "time",
+        "window_id": "w91"
+      },
+      {
+        "commits": 3,
+        "end_date": "2025-04-02",
+        "size_config": {
+          "size": 7
+        },
+        "start_date": "2025-03-26",
+        "strategy": "time",
+        "window_id": "w92"
+      },
+      {
+        "commits": 3,
+        "end_date": "2025-04-09",
+        "size_config": {
+          "size": 7
+        },
+        "start_date": "2025-04-02",
+        "strategy": "time",
+        "window_id": "w93"
+      },
+      {
+        "commits": 3,
+        "end_date": "2025-04-16",
+        "size_config": {
+          "size": 7
+        },
+        "start_date": "2025-04-09",
+        "strategy": "time",
+        "window_id": "w94"
+      },
+      {
+        "commits": 3,
+        "end_date": "2025-04-23",
+        "size_config": {
+          "size": 7
+        },
+        "start_date": "2025-04-16",
+        "strategy": "time",
+        "window_id": "w95"
+      },
+      {
+        "commits": 3,
+        "end_date": "2025-04-30",
+        "size_config": {
+          "size": 7
+        },
+        "start_date": "2025-04-23",
+        "strategy": "time",
+        "window_id": "w96"
+      },
+      {
+        "commits": 3,
+        "end_date": "2025-05-07",
+        "size_config": {
+          "size": 7
+        },
+        "start_date": "2025-04-30",
+        "strategy": "time",
+        "window_id": "w97"
+      },
+      {
+        "commits": 3,
+        "end_date": "2025-05-14",
+        "size_config": {
+          "size": 7
+        },
+        "start_date": "2025-05-07",
+        "strategy": "time",
+        "window_id": "w98"
+      },
+      {
+        "commits": 3,
+        "end_date": "2025-05-21",
+        "size_config": {
+          "size": 7
+        },
+        "start_date": "2025-05-14",
+        "strategy": "time",
+        "window_id": "w99"
+      },
+      {
+        "commits": 3,
+        "end_date": "2025-05-28",
+        "size_config": {
+          "size": 7
+        },
+        "start_date": "2025-05-21",
+        "strategy": "time",
+        "window_id": "w100"
+      },
+      {
+        "commits": 3,
+        "end_date": "2025-06-04",
+        "size_config": {
+          "size": 7
+        },
+        "start_date": "2025-05-28",
+        "strategy": "time",
+        "window_id": "w101"
+      },
+      {
+        "commits": 3,
+        "end_date": "2025-06-11",
+        "size_config": {
+          "size": 7
+        },
+        "start_date": "2025-06-04",
+        "strategy": "time",
+        "window_id": "w102"
+      },
+      {
+        "commits": 3,
+        "end_date": "2025-06-18",
+        "size_config": {
+          "size": 7
+        },
+        "start_date": "2025-06-11",
+        "strategy": "time",
+        "window_id": "w103"
+      },
+      {
+        "commits": 3,
+        "end_date": "2025-06-25",
+        "size_config": {
+          "size": 7
+        },
+        "start_date": "2025-06-18",
+        "strategy": "time",
+        "window_id": "w104"
+      },
+      {
+        "commits": 3,
+        "end_date": "2025-07-02",
+        "size_config": {
+          "size": 7
+        },
+        "start_date": "2025-06-25",
+        "strategy": "time",
+        "window_id": "w105"
+      },
+      {
+        "commits": 3,
+        "end_date": "2025-07-09",
+        "size_config": {
+          "size": 7
+        },
+        "start_date": "2025-07-02",
+        "strategy": "time",
+        "window_id": "w106"
+      },
+      {
+        "commits": 3,
+        "end_date": "2025-07-16",
+        "size_config": {
+          "size": 7
+        },
+        "start_date": "2025-07-09",
+        "strategy": "time",
+        "window_id": "w107"
+      },
+      {
+        "commits": 3,
+        "end_date": "2025-07-23",
+        "size_config": {
+          "size": 7
+        },
+        "start_date": "2025-07-16",
+        "strategy": "time",
+        "window_id": "w108"
+      },
+      {
+        "commits": 3,
+        "end_date": "2025-07-30",
+        "size_config": {
+          "size": 7
+        },
+        "start_date": "2025-07-23",
+        "strategy": "time",
+        "window_id": "w109"
+      },
+      {
+        "commits": 3,
+        "end_date": "2025-08-06",
+        "size_config": {
+          "size": 7
+        },
+        "start_date": "2025-07-30",
+        "strategy": "time",
+        "window_id": "w110"
+      },
+      {
+        "commits": 3,
+        "end_date": "2025-08-13",
+        "size_config": {
+          "size": 7
+        },
+        "start_date": "2025-08-06",
+        "strategy": "time",
+        "window_id": "w111"
+      },
+      {
+        "commits": 3,
+        "end_date": "2025-08-20",
+        "size_config": {
+          "size": 7
+        },
+        "start_date": "2025-08-13",
+        "strategy": "time",
+        "window_id": "w112"
+      },
+      {
+        "commits": 3,
+        "end_date": "2025-08-27",
+        "size_config": {
+          "size": 7
+        },
+        "start_date": "2025-08-20",
+        "strategy": "time",
+        "window_id": "w113"
+      },
+      {
+        "commits": 3,
+        "end_date": "2025-09-03",
+        "size_config": {
+          "size": 7
+        },
+        "start_date": "2025-08-27",
+        "strategy": "time",
+        "window_id": "w114"
+      },
+      {
+        "commits": 3,
+        "end_date": "2025-09-10",
+        "size_config": {
+          "size": 7
+        },
+        "start_date": "2025-09-03",
+        "strategy": "time",
+        "window_id": "w115"
+      },
+      {
+        "commits": 3,
+        "end_date": "2025-09-17",
+        "size_config": {
+          "size": 7
+        },
+        "start_date": "2025-09-10",
+        "strategy": "time",
+        "window_id": "w116"
+      },
+      {
+        "commits": 3,
+        "end_date": "2025-09-24",
+        "size_config": {
+          "size": 7
+        },
+        "start_date": "2025-09-17",
+        "strategy": "time",
+        "window_id": "w117"
+      },
+      {
+        "commits": 3,
+        "end_date": "2025-10-01",
+        "size_config": {
+          "size": 7
+        },
+        "start_date": "2025-09-24",
+        "strategy": "time",
+        "window_id": "w118"
+      },
+      {
+        "commits": 3,
+        "end_date": "2025-10-08",
+        "size_config": {
+          "size": 7
+        },
+        "start_date": "2025-10-01",
+        "strategy": "time",
+        "window_id": "w119"
+      },
+      {
+        "commits": 3,
+        "end_date": "2025-10-15",
+        "size_config": {
+          "size": 7
+        },
+        "start_date": "2025-10-08",
+        "strategy": "time",
+        "window_id": "w120"
+      },
+      {
+        "commits": 3,
+        "end_date": "2025-10-22",
+        "size_config": {
+          "size": 7
+        },
+        "start_date": "2025-10-15",
+        "strategy": "time",
+        "window_id": "w121"
+      },
+      {
+        "commits": 3,
+        "end_date": "2025-10-29",
+        "size_config": {
+          "size": 7
+        },
+        "start_date": "2025-10-22",
+        "strategy": "time",
+        "window_id": "w122"
+      },
+      {
+        "commits": 3,
+        "end_date": "2025-11-05",
+        "size_config": {
+          "size": 7
+        },
+        "start_date": "2025-10-29",
+        "strategy": "time",
+        "window_id": "w123"
+      },
+      {
+        "commits": 3,
+        "end_date": "2025-11-12",
+        "size_config": {
+          "size": 7
+        },
+        "start_date": "2025-11-05",
+        "strategy": "time",
+        "window_id": "w124"
+      },
+      {
+        "commits": 3,
+        "end_date": "2025-11-19",
+        "size_config": {
+          "size": 7
+        },
+        "start_date": "2025-11-12",
+        "strategy": "time",
+        "window_id": "w125"
+      },
+      {
+        "commits": 3,
+        "end_date": "2025-11-26",
+        "size_config": {
+          "size": 7
+        },
+        "start_date": "2025-11-19",
+        "strategy": "time",
+        "window_id": "w126"
+      },
+      {
+        "commits": 3,
+        "end_date": "2025-12-03",
+        "size_config": {
+          "size": 7
+        },
+        "start_date": "2025-11-26",
+        "strategy": "time",
+        "window_id": "w127"
+      },
+      {
+        "commits": 3,
+        "end_date": "2025-12-10",
+        "size_config": {
+          "size": 7
+        },
+        "start_date": "2025-12-03",
+        "strategy": "time",
+        "window_id": "w128"
+      },
+      {
+        "commits": 3,
+        "end_date": "2025-12-17",
+        "size_config": {
+          "size": 7
+        },
+        "start_date": "2025-12-10",
+        "strategy": "time",
+        "window_id": "w129"
+      },
+      {
+        "commits": 3,
+        "end_date": "2025-12-24",
+        "size_config": {
+          "size": 7
+        },
+        "start_date": "2025-12-17",
+        "strategy": "time",
+        "window_id": "w130"
+      },
+      {
+        "commits": 3,
+        "end_date": "2025-12-31",
+        "size_config": {
+          "size": 7
+        },
+        "start_date": "2025-12-24",
+        "strategy": "time",
+        "window_id": "w131"
+      },
+      {
+        "commits": 3,
+        "end_date": "2026-01-07",
+        "size_config": {
+          "size": 7
+        },
+        "start_date": "2025-12-31",
+        "strategy": "time",
+        "window_id": "w132"
+      },
+      {
+        "commits": 3,
+        "end_date": "2026-01-14",
+        "size_config": {
+          "size": 7
+        },
+        "start_date": "2026-01-07",
+        "strategy": "time",
+        "window_id": "w133"
+      },
+      {
+        "commits": 3,
+        "end_date": "2026-01-21",
+        "size_config": {
+          "size": 7
+        },
+        "start_date": "2026-01-14",
+        "strategy": "time",
+        "window_id": "w134"
+      },
+      {
+        "commits": 3,
+        "end_date": "2026-01-28",
+        "size_config": {
+          "size": 7
+        },
+        "start_date": "2026-01-21",
+        "strategy": "time",
+        "window_id": "w135"
+      },
+      {
+        "commits": 3,
+        "end_date": "2026-02-04",
+        "size_config": {
+          "size": 7
+        },
+        "start_date": "2026-01-28",
+        "strategy": "time",
+        "window_id": "w136"
+      },
+      {
+        "commits": 3,
+        "end_date": "2026-02-11",
+        "size_config": {
+          "size": 7
+        },
+        "start_date": "2026-02-04",
+        "strategy": "time",
+        "window_id": "w137"
+      },
+      {
+        "commits": 3,
+        "end_date": "2026-02-18",
+        "size_config": {
+          "size": 7
+        },
+        "start_date": "2026-02-11",
+        "strategy": "time",
+        "window_id": "w138"
+      },
+      {
+        "commits": 3,
+        "end_date": "2026-02-25",
+        "size_config": {
+          "size": 7
+        },
+        "start_date": "2026-02-18",
+        "strategy": "time",
+        "window_id": "w139"
+      },
+      {
+        "commits": 3,
+        "end_date": "2026-03-04",
+        "size_config": {
+          "size": 7
+        },
+        "start_date": "2026-02-25",
+        "strategy": "time",
+        "window_id": "w140"
+      },
+      {
+        "commits": 3,
+        "end_date": "2026-03-11",
+        "size_config": {
+          "size": 7
+        },
+        "start_date": "2026-03-04",
+        "strategy": "time",
+        "window_id": "w141"
+      },
+      {
+        "commits": 3,
+        "end_date": "2026-03-18",
+        "size_config": {
+          "size": 7
+        },
+        "start_date": "2026-03-11",
+        "strategy": "time",
+        "window_id": "w142"
+      },
+      {
+        "commits": 3,
+        "end_date": "2026-03-25",
+        "size_config": {
+          "size": 7
+        },
+        "start_date": "2026-03-18",
+        "strategy": "time",
+        "window_id": "w143"
+      },
+      {
+        "commits": 3,
+        "end_date": "2026-04-01",
+        "size_config": {
+          "size": 7
+        },
+        "start_date": "2026-03-25",
+        "strategy": "time",
+        "window_id": "w144"
+      },
+      {
+        "commits": 3,
+        "end_date": "2026-04-08",
+        "size_config": {
+          "size": 7
+        },
+        "start_date": "2026-04-01",
+        "strategy": "time",
+        "window_id": "w145"
+      },
+      {
+        "commits": 3,
+        "end_date": "2026-04-15",
+        "size_config": {
+          "size": 7
+        },
+        "start_date": "2026-04-08",
+        "strategy": "time",
+        "window_id": "w146"
+      },
+      {
+        "commits": 3,
+        "end_date": "2026-04-22",
+        "size_config": {
+          "size": 7
+        },
+        "start_date": "2026-04-15",
+        "strategy": "time",
+        "window_id": "w147"
+      },
+      {
+        "commits": 3,
+        "end_date": "2026-04-29",
+        "size_config": {
+          "size": 7
+        },
+        "start_date": "2026-04-22",
+        "strategy": "time",
+        "window_id": "w148"
+      },
+      {
+        "commits": 3,
+        "end_date": "2026-05-06",
+        "size_config": {
+          "size": 7
+        },
+        "start_date": "2026-04-29",
+        "strategy": "time",
+        "window_id": "w149"
+      },
+      {
+        "commits": 3,
+        "end_date": "2026-05-13",
+        "size_config": {
+          "size": 7
+        },
+        "start_date": "2026-05-06",
+        "strategy": "time",
+        "window_id": "w150"
+      },
+      {
+        "commits": 3,
+        "end_date": "2026-05-20",
+        "size_config": {
+          "size": 7
+        },
+        "start_date": "2026-05-13",
+        "strategy": "time",
+        "window_id": "w151"
+      },
+      {
+        "commits": 3,
+        "end_date": "2026-05-27",
+        "size_config": {
+          "size": 7
+        },
+        "start_date": "2026-05-20",
+        "strategy": "time",
+        "window_id": "w152"
+      },
+      {
+        "commits": 3,
+        "end_date": "2026-06-03",
+        "size_config": {
+          "size": 7
+        },
+        "start_date": "2026-05-27",
+        "strategy": "time",
+        "window_id": "w153"
+      },
+      {
+        "commits": 1,
+        "end_date": "2026-06-05",
+        "size_config": {
+          "size": 7
+        },
+        "start_date": "2026-06-03",
+        "strategy": "time",
+        "window_id": "w154"
+      }
+    ]
+  },
+  "metadata": {
+    "generated_at": "2026-07-04T11:51:44.556111",
+    "generator": "MIIE Report Generator",
+    "report_version": "1.0.0"
+  }
+}

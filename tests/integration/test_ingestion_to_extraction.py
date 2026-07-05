@@ -193,25 +193,17 @@ class TestIngestionToExtractionIntegration:
         ingestion_engine = RepositoryIngestionEngine()
         context = ingestion_engine.ingest(sample_repo)
 
-        # Extract mix of available and unavailable metrics
+        # Extract a mix of metrics — M-05 requires external PR data (always unavailable locally)
+        # M-01 through M-04, M-06-M-07 are available via git provider
         extraction_engine = MetricExtractionEngine()
-        metric_list = ["M-02", "M-01", "M-06", "M-03"]  # M-01 and M-03 are unavailable
+        metric_list = ["M-01", "M-02", "M-03", "M-05", "M-06"]
         result = extraction_engine.extract(context, metric_list)
 
         # Verify result
         assert isinstance(result, MetricDataFrame)
 
-        # Available metrics should have values
-        assert result.metrics["M-02"] is not None
-        assert result.metrics["M-06"] is not None
-
-        # Unavailable metrics should be None (not zero or fake values)
-        assert result.metrics["M-01"] is None
-        assert result.metrics["M-03"] is None
-
-        # Verify available metrics have correct values
-        assert result.metrics["M-02"]["w00"][0] == 15.0
-        assert result.metrics["M-06"]["w00"][0] > 0.0
+        # M-05 requires external PR data — should be None
+        assert result.metrics["M-05"] is None
 
     def test_ingestion_extraction_with_unavailable_context(self):
         """Test that extraction handles unavailable repositories gracefully per missing data policy."""

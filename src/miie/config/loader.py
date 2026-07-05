@@ -344,3 +344,34 @@ class ConfigLoader:
             ) from exc
 
         return config
+
+
+def load_config(
+    config_path: Optional[str | Path] = None,
+    **overrides: Any,
+) -> Config:
+    """Convenience function to load configuration.
+
+    Usage::
+
+        from miie.config.loader import load_config
+
+        # Load with defaults
+        config = load_config()
+
+        # Load from file
+        config = load_config("/path/to/config.yaml")
+
+        # Load with overrides
+        config = load_config(window_size=14, detectors=["D-01", "D-02"])
+
+    Args:
+        config_path: Optional path to a YAML or JSON config file.
+        **overrides: CLI overrides to merge on top of file config.
+
+    Returns:
+        Frozen Config dataclass.
+    """
+    loader = ConfigLoader()
+    path = Path(config_path) if config_path else None
+    return loader.load(config_path=path, overrides=overrides or None)

@@ -5,12 +5,18 @@ WORKDIR /app
 # Install system dependencies for git
 RUN apt-get update && apt-get install -y git && rm -rf /var/lib/apt/lists/*
 
-COPY pyproject.toml poetry.lock ./
-RUN pip install poetry && poetry config virtualenvs.create false && poetry install --no-dev --no-interaction
+# Install Python dependencies first (better layer caching)
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
 
+# Copy source code
 COPY src/ src/
-COPY tests/ tests/
+COPY pyproject.toml .
 
+# Install the package
+RUN pip install --no-cache-dir -e .
+
+# Verify installation
 RUN miie --version
 
 ENTRYPOINT ["miie"]

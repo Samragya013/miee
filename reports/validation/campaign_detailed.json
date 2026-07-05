@@ -1,0 +1,3915 @@
+[
+  {
+    "repo_id": "A-02",
+    "analysis_ok": true,
+    "time_s": 114.67015027999878,
+    "is_score": null,
+    "cs_score": null,
+    "windows": 1103,
+    "observations": 0,
+    "sampling": {
+      "execution_traces": [
+        {
+          "detector_id": "D-01",
+          "evidence_generated": false,
+          "execution_decision": "skip",
+          "observation_count": 2206,
+          "readiness_state": "SKIPPED",
+          "required_sample": 20,
+          "sample_size": 6,
+          "skip_reason": "minimum observations per window is 6 (required: 10)",
+          "window_count": 56
+        },
+        {
+          "detector_id": "D-02",
+          "evidence_generated": false,
+          "execution_decision": "skip",
+          "observation_count": 2206,
+          "readiness_state": "SKIPPED",
+          "required_sample": 20,
+          "sample_size": 6,
+          "skip_reason": "minimum observations per window is 6 (required: 10)",
+          "window_count": 56
+        },
+        {
+          "detector_id": "D-03",
+          "evidence_generated": false,
+          "execution_decision": "skip",
+          "observation_count": 2206,
+          "readiness_state": "SKIPPED",
+          "required_sample": 20,
+          "sample_size": 6,
+          "skip_reason": "minimum observations per window is 6 (required: 20)",
+          "window_count": 56
+        }
+      ],
+      "plan": {
+        "alternatives_count": 7,
+        "chosen_score": 0.9765,
+        "chosen_strategy": "commit_count",
+        "chosen_window_size": 20,
+        "expected_obs_per_window": 20.1,
+        "expected_windows": 110,
+        "rejected_count": 0,
+        "scientific_confidence": "high",
+        "selection_rationale": "Selected commit_count (size=20) with score 0.98. Expected 110 windows with ~20 observations each."
+      },
+      "profile": {
+        "activity_class": "moderate",
+        "commit_count": 2206,
+        "commit_density": 0.286,
+        "metrics_available": [
+          "M-02",
+          "M-06"
+        ],
+        "observation_count": 2206,
+        "observation_density": 0.286,
+        "repo_age_days": 7714,
+        "scale": "medium",
+        "time_span_days": 7714,
+        "volatility": "stable"
+      },
+      "readiness": {
+        "detectors": [
+          {
+            "actual_obs_per_window": {
+              "w00": 40,
+              "w01": 40,
+              "w02": 40,
+              "w03": 40,
+              "w04": 40,
+              "w05": 40,
+              "w06": 40,
+              "w07": 40,
+              "w08": 40,
+              "w09": 40,
+              "w10": 40,
+              "w11": 40,
+              "w12": 40,
+              "w13": 40,
+              "w14": 40,
+              "w15": 40,
+              "w16": 40,
+              "w17": 40,
+              "w18": 40,
+              "w19": 40,
+              "w20": 40,
+              "w21": 40,
+              "w22": 40,
+              "w23": 40,
+              "w24": 40,
+              "w25": 40,
+              "w26": 40,
+              "w27": 40,
+              "w28": 40,
+              "w29": 40,
+              "w30": 40,
+              "w31": 40,
+              "w32": 40,
+              "w33": 40,
+              "w34": 40,
+              "w35": 40,
+              "w36": 40,
+              "w37": 40,
+              "w38": 40,
+              "w39": 40,
+              "w40": 40,
+              "w41": 40,
+              "w42": 40,
+              "w43": 40,
+              "w44": 40,
+              "w45": 40,
+              "w46": 40,
+              "w47": 40,
+              "w48": 40,
+              "w49": 40,
+              "w50": 40,
+              "w51": 40,
+              "w52": 40,
+              "w53": 40,
+              "w54": 40,
+              "w55": 6
+            },
+            "actual_windows": 56,
+            "detector_id": "D-01",
+            "execution_confidence": 0.0,
+            "recommendation": "Need 4 more observations per window (currently 6, required 10)",
+            "required_obs_per_window": 10,
+            "required_windows": 2,
+            "skip_reason": "minimum observations per window is 6 (required: 10)",
+            "state": "SKIPPED"
+          },
+          {
+            "actual_obs_per_window": {
+              "w00": 40,
+              "w01": 40,
+              "w02": 40,
+              "w03": 40,
+              "w04": 40,
+              "w05": 40,
+              "w06": 40,
+              "w07": 40,
+              "w08": 40,
+              "w09": 40,
+              "w10": 40,
+              "w11": 40,
+              "w12": 40,
+              "w13": 40,
+              "w14": 40,
+              "w15": 40,
+              "w16": 40,
+              "w17": 40,
+              "w18": 40,
+              "w19": 40,
+              "w20": 40,
+              "w21": 40,
+              "w22": 40,
+              "w23": 40,
+              "w24": 40,
+              "w25": 40,
+              "w26": 40,
+              "w27": 40,
+              "w28": 40,
+              "w29": 40,
+              "w30": 40,
+              "w31": 40,
+              "w32": 40,
+              "w33": 40,
+              "w34": 40,
+              "w35": 40,
+              "w36": 40,
+              "w37": 40,
+              "w38": 40,
+              "w39": 40,
+              "w40": 40,
+              "w41": 40,
+              "w42": 40,
+              "w43": 40,
+              "w44": 40,
+              "w45": 40,
+              "w46": 40,
+              "w47": 40,
+              "w48": 40,
+              "w49": 40,
+              "w50": 40,
+              "w51": 40,
+              "w52": 40,
+              "w53": 40,
+              "w54": 40,
+              "w55": 6
+            },
+            "actual_windows": 56,
+            "detector_id": "D-02",
+            "execution_confidence": 0.0,
+            "recommendation": "Need 4 more observations per window (currently 6, required 10)",
+            "required_obs_per_window": 10,
+            "required_windows": 2,
+            "skip_reason": "minimum observations per window is 6 (required: 10)",
+            "state": "SKIPPED"
+          },
+          {
+            "actual_obs_per_window": {
+              "w00": 40,
+              "w01": 40,
+              "w02": 40,
+              "w03": 40,
+              "w04": 40,
+              "w05": 40,
+              "w06": 40,
+              "w07": 40,
+              "w08": 40,
+              "w09": 40,
+              "w10": 40,
+              "w11": 40,
+              "w12": 40,
+              "w13": 40,
+              "w14": 40,
+              "w15": 40,
+              "w16": 40,
+              "w17": 40,
+              "w18": 40,
+              "w19": 40,
+              "w20": 40,
+              "w21": 40,
+              "w22": 40,
+              "w23": 40,
+              "w24": 40,
+              "w25": 40,
+              "w26": 40,
+              "w27": 40,
+              "w28": 40,
+              "w29": 40,
+              "w30": 40,
+              "w31": 40,
+              "w32": 40,
+              "w33": 40,
+              "w34": 40,
+              "w35": 40,
+              "w36": 40,
+              "w37": 40,
+              "w38": 40,
+              "w39": 40,
+              "w40": 40,
+              "w41": 40,
+              "w42": 40,
+              "w43": 40,
+              "w44": 40,
+              "w45": 40,
+              "w46": 40,
+              "w47": 40,
+              "w48": 40,
+              "w49": 40,
+              "w50": 40,
+              "w51": 40,
+              "w52": 40,
+              "w53": 40,
+              "w54": 40,
+              "w55": 6
+            },
+            "actual_windows": 56,
+            "detector_id": "D-03",
+            "execution_confidence": 0.0,
+            "recommendation": "Need 14 more observations per window (currently 6, required 20)",
+            "required_obs_per_window": 20,
+            "required_windows": 1,
+            "skip_reason": "minimum observations per window is 6 (required: 20)",
+            "state": "SKIPPED"
+          }
+        ],
+        "overall_state": "PARTIAL",
+        "partial_count": 0,
+        "ready_count": 0,
+        "skipped_count": 3
+      },
+      "warnings": [],
+      "window_summary": {
+        "strategy_used": "commit_count",
+        "total_observations": 2206,
+        "total_windows": 56,
+        "unassigned_observations": 0
+      }
+    },
+    "repo_meta": {
+      "id": "A-02",
+      "name": "git",
+      "cat": "A",
+      "cat_name": "Healthy & Stable",
+      "lang": "C",
+      "domain": "Developer Tools"
+    }
+  },
+  {
+    "repo_id": "A-03",
+    "analysis_ok": true,
+    "time_s": 4.239738464355469,
+    "is_score": null,
+    "cs_score": null,
+    "windows": 2,
+    "observations": 0,
+    "sampling": {
+      "execution_traces": [
+        {
+          "detector_id": "D-01",
+          "evidence_generated": false,
+          "execution_decision": "skip",
+          "observation_count": 4,
+          "readiness_state": "SKIPPED",
+          "required_sample": 20,
+          "sample_size": 4,
+          "skip_reason": "minimum observations per window is 4 (required: 10); only 1 window(s) (required: 2)",
+          "window_count": 1
+        },
+        {
+          "detector_id": "D-02",
+          "evidence_generated": false,
+          "execution_decision": "skip",
+          "observation_count": 4,
+          "readiness_state": "SKIPPED",
+          "required_sample": 20,
+          "sample_size": 4,
+          "skip_reason": "minimum observations per window is 4 (required: 10); only 1 window(s) (required: 2)",
+          "window_count": 1
+        },
+        {
+          "detector_id": "D-03",
+          "evidence_generated": false,
+          "execution_decision": "skip",
+          "observation_count": 4,
+          "readiness_state": "SKIPPED",
+          "required_sample": 20,
+          "sample_size": 4,
+          "skip_reason": "minimum observations per window is 4 (required: 20)",
+          "window_count": 1
+        }
+      ],
+      "plan": {
+        "alternatives_count": 0,
+        "chosen_score": 0.27,
+        "chosen_strategy": "commit_count",
+        "chosen_window_size": 10,
+        "expected_obs_per_window": 4.0,
+        "expected_windows": 1,
+        "rejected_count": 7,
+        "scientific_confidence": "low",
+        "selection_rationale": "No valid strategy found. Using commit_count (size=10) as best available option."
+      },
+      "profile": {
+        "activity_class": "moderate",
+        "commit_count": 4,
+        "commit_density": 0.5714,
+        "metrics_available": [
+          "M-02",
+          "M-06"
+        ],
+        "observation_count": 4,
+        "observation_density": 0.5714,
+        "repo_age_days": 7,
+        "scale": "tiny",
+        "time_span_days": 7,
+        "volatility": "stable"
+      },
+      "readiness": {
+        "detectors": [
+          {
+            "actual_obs_per_window": {
+              "w00": 4
+            },
+            "actual_windows": 1,
+            "detector_id": "D-01",
+            "execution_confidence": 0.0,
+            "recommendation": "Need 6 more observations per window (currently 4, required 10); Need 1 more window(s) (currently 1, required 2)",
+            "required_obs_per_window": 10,
+            "required_windows": 2,
+            "skip_reason": "minimum observations per window is 4 (required: 10); only 1 window(s) (required: 2)",
+            "state": "SKIPPED"
+          },
+          {
+            "actual_obs_per_window": {
+              "w00": 4
+            },
+            "actual_windows": 1,
+            "detector_id": "D-02",
+            "execution_confidence": 0.0,
+            "recommendation": "Need 6 more observations per window (currently 4, required 10); Need 1 more window(s) (currently 1, required 2)",
+            "required_obs_per_window": 10,
+            "required_windows": 2,
+            "skip_reason": "minimum observations per window is 4 (required: 10); only 1 window(s) (required: 2)",
+            "state": "SKIPPED"
+          },
+          {
+            "actual_obs_per_window": {
+              "w00": 4
+            },
+            "actual_windows": 1,
+            "detector_id": "D-03",
+            "execution_confidence": 0.0,
+            "recommendation": "Need 16 more observations per window (currently 4, required 20)",
+            "required_obs_per_window": 20,
+            "required_windows": 1,
+            "skip_reason": "minimum observations per window is 4 (required: 20)",
+            "state": "SKIPPED"
+          }
+        ],
+        "overall_state": "PARTIAL",
+        "partial_count": 0,
+        "ready_count": 0,
+        "skipped_count": 3
+      },
+      "warnings": [],
+      "window_summary": {
+        "strategy_used": "commit_count",
+        "total_observations": 4,
+        "total_windows": 1,
+        "unassigned_observations": 0
+      }
+    },
+    "repo_meta": {
+      "id": "A-03",
+      "name": "cpython",
+      "cat": "A",
+      "cat_name": "Healthy & Stable",
+      "lang": "Python/C",
+      "domain": "Programming Languages"
+    }
+  },
+  {
+    "repo_id": "A-04",
+    "analysis_ok": false,
+    "error": "timeout",
+    "repo_meta": {
+      "id": "A-04",
+      "name": "rust",
+      "cat": "A",
+      "cat_name": "Healthy & Stable",
+      "lang": "Rust",
+      "domain": "Programming Languages"
+    }
+  },
+  {
+    "repo_id": "A-05",
+    "analysis_ok": true,
+    "time_s": 6.603475093841553,
+    "is_score": null,
+    "cs_score": null,
+    "windows": 4,
+    "observations": 0,
+    "sampling": {
+      "execution_traces": [
+        {
+          "detector_id": "D-01",
+          "evidence_generated": false,
+          "execution_decision": "skip",
+          "observation_count": 8,
+          "readiness_state": "SKIPPED",
+          "required_sample": 20,
+          "sample_size": 8,
+          "skip_reason": "minimum observations per window is 8 (required: 10); only 1 window(s) (required: 2)",
+          "window_count": 1
+        },
+        {
+          "detector_id": "D-02",
+          "evidence_generated": false,
+          "execution_decision": "skip",
+          "observation_count": 8,
+          "readiness_state": "SKIPPED",
+          "required_sample": 20,
+          "sample_size": 8,
+          "skip_reason": "minimum observations per window is 8 (required: 10); only 1 window(s) (required: 2)",
+          "window_count": 1
+        },
+        {
+          "detector_id": "D-03",
+          "evidence_generated": false,
+          "execution_decision": "skip",
+          "observation_count": 8,
+          "readiness_state": "SKIPPED",
+          "required_sample": 20,
+          "sample_size": 8,
+          "skip_reason": "minimum observations per window is 8 (required: 20)",
+          "window_count": 1
+        }
+      ],
+      "plan": {
+        "alternatives_count": 0,
+        "chosen_score": 0.34,
+        "chosen_strategy": "commit_count",
+        "chosen_window_size": 10,
+        "expected_obs_per_window": 8.0,
+        "expected_windows": 1,
+        "rejected_count": 7,
+        "scientific_confidence": "low",
+        "selection_rationale": "No valid strategy found. Using commit_count (size=10) as best available option."
+      },
+      "profile": {
+        "activity_class": "moderate",
+        "commit_count": 8,
+        "commit_density": 0.381,
+        "metrics_available": [
+          "M-02",
+          "M-06"
+        ],
+        "observation_count": 8,
+        "observation_density": 0.381,
+        "repo_age_days": 21,
+        "scale": "tiny",
+        "time_span_days": 21,
+        "volatility": "stable"
+      },
+      "readiness": {
+        "detectors": [
+          {
+            "actual_obs_per_window": {
+              "w00": 8
+            },
+            "actual_windows": 1,
+            "detector_id": "D-01",
+            "execution_confidence": 0.0,
+            "recommendation": "Need 2 more observations per window (currently 8, required 10); Need 1 more window(s) (currently 1, required 2)",
+            "required_obs_per_window": 10,
+            "required_windows": 2,
+            "skip_reason": "minimum observations per window is 8 (required: 10); only 1 window(s) (required: 2)",
+            "state": "SKIPPED"
+          },
+          {
+            "actual_obs_per_window": {
+              "w00": 8
+            },
+            "actual_windows": 1,
+            "detector_id": "D-02",
+            "execution_confidence": 0.0,
+            "recommendation": "Need 2 more observations per window (currently 8, required 10); Need 1 more window(s) (currently 1, required 2)",
+            "required_obs_per_window": 10,
+            "required_windows": 2,
+            "skip_reason": "minimum observations per window is 8 (required: 10); only 1 window(s) (required: 2)",
+            "state": "SKIPPED"
+          },
+          {
+            "actual_obs_per_window": {
+              "w00": 8
+            },
+            "actual_windows": 1,
+            "detector_id": "D-03",
+            "execution_confidence": 0.0,
+            "recommendation": "Need 12 more observations per window (currently 8, required 20)",
+            "required_obs_per_window": 20,
+            "required_windows": 1,
+            "skip_reason": "minimum observations per window is 8 (required: 20)",
+            "state": "SKIPPED"
+          }
+        ],
+        "overall_state": "PARTIAL",
+        "partial_count": 0,
+        "ready_count": 0,
+        "skipped_count": 3
+      },
+      "warnings": [],
+      "window_summary": {
+        "strategy_used": "commit_count",
+        "total_observations": 8,
+        "total_windows": 1,
+        "unassigned_observations": 0
+      }
+    },
+    "repo_meta": {
+      "id": "A-05",
+      "name": "go",
+      "cat": "A",
+      "cat_name": "Healthy & Stable",
+      "lang": "Go",
+      "domain": "Programming Languages"
+    }
+  },
+  {
+    "repo_id": "B-01",
+    "analysis_ok": true,
+    "time_s": 4.527506113052368,
+    "is_score": null,
+    "cs_score": null,
+    "windows": 3,
+    "observations": 0,
+    "sampling": {
+      "execution_traces": [
+        {
+          "detector_id": "D-01",
+          "evidence_generated": false,
+          "execution_decision": "skip",
+          "observation_count": 6,
+          "readiness_state": "SKIPPED",
+          "required_sample": 20,
+          "sample_size": 6,
+          "skip_reason": "minimum observations per window is 6 (required: 10); only 1 window(s) (required: 2)",
+          "window_count": 1
+        },
+        {
+          "detector_id": "D-02",
+          "evidence_generated": false,
+          "execution_decision": "skip",
+          "observation_count": 6,
+          "readiness_state": "SKIPPED",
+          "required_sample": 20,
+          "sample_size": 6,
+          "skip_reason": "minimum observations per window is 6 (required: 10); only 1 window(s) (required: 2)",
+          "window_count": 1
+        },
+        {
+          "detector_id": "D-03",
+          "evidence_generated": false,
+          "execution_decision": "skip",
+          "observation_count": 6,
+          "readiness_state": "SKIPPED",
+          "required_sample": 20,
+          "sample_size": 6,
+          "skip_reason": "minimum observations per window is 6 (required: 20)",
+          "window_count": 1
+        }
+      ],
+      "plan": {
+        "alternatives_count": 0,
+        "chosen_score": 0.305,
+        "chosen_strategy": "commit_count",
+        "chosen_window_size": 10,
+        "expected_obs_per_window": 6.0,
+        "expected_windows": 1,
+        "rejected_count": 7,
+        "scientific_confidence": "low",
+        "selection_rationale": "No valid strategy found. Using commit_count (size=10) as best available option."
+      },
+      "profile": {
+        "activity_class": "moderate",
+        "commit_count": 6,
+        "commit_density": 0.4286,
+        "metrics_available": [
+          "M-02",
+          "M-06"
+        ],
+        "observation_count": 6,
+        "observation_density": 0.4286,
+        "repo_age_days": 14,
+        "scale": "tiny",
+        "time_span_days": 14,
+        "volatility": "stable"
+      },
+      "readiness": {
+        "detectors": [
+          {
+            "actual_obs_per_window": {
+              "w00": 6
+            },
+            "actual_windows": 1,
+            "detector_id": "D-01",
+            "execution_confidence": 0.0,
+            "recommendation": "Need 4 more observations per window (currently 6, required 10); Need 1 more window(s) (currently 1, required 2)",
+            "required_obs_per_window": 10,
+            "required_windows": 2,
+            "skip_reason": "minimum observations per window is 6 (required: 10); only 1 window(s) (required: 2)",
+            "state": "SKIPPED"
+          },
+          {
+            "actual_obs_per_window": {
+              "w00": 6
+            },
+            "actual_windows": 1,
+            "detector_id": "D-02",
+            "execution_confidence": 0.0,
+            "recommendation": "Need 4 more observations per window (currently 6, required 10); Need 1 more window(s) (currently 1, required 2)",
+            "required_obs_per_window": 10,
+            "required_windows": 2,
+            "skip_reason": "minimum observations per window is 6 (required: 10); only 1 window(s) (required: 2)",
+            "state": "SKIPPED"
+          },
+          {
+            "actual_obs_per_window": {
+              "w00": 6
+            },
+            "actual_windows": 1,
+            "detector_id": "D-03",
+            "execution_confidence": 0.0,
+            "recommendation": "Need 14 more observations per window (currently 6, required 20)",
+            "required_obs_per_window": 20,
+            "required_windows": 1,
+            "skip_reason": "minimum observations per window is 6 (required: 20)",
+            "state": "SKIPPED"
+          }
+        ],
+        "overall_state": "PARTIAL",
+        "partial_count": 0,
+        "ready_count": 0,
+        "skipped_count": 3
+      },
+      "warnings": [],
+      "window_summary": {
+        "strategy_used": "commit_count",
+        "total_observations": 6,
+        "total_windows": 1,
+        "unassigned_observations": 0
+      }
+    },
+    "repo_meta": {
+      "id": "B-01",
+      "name": "transformers",
+      "cat": "B",
+      "cat_name": "Fast-Growth",
+      "lang": "Python",
+      "domain": "AI / ML"
+    }
+  },
+  {
+    "repo_id": "B-02",
+    "analysis_ok": true,
+    "time_s": 4.039294242858887,
+    "is_score": null,
+    "cs_score": null,
+    "windows": 3,
+    "observations": 0,
+    "sampling": {
+      "execution_traces": [
+        {
+          "detector_id": "D-01",
+          "evidence_generated": false,
+          "execution_decision": "skip",
+          "observation_count": 6,
+          "readiness_state": "SKIPPED",
+          "required_sample": 20,
+          "sample_size": 6,
+          "skip_reason": "minimum observations per window is 6 (required: 10); only 1 window(s) (required: 2)",
+          "window_count": 1
+        },
+        {
+          "detector_id": "D-02",
+          "evidence_generated": false,
+          "execution_decision": "skip",
+          "observation_count": 6,
+          "readiness_state": "SKIPPED",
+          "required_sample": 20,
+          "sample_size": 6,
+          "skip_reason": "minimum observations per window is 6 (required: 10); only 1 window(s) (required: 2)",
+          "window_count": 1
+        },
+        {
+          "detector_id": "D-03",
+          "evidence_generated": false,
+          "execution_decision": "skip",
+          "observation_count": 6,
+          "readiness_state": "SKIPPED",
+          "required_sample": 20,
+          "sample_size": 6,
+          "skip_reason": "minimum observations per window is 6 (required: 20)",
+          "window_count": 1
+        }
+      ],
+      "plan": {
+        "alternatives_count": 0,
+        "chosen_score": 0.305,
+        "chosen_strategy": "commit_count",
+        "chosen_window_size": 10,
+        "expected_obs_per_window": 6.0,
+        "expected_windows": 1,
+        "rejected_count": 7,
+        "scientific_confidence": "low",
+        "selection_rationale": "No valid strategy found. Using commit_count (size=10) as best available option."
+      },
+      "profile": {
+        "activity_class": "moderate",
+        "commit_count": 6,
+        "commit_density": 0.4286,
+        "metrics_available": [
+          "M-02",
+          "M-06"
+        ],
+        "observation_count": 6,
+        "observation_density": 0.4286,
+        "repo_age_days": 14,
+        "scale": "tiny",
+        "time_span_days": 14,
+        "volatility": "stable"
+      },
+      "readiness": {
+        "detectors": [
+          {
+            "actual_obs_per_window": {
+              "w00": 6
+            },
+            "actual_windows": 1,
+            "detector_id": "D-01",
+            "execution_confidence": 0.0,
+            "recommendation": "Need 4 more observations per window (currently 6, required 10); Need 1 more window(s) (currently 1, required 2)",
+            "required_obs_per_window": 10,
+            "required_windows": 2,
+            "skip_reason": "minimum observations per window is 6 (required: 10); only 1 window(s) (required: 2)",
+            "state": "SKIPPED"
+          },
+          {
+            "actual_obs_per_window": {
+              "w00": 6
+            },
+            "actual_windows": 1,
+            "detector_id": "D-02",
+            "execution_confidence": 0.0,
+            "recommendation": "Need 4 more observations per window (currently 6, required 10); Need 1 more window(s) (currently 1, required 2)",
+            "required_obs_per_window": 10,
+            "required_windows": 2,
+            "skip_reason": "minimum observations per window is 6 (required: 10); only 1 window(s) (required: 2)",
+            "state": "SKIPPED"
+          },
+          {
+            "actual_obs_per_window": {
+              "w00": 6
+            },
+            "actual_windows": 1,
+            "detector_id": "D-03",
+            "execution_confidence": 0.0,
+            "recommendation": "Need 14 more observations per window (currently 6, required 20)",
+            "required_obs_per_window": 20,
+            "required_windows": 1,
+            "skip_reason": "minimum observations per window is 6 (required: 20)",
+            "state": "SKIPPED"
+          }
+        ],
+        "overall_state": "PARTIAL",
+        "partial_count": 0,
+        "ready_count": 0,
+        "skipped_count": 3
+      },
+      "warnings": [],
+      "window_summary": {
+        "strategy_used": "commit_count",
+        "total_observations": 6,
+        "total_windows": 1,
+        "unassigned_observations": 0
+      }
+    },
+    "repo_meta": {
+      "id": "B-02",
+      "name": "langchain",
+      "cat": "B",
+      "cat_name": "Fast-Growth",
+      "lang": "Python",
+      "domain": "AI / LLM"
+    }
+  },
+  {
+    "repo_id": "B-03",
+    "analysis_ok": true,
+    "time_s": 4.650841236114502,
+    "is_score": null,
+    "cs_score": null,
+    "windows": 12,
+    "observations": 0,
+    "sampling": {
+      "execution_traces": [
+        {
+          "detector_id": "D-01",
+          "evidence_generated": false,
+          "execution_decision": "skip",
+          "observation_count": 24,
+          "readiness_state": "SKIPPED",
+          "required_sample": 20,
+          "sample_size": 4,
+          "skip_reason": "minimum observations per window is 4 (required: 10)",
+          "window_count": 2
+        },
+        {
+          "detector_id": "D-02",
+          "evidence_generated": false,
+          "execution_decision": "skip",
+          "observation_count": 24,
+          "readiness_state": "SKIPPED",
+          "required_sample": 20,
+          "sample_size": 4,
+          "skip_reason": "minimum observations per window is 4 (required: 10)",
+          "window_count": 2
+        },
+        {
+          "detector_id": "D-03",
+          "evidence_generated": false,
+          "execution_decision": "skip",
+          "observation_count": 24,
+          "readiness_state": "SKIPPED",
+          "required_sample": 20,
+          "sample_size": 4,
+          "skip_reason": "minimum observations per window is 4 (required: 20)",
+          "window_count": 2
+        }
+      ],
+      "plan": {
+        "alternatives_count": 2,
+        "chosen_score": 0.6293,
+        "chosen_strategy": "commit_count",
+        "chosen_window_size": 10,
+        "expected_obs_per_window": 12.0,
+        "expected_windows": 2,
+        "rejected_count": 5,
+        "scientific_confidence": "medium",
+        "selection_rationale": "Selected commit_count (size=10) with score 0.63. Expected 2 windows with ~12 observations each."
+      },
+      "profile": {
+        "activity_class": "moderate",
+        "commit_count": 24,
+        "commit_density": 0.3117,
+        "metrics_available": [
+          "M-02",
+          "M-06"
+        ],
+        "observation_count": 24,
+        "observation_density": 0.3117,
+        "repo_age_days": 77,
+        "scale": "tiny",
+        "time_span_days": 77,
+        "volatility": "stable"
+      },
+      "readiness": {
+        "detectors": [
+          {
+            "actual_obs_per_window": {
+              "w00": 20,
+              "w01": 4
+            },
+            "actual_windows": 2,
+            "detector_id": "D-01",
+            "execution_confidence": 0.0,
+            "recommendation": "Need 6 more observations per window (currently 4, required 10)",
+            "required_obs_per_window": 10,
+            "required_windows": 2,
+            "skip_reason": "minimum observations per window is 4 (required: 10)",
+            "state": "SKIPPED"
+          },
+          {
+            "actual_obs_per_window": {
+              "w00": 20,
+              "w01": 4
+            },
+            "actual_windows": 2,
+            "detector_id": "D-02",
+            "execution_confidence": 0.0,
+            "recommendation": "Need 6 more observations per window (currently 4, required 10)",
+            "required_obs_per_window": 10,
+            "required_windows": 2,
+            "skip_reason": "minimum observations per window is 4 (required: 10)",
+            "state": "SKIPPED"
+          },
+          {
+            "actual_obs_per_window": {
+              "w00": 20,
+              "w01": 4
+            },
+            "actual_windows": 2,
+            "detector_id": "D-03",
+            "execution_confidence": 0.0,
+            "recommendation": "Need 16 more observations per window (currently 4, required 20)",
+            "required_obs_per_window": 20,
+            "required_windows": 1,
+            "skip_reason": "minimum observations per window is 4 (required: 20)",
+            "state": "SKIPPED"
+          }
+        ],
+        "overall_state": "PARTIAL",
+        "partial_count": 0,
+        "ready_count": 0,
+        "skipped_count": 3
+      },
+      "warnings": [],
+      "window_summary": {
+        "strategy_used": "commit_count",
+        "total_observations": 24,
+        "total_windows": 2,
+        "unassigned_observations": 0
+      }
+    },
+    "repo_meta": {
+      "id": "B-03",
+      "name": "ollama",
+      "cat": "B",
+      "cat_name": "Fast-Growth",
+      "lang": "Go",
+      "domain": "AI / LLM"
+    }
+  },
+  {
+    "repo_id": "B-04",
+    "analysis_ok": true,
+    "time_s": 7.5779478549957275,
+    "is_score": null,
+    "cs_score": null,
+    "windows": 3,
+    "observations": 0,
+    "sampling": {
+      "execution_traces": [
+        {
+          "detector_id": "D-01",
+          "evidence_generated": false,
+          "execution_decision": "skip",
+          "observation_count": 6,
+          "readiness_state": "SKIPPED",
+          "required_sample": 20,
+          "sample_size": 6,
+          "skip_reason": "minimum observations per window is 6 (required: 10); only 1 window(s) (required: 2)",
+          "window_count": 1
+        },
+        {
+          "detector_id": "D-02",
+          "evidence_generated": false,
+          "execution_decision": "skip",
+          "observation_count": 6,
+          "readiness_state": "SKIPPED",
+          "required_sample": 20,
+          "sample_size": 6,
+          "skip_reason": "minimum observations per window is 6 (required: 10); only 1 window(s) (required: 2)",
+          "window_count": 1
+        },
+        {
+          "detector_id": "D-03",
+          "evidence_generated": false,
+          "execution_decision": "skip",
+          "observation_count": 6,
+          "readiness_state": "SKIPPED",
+          "required_sample": 20,
+          "sample_size": 6,
+          "skip_reason": "minimum observations per window is 6 (required: 20)",
+          "window_count": 1
+        }
+      ],
+      "plan": {
+        "alternatives_count": 0,
+        "chosen_score": 0.305,
+        "chosen_strategy": "commit_count",
+        "chosen_window_size": 10,
+        "expected_obs_per_window": 6.0,
+        "expected_windows": 1,
+        "rejected_count": 7,
+        "scientific_confidence": "low",
+        "selection_rationale": "No valid strategy found. Using commit_count (size=10) as best available option."
+      },
+      "profile": {
+        "activity_class": "moderate",
+        "commit_count": 6,
+        "commit_density": 0.4286,
+        "metrics_available": [
+          "M-02",
+          "M-06"
+        ],
+        "observation_count": 6,
+        "observation_density": 0.4286,
+        "repo_age_days": 14,
+        "scale": "tiny",
+        "time_span_days": 14,
+        "volatility": "stable"
+      },
+      "readiness": {
+        "detectors": [
+          {
+            "actual_obs_per_window": {
+              "w00": 6
+            },
+            "actual_windows": 1,
+            "detector_id": "D-01",
+            "execution_confidence": 0.0,
+            "recommendation": "Need 4 more observations per window (currently 6, required 10); Need 1 more window(s) (currently 1, required 2)",
+            "required_obs_per_window": 10,
+            "required_windows": 2,
+            "skip_reason": "minimum observations per window is 6 (required: 10); only 1 window(s) (required: 2)",
+            "state": "SKIPPED"
+          },
+          {
+            "actual_obs_per_window": {
+              "w00": 6
+            },
+            "actual_windows": 1,
+            "detector_id": "D-02",
+            "execution_confidence": 0.0,
+            "recommendation": "Need 4 more observations per window (currently 6, required 10); Need 1 more window(s) (currently 1, required 2)",
+            "required_obs_per_window": 10,
+            "required_windows": 2,
+            "skip_reason": "minimum observations per window is 6 (required: 10); only 1 window(s) (required: 2)",
+            "state": "SKIPPED"
+          },
+          {
+            "actual_obs_per_window": {
+              "w00": 6
+            },
+            "actual_windows": 1,
+            "detector_id": "D-03",
+            "execution_confidence": 0.0,
+            "recommendation": "Need 14 more observations per window (currently 6, required 20)",
+            "required_obs_per_window": 20,
+            "required_windows": 1,
+            "skip_reason": "minimum observations per window is 6 (required: 20)",
+            "state": "SKIPPED"
+          }
+        ],
+        "overall_state": "PARTIAL",
+        "partial_count": 0,
+        "ready_count": 0,
+        "skipped_count": 3
+      },
+      "warnings": [],
+      "window_summary": {
+        "strategy_used": "commit_count",
+        "total_observations": 6,
+        "total_windows": 1,
+        "unassigned_observations": 0
+      }
+    },
+    "repo_meta": {
+      "id": "B-04",
+      "name": "next.js",
+      "cat": "B",
+      "cat_name": "Fast-Growth",
+      "lang": "TypeScript",
+      "domain": "Web Frameworks"
+    }
+  },
+  {
+    "repo_id": "B-05",
+    "analysis_ok": true,
+    "time_s": 4.19978404045105,
+    "is_score": null,
+    "cs_score": null,
+    "windows": 3,
+    "observations": 0,
+    "sampling": {
+      "execution_traces": [
+        {
+          "detector_id": "D-01",
+          "evidence_generated": false,
+          "execution_decision": "skip",
+          "observation_count": 6,
+          "readiness_state": "SKIPPED",
+          "required_sample": 20,
+          "sample_size": 6,
+          "skip_reason": "minimum observations per window is 6 (required: 10); only 1 window(s) (required: 2)",
+          "window_count": 1
+        },
+        {
+          "detector_id": "D-02",
+          "evidence_generated": false,
+          "execution_decision": "skip",
+          "observation_count": 6,
+          "readiness_state": "SKIPPED",
+          "required_sample": 20,
+          "sample_size": 6,
+          "skip_reason": "minimum observations per window is 6 (required: 10); only 1 window(s) (required: 2)",
+          "window_count": 1
+        },
+        {
+          "detector_id": "D-03",
+          "evidence_generated": false,
+          "execution_decision": "skip",
+          "observation_count": 6,
+          "readiness_state": "SKIPPED",
+          "required_sample": 20,
+          "sample_size": 6,
+          "skip_reason": "minimum observations per window is 6 (required: 20)",
+          "window_count": 1
+        }
+      ],
+      "plan": {
+        "alternatives_count": 0,
+        "chosen_score": 0.305,
+        "chosen_strategy": "commit_count",
+        "chosen_window_size": 10,
+        "expected_obs_per_window": 6.0,
+        "expected_windows": 1,
+        "rejected_count": 7,
+        "scientific_confidence": "low",
+        "selection_rationale": "No valid strategy found. Using commit_count (size=10) as best available option."
+      },
+      "profile": {
+        "activity_class": "moderate",
+        "commit_count": 6,
+        "commit_density": 0.4286,
+        "metrics_available": [
+          "M-02",
+          "M-06"
+        ],
+        "observation_count": 6,
+        "observation_density": 0.4286,
+        "repo_age_days": 14,
+        "scale": "tiny",
+        "time_span_days": 14,
+        "volatility": "stable"
+      },
+      "readiness": {
+        "detectors": [
+          {
+            "actual_obs_per_window": {
+              "w00": 6
+            },
+            "actual_windows": 1,
+            "detector_id": "D-01",
+            "execution_confidence": 0.0,
+            "recommendation": "Need 4 more observations per window (currently 6, required 10); Need 1 more window(s) (currently 1, required 2)",
+            "required_obs_per_window": 10,
+            "required_windows": 2,
+            "skip_reason": "minimum observations per window is 6 (required: 10); only 1 window(s) (required: 2)",
+            "state": "SKIPPED"
+          },
+          {
+            "actual_obs_per_window": {
+              "w00": 6
+            },
+            "actual_windows": 1,
+            "detector_id": "D-02",
+            "execution_confidence": 0.0,
+            "recommendation": "Need 4 more observations per window (currently 6, required 10); Need 1 more window(s) (currently 1, required 2)",
+            "required_obs_per_window": 10,
+            "required_windows": 2,
+            "skip_reason": "minimum observations per window is 6 (required: 10); only 1 window(s) (required: 2)",
+            "state": "SKIPPED"
+          },
+          {
+            "actual_obs_per_window": {
+              "w00": 6
+            },
+            "actual_windows": 1,
+            "detector_id": "D-03",
+            "execution_confidence": 0.0,
+            "recommendation": "Need 14 more observations per window (currently 6, required 20)",
+            "required_obs_per_window": 20,
+            "required_windows": 1,
+            "skip_reason": "minimum observations per window is 6 (required: 20)",
+            "state": "SKIPPED"
+          }
+        ],
+        "overall_state": "PARTIAL",
+        "partial_count": 0,
+        "ready_count": 0,
+        "skipped_count": 3
+      },
+      "warnings": [],
+      "window_summary": {
+        "strategy_used": "commit_count",
+        "total_observations": 6,
+        "total_windows": 1,
+        "unassigned_observations": 0
+      }
+    },
+    "repo_meta": {
+      "id": "B-05",
+      "name": "deno",
+      "cat": "B",
+      "cat_name": "Fast-Growth",
+      "lang": "Rust",
+      "domain": "Runtime"
+    }
+  },
+  {
+    "repo_id": "C-01",
+    "analysis_ok": true,
+    "time_s": 2.3389272689819336,
+    "is_score": null,
+    "cs_score": null,
+    "windows": 208,
+    "observations": 0,
+    "sampling": {
+      "execution_traces": [
+        {
+          "detector_id": "D-01",
+          "evidence_generated": false,
+          "execution_decision": "execute",
+          "observation_count": 416,
+          "readiness_state": "READY",
+          "required_sample": 20,
+          "sample_size": 16,
+          "skip_reason": "",
+          "window_count": 11
+        },
+        {
+          "detector_id": "D-02",
+          "evidence_generated": false,
+          "execution_decision": "execute",
+          "observation_count": 416,
+          "readiness_state": "READY",
+          "required_sample": 20,
+          "sample_size": 16,
+          "skip_reason": "",
+          "window_count": 11
+        },
+        {
+          "detector_id": "D-03",
+          "evidence_generated": false,
+          "execution_decision": "partial_execute",
+          "observation_count": 416,
+          "readiness_state": "PARTIAL",
+          "required_sample": 20,
+          "sample_size": 16,
+          "skip_reason": "minimum observations per window is 16 (required: 20)",
+          "window_count": 11
+        }
+      ],
+      "plan": {
+        "alternatives_count": 7,
+        "chosen_score": 0.9698,
+        "chosen_strategy": "commit_count",
+        "chosen_window_size": 20,
+        "expected_obs_per_window": 20.8,
+        "expected_windows": 20,
+        "rejected_count": 0,
+        "scientific_confidence": "high",
+        "selection_rationale": "Selected commit_count (size=20) with score 0.97. Expected 20 windows with ~21 observations each."
+      },
+      "profile": {
+        "activity_class": "moderate",
+        "commit_count": 416,
+        "commit_density": 0.2871,
+        "metrics_available": [
+          "M-02",
+          "M-06"
+        ],
+        "observation_count": 416,
+        "observation_density": 0.2871,
+        "repo_age_days": 1449,
+        "scale": "small",
+        "time_span_days": 1449,
+        "volatility": "stable"
+      },
+      "readiness": {
+        "detectors": [
+          {
+            "actual_obs_per_window": {
+              "w00": 40,
+              "w01": 40,
+              "w02": 40,
+              "w03": 40,
+              "w04": 40,
+              "w05": 40,
+              "w06": 40,
+              "w07": 40,
+              "w08": 40,
+              "w09": 40,
+              "w10": 16
+            },
+            "actual_windows": 11,
+            "detector_id": "D-01",
+            "execution_confidence": 1.0,
+            "recommendation": "",
+            "required_obs_per_window": 10,
+            "required_windows": 2,
+            "skip_reason": "",
+            "state": "READY"
+          },
+          {
+            "actual_obs_per_window": {
+              "w00": 40,
+              "w01": 40,
+              "w02": 40,
+              "w03": 40,
+              "w04": 40,
+              "w05": 40,
+              "w06": 40,
+              "w07": 40,
+              "w08": 40,
+              "w09": 40,
+              "w10": 16
+            },
+            "actual_windows": 11,
+            "detector_id": "D-02",
+            "execution_confidence": 1.0,
+            "recommendation": "",
+            "required_obs_per_window": 10,
+            "required_windows": 2,
+            "skip_reason": "",
+            "state": "READY"
+          },
+          {
+            "actual_obs_per_window": {
+              "w00": 40,
+              "w01": 40,
+              "w02": 40,
+              "w03": 40,
+              "w04": 40,
+              "w05": 40,
+              "w06": 40,
+              "w07": 40,
+              "w08": 40,
+              "w09": 40,
+              "w10": 16
+            },
+            "actual_windows": 11,
+            "detector_id": "D-03",
+            "execution_confidence": 0.5,
+            "recommendation": "Increase observations per window to 20 (currently 16)",
+            "required_obs_per_window": 20,
+            "required_windows": 1,
+            "skip_reason": "minimum observations per window is 16 (required: 20)",
+            "state": "PARTIAL"
+          }
+        ],
+        "overall_state": "PARTIAL",
+        "partial_count": 1,
+        "ready_count": 2,
+        "skipped_count": 0
+      },
+      "warnings": [],
+      "window_summary": {
+        "strategy_used": "commit_count",
+        "total_observations": 416,
+        "total_windows": 11,
+        "unassigned_observations": 0
+      }
+    },
+    "repo_meta": {
+      "id": "C-01",
+      "name": "gym",
+      "cat": "C",
+      "cat_name": "Archived / Maintenance",
+      "lang": "Python",
+      "domain": "AI / RL"
+    }
+  },
+  {
+    "repo_id": "C-02",
+    "analysis_ok": true,
+    "time_s": 3.970942735671997,
+    "is_score": null,
+    "cs_score": null,
+    "windows": 73,
+    "observations": 0,
+    "sampling": {
+      "execution_traces": [
+        {
+          "detector_id": "D-01",
+          "evidence_generated": false,
+          "execution_decision": "execute",
+          "observation_count": 146,
+          "readiness_state": "READY",
+          "required_sample": 20,
+          "sample_size": 26,
+          "skip_reason": "",
+          "window_count": 4
+        },
+        {
+          "detector_id": "D-02",
+          "evidence_generated": false,
+          "execution_decision": "execute",
+          "observation_count": 146,
+          "readiness_state": "READY",
+          "required_sample": 20,
+          "sample_size": 26,
+          "skip_reason": "",
+          "window_count": 4
+        },
+        {
+          "detector_id": "D-03",
+          "evidence_generated": false,
+          "execution_decision": "execute",
+          "observation_count": 146,
+          "readiness_state": "READY",
+          "required_sample": 20,
+          "sample_size": 26,
+          "skip_reason": "",
+          "window_count": 4
+        }
+      ],
+      "plan": {
+        "alternatives_count": 7,
+        "chosen_score": 0.974,
+        "chosen_strategy": "commit_count",
+        "chosen_window_size": 20,
+        "expected_obs_per_window": 20.9,
+        "expected_windows": 7,
+        "rejected_count": 0,
+        "scientific_confidence": "high",
+        "selection_rationale": "Selected commit_count (size=20) with score 0.97. Expected 7 windows with ~21 observations each."
+      },
+      "profile": {
+        "activity_class": "moderate",
+        "commit_count": 146,
+        "commit_density": 0.2897,
+        "metrics_available": [
+          "M-02",
+          "M-06"
+        ],
+        "observation_count": 146,
+        "observation_density": 0.2897,
+        "repo_age_days": 504,
+        "scale": "small",
+        "time_span_days": 504,
+        "volatility": "stable"
+      },
+      "readiness": {
+        "detectors": [
+          {
+            "actual_obs_per_window": {
+              "w00": 40,
+              "w01": 40,
+              "w02": 40,
+              "w03": 26
+            },
+            "actual_windows": 4,
+            "detector_id": "D-01",
+            "execution_confidence": 1.0,
+            "recommendation": "",
+            "required_obs_per_window": 10,
+            "required_windows": 2,
+            "skip_reason": "",
+            "state": "READY"
+          },
+          {
+            "actual_obs_per_window": {
+              "w00": 40,
+              "w01": 40,
+              "w02": 40,
+              "w03": 26
+            },
+            "actual_windows": 4,
+            "detector_id": "D-02",
+            "execution_confidence": 1.0,
+            "recommendation": "",
+            "required_obs_per_window": 10,
+            "required_windows": 2,
+            "skip_reason": "",
+            "state": "READY"
+          },
+          {
+            "actual_obs_per_window": {
+              "w00": 40,
+              "w01": 40,
+              "w02": 40,
+              "w03": 26
+            },
+            "actual_windows": 4,
+            "detector_id": "D-03",
+            "execution_confidence": 1.0,
+            "recommendation": "",
+            "required_obs_per_window": 20,
+            "required_windows": 1,
+            "skip_reason": "",
+            "state": "READY"
+          }
+        ],
+        "overall_state": "READY",
+        "partial_count": 0,
+        "ready_count": 3,
+        "skipped_count": 0
+      },
+      "warnings": [],
+      "window_summary": {
+        "strategy_used": "commit_count",
+        "total_observations": 146,
+        "total_windows": 4,
+        "unassigned_observations": 0
+      }
+    },
+    "repo_meta": {
+      "id": "C-02",
+      "name": "ParlAI",
+      "cat": "C",
+      "cat_name": "Archived / Maintenance",
+      "lang": "Python",
+      "domain": "AI / NLP"
+    }
+  },
+  {
+    "repo_id": "C-03",
+    "analysis_ok": true,
+    "time_s": 2.0155556201934814,
+    "is_score": null,
+    "cs_score": null,
+    "windows": 187,
+    "observations": 0,
+    "sampling": {
+      "execution_traces": [
+        {
+          "detector_id": "D-01",
+          "evidence_generated": false,
+          "execution_decision": "execute",
+          "observation_count": 374,
+          "readiness_state": "READY",
+          "required_sample": 20,
+          "sample_size": 14,
+          "skip_reason": "",
+          "window_count": 10
+        },
+        {
+          "detector_id": "D-02",
+          "evidence_generated": false,
+          "execution_decision": "execute",
+          "observation_count": 374,
+          "readiness_state": "READY",
+          "required_sample": 20,
+          "sample_size": 14,
+          "skip_reason": "",
+          "window_count": 10
+        },
+        {
+          "detector_id": "D-03",
+          "evidence_generated": false,
+          "execution_decision": "partial_execute",
+          "observation_count": 374,
+          "readiness_state": "PARTIAL",
+          "required_sample": 20,
+          "sample_size": 14,
+          "skip_reason": "minimum observations per window is 14 (required: 20)",
+          "window_count": 10
+        }
+      ],
+      "plan": {
+        "alternatives_count": 7,
+        "chosen_score": 0.9692,
+        "chosen_strategy": "commit_count",
+        "chosen_window_size": 20,
+        "expected_obs_per_window": 20.8,
+        "expected_windows": 18,
+        "rejected_count": 0,
+        "scientific_confidence": "high",
+        "selection_rationale": "Selected commit_count (size=20) with score 0.97. Expected 18 windows with ~21 observations each."
+      },
+      "profile": {
+        "activity_class": "moderate",
+        "commit_count": 374,
+        "commit_density": 0.2873,
+        "metrics_available": [
+          "M-02",
+          "M-06"
+        ],
+        "observation_count": 374,
+        "observation_density": 0.2873,
+        "repo_age_days": 1302,
+        "scale": "small",
+        "time_span_days": 1302,
+        "volatility": "stable"
+      },
+      "readiness": {
+        "detectors": [
+          {
+            "actual_obs_per_window": {
+              "w00": 40,
+              "w01": 40,
+              "w02": 40,
+              "w03": 40,
+              "w04": 40,
+              "w05": 40,
+              "w06": 40,
+              "w07": 40,
+              "w08": 40,
+              "w09": 14
+            },
+            "actual_windows": 10,
+            "detector_id": "D-01",
+            "execution_confidence": 1.0,
+            "recommendation": "",
+            "required_obs_per_window": 10,
+            "required_windows": 2,
+            "skip_reason": "",
+            "state": "READY"
+          },
+          {
+            "actual_obs_per_window": {
+              "w00": 40,
+              "w01": 40,
+              "w02": 40,
+              "w03": 40,
+              "w04": 40,
+              "w05": 40,
+              "w06": 40,
+              "w07": 40,
+              "w08": 40,
+              "w09": 14
+            },
+            "actual_windows": 10,
+            "detector_id": "D-02",
+            "execution_confidence": 1.0,
+            "recommendation": "",
+            "required_obs_per_window": 10,
+            "required_windows": 2,
+            "skip_reason": "",
+            "state": "READY"
+          },
+          {
+            "actual_obs_per_window": {
+              "w00": 40,
+              "w01": 40,
+              "w02": 40,
+              "w03": 40,
+              "w04": 40,
+              "w05": 40,
+              "w06": 40,
+              "w07": 40,
+              "w08": 40,
+              "w09": 14
+            },
+            "actual_windows": 10,
+            "detector_id": "D-03",
+            "execution_confidence": 0.5,
+            "recommendation": "Increase observations per window to 20 (currently 14)",
+            "required_obs_per_window": 20,
+            "required_windows": 1,
+            "skip_reason": "minimum observations per window is 14 (required: 20)",
+            "state": "PARTIAL"
+          }
+        ],
+        "overall_state": "PARTIAL",
+        "partial_count": 1,
+        "ready_count": 2,
+        "skipped_count": 0
+      },
+      "warnings": [],
+      "window_summary": {
+        "strategy_used": "commit_count",
+        "total_observations": 374,
+        "total_windows": 10,
+        "unassigned_observations": 0
+      }
+    },
+    "repo_meta": {
+      "id": "C-03",
+      "name": "yapf",
+      "cat": "C",
+      "cat_name": "Archived / Maintenance",
+      "lang": "Python",
+      "domain": "Developer Tools"
+    }
+  },
+  {
+    "repo_id": "C-04",
+    "analysis_ok": true,
+    "time_s": 66.37680864334106,
+    "is_score": null,
+    "cs_score": null,
+    "windows": 61,
+    "observations": 0,
+    "sampling": {
+      "execution_traces": [
+        {
+          "detector_id": "D-01",
+          "evidence_generated": false,
+          "execution_decision": "execute",
+          "observation_count": 122,
+          "readiness_state": "READY",
+          "required_sample": 20,
+          "sample_size": 40,
+          "skip_reason": "",
+          "window_count": 3
+        },
+        {
+          "detector_id": "D-02",
+          "evidence_generated": false,
+          "execution_decision": "execute",
+          "observation_count": 122,
+          "readiness_state": "READY",
+          "required_sample": 20,
+          "sample_size": 40,
+          "skip_reason": "",
+          "window_count": 3
+        },
+        {
+          "detector_id": "D-03",
+          "evidence_generated": false,
+          "execution_decision": "execute",
+          "observation_count": 122,
+          "readiness_state": "READY",
+          "required_sample": 20,
+          "sample_size": 40,
+          "skip_reason": "",
+          "window_count": 3
+        }
+      ],
+      "plan": {
+        "alternatives_count": 7,
+        "chosen_score": 0.9511,
+        "chosen_strategy": "commit_count",
+        "chosen_window_size": 20,
+        "expected_obs_per_window": 20.3,
+        "expected_windows": 6,
+        "rejected_count": 0,
+        "scientific_confidence": "high",
+        "selection_rationale": "Selected commit_count (size=20) with score 0.95. Expected 6 windows with ~20 observations each."
+      },
+      "profile": {
+        "activity_class": "moderate",
+        "commit_count": 122,
+        "commit_density": 0.2905,
+        "metrics_available": [
+          "M-02",
+          "M-06"
+        ],
+        "observation_count": 122,
+        "observation_density": 0.2905,
+        "repo_age_days": 420,
+        "scale": "small",
+        "time_span_days": 420,
+        "volatility": "stable"
+      },
+      "readiness": {
+        "detectors": [
+          {
+            "actual_obs_per_window": {
+              "w00": 40,
+              "w01": 40,
+              "w02": 42
+            },
+            "actual_windows": 3,
+            "detector_id": "D-01",
+            "execution_confidence": 1.0,
+            "recommendation": "",
+            "required_obs_per_window": 10,
+            "required_windows": 2,
+            "skip_reason": "",
+            "state": "READY"
+          },
+          {
+            "actual_obs_per_window": {
+              "w00": 40,
+              "w01": 40,
+              "w02": 42
+            },
+            "actual_windows": 3,
+            "detector_id": "D-02",
+            "execution_confidence": 1.0,
+            "recommendation": "",
+            "required_obs_per_window": 10,
+            "required_windows": 2,
+            "skip_reason": "",
+            "state": "READY"
+          },
+          {
+            "actual_obs_per_window": {
+              "w00": 40,
+              "w01": 40,
+              "w02": 42
+            },
+            "actual_windows": 3,
+            "detector_id": "D-03",
+            "execution_confidence": 1.0,
+            "recommendation": "",
+            "required_obs_per_window": 20,
+            "required_windows": 1,
+            "skip_reason": "",
+            "state": "READY"
+          }
+        ],
+        "overall_state": "READY",
+        "partial_count": 0,
+        "ready_count": 3,
+        "skipped_count": 0
+      },
+      "warnings": [],
+      "window_summary": {
+        "strategy_used": "commit_count",
+        "total_observations": 122,
+        "total_windows": 3,
+        "unassigned_observations": 0
+      }
+    },
+    "repo_meta": {
+      "id": "C-04",
+      "name": "openoffice",
+      "cat": "C",
+      "cat_name": "Archived / Maintenance",
+      "lang": "C++",
+      "domain": "Office Suite"
+    }
+  },
+  {
+    "repo_id": "C-05",
+    "analysis_ok": true,
+    "time_s": 3.200589179992676,
+    "is_score": null,
+    "cs_score": null,
+    "windows": 746,
+    "observations": 0,
+    "sampling": {
+      "execution_traces": [
+        {
+          "detector_id": "D-01",
+          "evidence_generated": false,
+          "execution_decision": "execute",
+          "observation_count": 1492,
+          "readiness_state": "READY",
+          "required_sample": 20,
+          "sample_size": 12,
+          "skip_reason": "",
+          "window_count": 38
+        },
+        {
+          "detector_id": "D-02",
+          "evidence_generated": false,
+          "execution_decision": "execute",
+          "observation_count": 1492,
+          "readiness_state": "READY",
+          "required_sample": 20,
+          "sample_size": 12,
+          "skip_reason": "",
+          "window_count": 38
+        },
+        {
+          "detector_id": "D-03",
+          "evidence_generated": false,
+          "execution_decision": "skip",
+          "observation_count": 1492,
+          "readiness_state": "SKIPPED",
+          "required_sample": 20,
+          "sample_size": 12,
+          "skip_reason": "minimum observations per window is 12 (required: 20)",
+          "window_count": 38
+        }
+      ],
+      "plan": {
+        "alternatives_count": 7,
+        "chosen_score": 0.978,
+        "chosen_strategy": "commit_count",
+        "chosen_window_size": 20,
+        "expected_obs_per_window": 20.2,
+        "expected_windows": 74,
+        "rejected_count": 0,
+        "scientific_confidence": "high",
+        "selection_rationale": "Selected commit_count (size=20) with score 0.98. Expected 74 windows with ~20 observations each."
+      },
+      "profile": {
+        "activity_class": "moderate",
+        "commit_count": 1492,
+        "commit_density": 0.2861,
+        "metrics_available": [
+          "M-02",
+          "M-06"
+        ],
+        "observation_count": 1492,
+        "observation_density": 0.2861,
+        "repo_age_days": 5215,
+        "scale": "medium",
+        "time_span_days": 5215,
+        "volatility": "stable"
+      },
+      "readiness": {
+        "detectors": [
+          {
+            "actual_obs_per_window": {
+              "w00": 40,
+              "w01": 40,
+              "w02": 40,
+              "w03": 40,
+              "w04": 40,
+              "w05": 40,
+              "w06": 40,
+              "w07": 40,
+              "w08": 40,
+              "w09": 40,
+              "w10": 40,
+              "w11": 40,
+              "w12": 40,
+              "w13": 40,
+              "w14": 40,
+              "w15": 40,
+              "w16": 40,
+              "w17": 40,
+              "w18": 40,
+              "w19": 40,
+              "w20": 40,
+              "w21": 40,
+              "w22": 40,
+              "w23": 40,
+              "w24": 40,
+              "w25": 40,
+              "w26": 40,
+              "w27": 40,
+              "w28": 40,
+              "w29": 40,
+              "w30": 40,
+              "w31": 40,
+              "w32": 40,
+              "w33": 40,
+              "w34": 40,
+              "w35": 40,
+              "w36": 40,
+              "w37": 12
+            },
+            "actual_windows": 38,
+            "detector_id": "D-01",
+            "execution_confidence": 1.0,
+            "recommendation": "",
+            "required_obs_per_window": 10,
+            "required_windows": 2,
+            "skip_reason": "",
+            "state": "READY"
+          },
+          {
+            "actual_obs_per_window": {
+              "w00": 40,
+              "w01": 40,
+              "w02": 40,
+              "w03": 40,
+              "w04": 40,
+              "w05": 40,
+              "w06": 40,
+              "w07": 40,
+              "w08": 40,
+              "w09": 40,
+              "w10": 40,
+              "w11": 40,
+              "w12": 40,
+              "w13": 40,
+              "w14": 40,
+              "w15": 40,
+              "w16": 40,
+              "w17": 40,
+              "w18": 40,
+              "w19": 40,
+              "w20": 40,
+              "w21": 40,
+              "w22": 40,
+              "w23": 40,
+              "w24": 40,
+              "w25": 40,
+              "w26": 40,
+              "w27": 40,
+              "w28": 40,
+              "w29": 40,
+              "w30": 40,
+              "w31": 40,
+              "w32": 40,
+              "w33": 40,
+              "w34": 40,
+              "w35": 40,
+              "w36": 40,
+              "w37": 12
+            },
+            "actual_windows": 38,
+            "detector_id": "D-02",
+            "execution_confidence": 1.0,
+            "recommendation": "",
+            "required_obs_per_window": 10,
+            "required_windows": 2,
+            "skip_reason": "",
+            "state": "READY"
+          },
+          {
+            "actual_obs_per_window": {
+              "w00": 40,
+              "w01": 40,
+              "w02": 40,
+              "w03": 40,
+              "w04": 40,
+              "w05": 40,
+              "w06": 40,
+              "w07": 40,
+              "w08": 40,
+              "w09": 40,
+              "w10": 40,
+              "w11": 40,
+              "w12": 40,
+              "w13": 40,
+              "w14": 40,
+              "w15": 40,
+              "w16": 40,
+              "w17": 40,
+              "w18": 40,
+              "w19": 40,
+              "w20": 40,
+              "w21": 40,
+              "w22": 40,
+              "w23": 40,
+              "w24": 40,
+              "w25": 40,
+              "w26": 40,
+              "w27": 40,
+              "w28": 40,
+              "w29": 40,
+              "w30": 40,
+              "w31": 40,
+              "w32": 40,
+              "w33": 40,
+              "w34": 40,
+              "w35": 40,
+              "w36": 40,
+              "w37": 12
+            },
+            "actual_windows": 38,
+            "detector_id": "D-03",
+            "execution_confidence": 0.0,
+            "recommendation": "Need 8 more observations per window (currently 12, required 20)",
+            "required_obs_per_window": 20,
+            "required_windows": 1,
+            "skip_reason": "minimum observations per window is 12 (required: 20)",
+            "state": "SKIPPED"
+          }
+        ],
+        "overall_state": "PARTIAL",
+        "partial_count": 0,
+        "ready_count": 2,
+        "skipped_count": 1
+      },
+      "warnings": [],
+      "window_summary": {
+        "strategy_used": "commit_count",
+        "total_observations": 1492,
+        "total_windows": 38,
+        "unassigned_observations": 0
+      }
+    },
+    "repo_meta": {
+      "id": "C-05",
+      "name": "annotations",
+      "cat": "C",
+      "cat_name": "Archived / Maintenance",
+      "lang": "PHP",
+      "domain": "Libraries"
+    }
+  },
+  {
+    "repo_id": "D-01",
+    "analysis_ok": false,
+    "error": "exit code 3: ",
+    "time_s": 13.449321746826172,
+    "repo_meta": {
+      "id": "D-01",
+      "name": "core",
+      "cat": "D",
+      "cat_name": "Forks & Divergent",
+      "lang": "C++",
+      "domain": "Office Suite"
+    }
+  },
+  {
+    "repo_id": "D-02",
+    "analysis_ok": true,
+    "time_s": 5.055947542190552,
+    "is_score": null,
+    "cs_score": null,
+    "windows": 4,
+    "observations": 0,
+    "sampling": {
+      "execution_traces": [
+        {
+          "detector_id": "D-01",
+          "evidence_generated": false,
+          "execution_decision": "skip",
+          "observation_count": 8,
+          "readiness_state": "SKIPPED",
+          "required_sample": 20,
+          "sample_size": 8,
+          "skip_reason": "minimum observations per window is 8 (required: 10); only 1 window(s) (required: 2)",
+          "window_count": 1
+        },
+        {
+          "detector_id": "D-02",
+          "evidence_generated": false,
+          "execution_decision": "skip",
+          "observation_count": 8,
+          "readiness_state": "SKIPPED",
+          "required_sample": 20,
+          "sample_size": 8,
+          "skip_reason": "minimum observations per window is 8 (required: 10); only 1 window(s) (required: 2)",
+          "window_count": 1
+        },
+        {
+          "detector_id": "D-03",
+          "evidence_generated": false,
+          "execution_decision": "skip",
+          "observation_count": 8,
+          "readiness_state": "SKIPPED",
+          "required_sample": 20,
+          "sample_size": 8,
+          "skip_reason": "minimum observations per window is 8 (required: 20)",
+          "window_count": 1
+        }
+      ],
+      "plan": {
+        "alternatives_count": 0,
+        "chosen_score": 0.34,
+        "chosen_strategy": "commit_count",
+        "chosen_window_size": 10,
+        "expected_obs_per_window": 8.0,
+        "expected_windows": 1,
+        "rejected_count": 7,
+        "scientific_confidence": "low",
+        "selection_rationale": "No valid strategy found. Using commit_count (size=10) as best available option."
+      },
+      "profile": {
+        "activity_class": "moderate",
+        "commit_count": 8,
+        "commit_density": 0.381,
+        "metrics_available": [
+          "M-02",
+          "M-06"
+        ],
+        "observation_count": 8,
+        "observation_density": 0.381,
+        "repo_age_days": 21,
+        "scale": "tiny",
+        "time_span_days": 21,
+        "volatility": "stable"
+      },
+      "readiness": {
+        "detectors": [
+          {
+            "actual_obs_per_window": {
+              "w00": 8
+            },
+            "actual_windows": 1,
+            "detector_id": "D-01",
+            "execution_confidence": 0.0,
+            "recommendation": "Need 2 more observations per window (currently 8, required 10); Need 1 more window(s) (currently 1, required 2)",
+            "required_obs_per_window": 10,
+            "required_windows": 2,
+            "skip_reason": "minimum observations per window is 8 (required: 10); only 1 window(s) (required: 2)",
+            "state": "SKIPPED"
+          },
+          {
+            "actual_obs_per_window": {
+              "w00": 8
+            },
+            "actual_windows": 1,
+            "detector_id": "D-02",
+            "execution_confidence": 0.0,
+            "recommendation": "Need 2 more observations per window (currently 8, required 10); Need 1 more window(s) (currently 1, required 2)",
+            "required_obs_per_window": 10,
+            "required_windows": 2,
+            "skip_reason": "minimum observations per window is 8 (required: 10); only 1 window(s) (required: 2)",
+            "state": "SKIPPED"
+          },
+          {
+            "actual_obs_per_window": {
+              "w00": 8
+            },
+            "actual_windows": 1,
+            "detector_id": "D-03",
+            "execution_confidence": 0.0,
+            "recommendation": "Need 12 more observations per window (currently 8, required 20)",
+            "required_obs_per_window": 20,
+            "required_windows": 1,
+            "skip_reason": "minimum observations per window is 8 (required: 20)",
+            "state": "SKIPPED"
+          }
+        ],
+        "overall_state": "PARTIAL",
+        "partial_count": 0,
+        "ready_count": 0,
+        "skipped_count": 3
+      },
+      "warnings": [],
+      "window_summary": {
+        "strategy_used": "commit_count",
+        "total_observations": 8,
+        "total_windows": 1,
+        "unassigned_observations": 0
+      }
+    },
+    "repo_meta": {
+      "id": "D-02",
+      "name": "OpenSearch",
+      "cat": "D",
+      "cat_name": "Forks & Divergent",
+      "lang": "Java",
+      "domain": "Search"
+    }
+  },
+  {
+    "repo_id": "D-03",
+    "analysis_ok": true,
+    "time_s": 271.9181981086731,
+    "is_score": null,
+    "cs_score": null,
+    "windows": 206,
+    "observations": 0,
+    "sampling": {
+      "execution_traces": [
+        {
+          "detector_id": "D-01",
+          "evidence_generated": false,
+          "execution_decision": "execute",
+          "observation_count": 412,
+          "readiness_state": "READY",
+          "required_sample": 20,
+          "sample_size": 12,
+          "skip_reason": "",
+          "window_count": 11
+        },
+        {
+          "detector_id": "D-02",
+          "evidence_generated": false,
+          "execution_decision": "execute",
+          "observation_count": 412,
+          "readiness_state": "READY",
+          "required_sample": 20,
+          "sample_size": 12,
+          "skip_reason": "",
+          "window_count": 11
+        },
+        {
+          "detector_id": "D-03",
+          "evidence_generated": false,
+          "execution_decision": "skip",
+          "observation_count": 412,
+          "readiness_state": "SKIPPED",
+          "required_sample": 20,
+          "sample_size": 12,
+          "skip_reason": "minimum observations per window is 12 (required: 20)",
+          "window_count": 11
+        }
+      ],
+      "plan": {
+        "alternatives_count": 7,
+        "chosen_score": 0.9757,
+        "chosen_strategy": "commit_count",
+        "chosen_window_size": 20,
+        "expected_obs_per_window": 20.6,
+        "expected_windows": 20,
+        "rejected_count": 0,
+        "scientific_confidence": "high",
+        "selection_rationale": "Selected commit_count (size=20) with score 0.98. Expected 20 windows with ~21 observations each."
+      },
+      "profile": {
+        "activity_class": "moderate",
+        "commit_count": 412,
+        "commit_density": 0.2871,
+        "metrics_available": [
+          "M-02",
+          "M-06"
+        ],
+        "observation_count": 412,
+        "observation_density": 0.2871,
+        "repo_age_days": 1435,
+        "scale": "small",
+        "time_span_days": 1435,
+        "volatility": "stable"
+      },
+      "readiness": {
+        "detectors": [
+          {
+            "actual_obs_per_window": {
+              "w00": 40,
+              "w01": 40,
+              "w02": 40,
+              "w03": 40,
+              "w04": 40,
+              "w05": 40,
+              "w06": 40,
+              "w07": 40,
+              "w08": 40,
+              "w09": 40,
+              "w10": 12
+            },
+            "actual_windows": 11,
+            "detector_id": "D-01",
+            "execution_confidence": 1.0,
+            "recommendation": "",
+            "required_obs_per_window": 10,
+            "required_windows": 2,
+            "skip_reason": "",
+            "state": "READY"
+          },
+          {
+            "actual_obs_per_window": {
+              "w00": 40,
+              "w01": 40,
+              "w02": 40,
+              "w03": 40,
+              "w04": 40,
+              "w05": 40,
+              "w06": 40,
+              "w07": 40,
+              "w08": 40,
+              "w09": 40,
+              "w10": 12
+            },
+            "actual_windows": 11,
+            "detector_id": "D-02",
+            "execution_confidence": 1.0,
+            "recommendation": "",
+            "required_obs_per_window": 10,
+            "required_windows": 2,
+            "skip_reason": "",
+            "state": "READY"
+          },
+          {
+            "actual_obs_per_window": {
+              "w00": 40,
+              "w01": 40,
+              "w02": 40,
+              "w03": 40,
+              "w04": 40,
+              "w05": 40,
+              "w06": 40,
+              "w07": 40,
+              "w08": 40,
+              "w09": 40,
+              "w10": 12
+            },
+            "actual_windows": 11,
+            "detector_id": "D-03",
+            "execution_confidence": 0.0,
+            "recommendation": "Need 8 more observations per window (currently 12, required 20)",
+            "required_obs_per_window": 20,
+            "required_windows": 1,
+            "skip_reason": "minimum observations per window is 12 (required: 20)",
+            "state": "SKIPPED"
+          }
+        ],
+        "overall_state": "PARTIAL",
+        "partial_count": 0,
+        "ready_count": 2,
+        "skipped_count": 1
+      },
+      "warnings": [],
+      "window_summary": {
+        "strategy_used": "commit_count",
+        "total_observations": 412,
+        "total_windows": 11,
+        "unassigned_observations": 0
+      }
+    },
+    "repo_meta": {
+      "id": "D-03",
+      "name": "server",
+      "cat": "D",
+      "cat_name": "Forks & Divergent",
+      "lang": "C/C++",
+      "domain": "Databases"
+    }
+  },
+  {
+    "repo_id": "D-04",
+    "analysis_ok": true,
+    "time_s": 96.89967060089111,
+    "is_score": null,
+    "cs_score": null,
+    "windows": 206,
+    "observations": 0,
+    "sampling": {
+      "execution_traces": [
+        {
+          "detector_id": "D-01",
+          "evidence_generated": false,
+          "execution_decision": "execute",
+          "observation_count": 412,
+          "readiness_state": "READY",
+          "required_sample": 20,
+          "sample_size": 12,
+          "skip_reason": "",
+          "window_count": 11
+        },
+        {
+          "detector_id": "D-02",
+          "evidence_generated": false,
+          "execution_decision": "execute",
+          "observation_count": 412,
+          "readiness_state": "READY",
+          "required_sample": 20,
+          "sample_size": 12,
+          "skip_reason": "",
+          "window_count": 11
+        },
+        {
+          "detector_id": "D-03",
+          "evidence_generated": false,
+          "execution_decision": "skip",
+          "observation_count": 412,
+          "readiness_state": "SKIPPED",
+          "required_sample": 20,
+          "sample_size": 12,
+          "skip_reason": "minimum observations per window is 12 (required: 20)",
+          "window_count": 11
+        }
+      ],
+      "plan": {
+        "alternatives_count": 7,
+        "chosen_score": 0.9757,
+        "chosen_strategy": "commit_count",
+        "chosen_window_size": 20,
+        "expected_obs_per_window": 20.6,
+        "expected_windows": 20,
+        "rejected_count": 0,
+        "scientific_confidence": "high",
+        "selection_rationale": "Selected commit_count (size=20) with score 0.98. Expected 20 windows with ~21 observations each."
+      },
+      "profile": {
+        "activity_class": "moderate",
+        "commit_count": 412,
+        "commit_density": 0.2871,
+        "metrics_available": [
+          "M-02",
+          "M-06"
+        ],
+        "observation_count": 412,
+        "observation_density": 0.2871,
+        "repo_age_days": 1435,
+        "scale": "small",
+        "time_span_days": 1435,
+        "volatility": "stable"
+      },
+      "readiness": {
+        "detectors": [
+          {
+            "actual_obs_per_window": {
+              "w00": 40,
+              "w01": 40,
+              "w02": 40,
+              "w03": 40,
+              "w04": 40,
+              "w05": 40,
+              "w06": 40,
+              "w07": 40,
+              "w08": 40,
+              "w09": 40,
+              "w10": 12
+            },
+            "actual_windows": 11,
+            "detector_id": "D-01",
+            "execution_confidence": 1.0,
+            "recommendation": "",
+            "required_obs_per_window": 10,
+            "required_windows": 2,
+            "skip_reason": "",
+            "state": "READY"
+          },
+          {
+            "actual_obs_per_window": {
+              "w00": 40,
+              "w01": 40,
+              "w02": 40,
+              "w03": 40,
+              "w04": 40,
+              "w05": 40,
+              "w06": 40,
+              "w07": 40,
+              "w08": 40,
+              "w09": 40,
+              "w10": 12
+            },
+            "actual_windows": 11,
+            "detector_id": "D-02",
+            "execution_confidence": 1.0,
+            "recommendation": "",
+            "required_obs_per_window": 10,
+            "required_windows": 2,
+            "skip_reason": "",
+            "state": "READY"
+          },
+          {
+            "actual_obs_per_window": {
+              "w00": 40,
+              "w01": 40,
+              "w02": 40,
+              "w03": 40,
+              "w04": 40,
+              "w05": 40,
+              "w06": 40,
+              "w07": 40,
+              "w08": 40,
+              "w09": 40,
+              "w10": 12
+            },
+            "actual_windows": 11,
+            "detector_id": "D-03",
+            "execution_confidence": 0.0,
+            "recommendation": "Need 8 more observations per window (currently 12, required 20)",
+            "required_obs_per_window": 20,
+            "required_windows": 1,
+            "skip_reason": "minimum observations per window is 12 (required: 20)",
+            "state": "SKIPPED"
+          }
+        ],
+        "overall_state": "PARTIAL",
+        "partial_count": 0,
+        "ready_count": 2,
+        "skipped_count": 1
+      },
+      "warnings": [],
+      "window_summary": {
+        "strategy_used": "commit_count",
+        "total_observations": 412,
+        "total_windows": 11,
+        "unassigned_observations": 0
+      }
+    },
+    "repo_meta": {
+      "id": "D-04",
+      "name": "server",
+      "cat": "D",
+      "cat_name": "Forks & Divergent",
+      "lang": "PHP",
+      "domain": "Cloud"
+    }
+  },
+  {
+    "repo_id": "D-05",
+    "analysis_ok": true,
+    "time_s": 2.9205868244171143,
+    "is_score": null,
+    "cs_score": null,
+    "windows": 13,
+    "observations": 0,
+    "sampling": {
+      "execution_traces": [
+        {
+          "detector_id": "D-01",
+          "evidence_generated": false,
+          "execution_decision": "skip",
+          "observation_count": 26,
+          "readiness_state": "SKIPPED",
+          "required_sample": 20,
+          "sample_size": 6,
+          "skip_reason": "minimum observations per window is 6 (required: 10)",
+          "window_count": 2
+        },
+        {
+          "detector_id": "D-02",
+          "evidence_generated": false,
+          "execution_decision": "skip",
+          "observation_count": 26,
+          "readiness_state": "SKIPPED",
+          "required_sample": 20,
+          "sample_size": 6,
+          "skip_reason": "minimum observations per window is 6 (required: 10)",
+          "window_count": 2
+        },
+        {
+          "detector_id": "D-03",
+          "evidence_generated": false,
+          "execution_decision": "skip",
+          "observation_count": 26,
+          "readiness_state": "SKIPPED",
+          "required_sample": 20,
+          "sample_size": 6,
+          "skip_reason": "minimum observations per window is 6 (required: 20)",
+          "window_count": 2
+        }
+      ],
+      "plan": {
+        "alternatives_count": 2,
+        "chosen_score": 0.6521,
+        "chosen_strategy": "commit_count",
+        "chosen_window_size": 10,
+        "expected_obs_per_window": 13.0,
+        "expected_windows": 2,
+        "rejected_count": 5,
+        "scientific_confidence": "medium",
+        "selection_rationale": "Selected commit_count (size=10) with score 0.65. Expected 2 windows with ~13 observations each."
+      },
+      "profile": {
+        "activity_class": "moderate",
+        "commit_count": 26,
+        "commit_density": 0.3095,
+        "metrics_available": [
+          "M-02",
+          "M-06"
+        ],
+        "observation_count": 26,
+        "observation_density": 0.3095,
+        "repo_age_days": 84,
+        "scale": "tiny",
+        "time_span_days": 84,
+        "volatility": "stable"
+      },
+      "readiness": {
+        "detectors": [
+          {
+            "actual_obs_per_window": {
+              "w00": 20,
+              "w01": 6
+            },
+            "actual_windows": 2,
+            "detector_id": "D-01",
+            "execution_confidence": 0.0,
+            "recommendation": "Need 4 more observations per window (currently 6, required 10)",
+            "required_obs_per_window": 10,
+            "required_windows": 2,
+            "skip_reason": "minimum observations per window is 6 (required: 10)",
+            "state": "SKIPPED"
+          },
+          {
+            "actual_obs_per_window": {
+              "w00": 20,
+              "w01": 6
+            },
+            "actual_windows": 2,
+            "detector_id": "D-02",
+            "execution_confidence": 0.0,
+            "recommendation": "Need 4 more observations per window (currently 6, required 10)",
+            "required_obs_per_window": 10,
+            "required_windows": 2,
+            "skip_reason": "minimum observations per window is 6 (required: 10)",
+            "state": "SKIPPED"
+          },
+          {
+            "actual_obs_per_window": {
+              "w00": 20,
+              "w01": 6
+            },
+            "actual_windows": 2,
+            "detector_id": "D-03",
+            "execution_confidence": 0.0,
+            "recommendation": "Need 14 more observations per window (currently 6, required 20)",
+            "required_obs_per_window": 20,
+            "required_windows": 1,
+            "skip_reason": "minimum observations per window is 6 (required: 20)",
+            "state": "SKIPPED"
+          }
+        ],
+        "overall_state": "PARTIAL",
+        "partial_count": 0,
+        "ready_count": 0,
+        "skipped_count": 3
+      },
+      "warnings": [],
+      "window_summary": {
+        "strategy_used": "commit_count",
+        "total_observations": 26,
+        "total_windows": 2,
+        "unassigned_observations": 0
+      }
+    },
+    "repo_meta": {
+      "id": "D-05",
+      "name": "opentofu",
+      "cat": "D",
+      "cat_name": "Forks & Divergent",
+      "lang": "Go",
+      "domain": "IaC"
+    }
+  },
+  {
+    "repo_id": "E-01",
+    "analysis_ok": true,
+    "time_s": 3.120908737182617,
+    "is_score": null,
+    "cs_score": null,
+    "windows": 50,
+    "observations": 0,
+    "sampling": {
+      "execution_traces": [
+        {
+          "detector_id": "D-01",
+          "evidence_generated": false,
+          "execution_decision": "execute",
+          "observation_count": 100,
+          "readiness_state": "READY",
+          "required_sample": 20,
+          "sample_size": 20,
+          "skip_reason": "",
+          "window_count": 3
+        },
+        {
+          "detector_id": "D-02",
+          "evidence_generated": false,
+          "execution_decision": "execute",
+          "observation_count": 100,
+          "readiness_state": "READY",
+          "required_sample": 20,
+          "sample_size": 20,
+          "skip_reason": "",
+          "window_count": 3
+        },
+        {
+          "detector_id": "D-03",
+          "evidence_generated": false,
+          "execution_decision": "execute",
+          "observation_count": 100,
+          "readiness_state": "READY",
+          "required_sample": 20,
+          "sample_size": 20,
+          "skip_reason": "",
+          "window_count": 3
+        }
+      ],
+      "plan": {
+        "alternatives_count": 7,
+        "chosen_score": 0.9599,
+        "chosen_strategy": "commit_count",
+        "chosen_window_size": 20,
+        "expected_obs_per_window": 20.0,
+        "expected_windows": 5,
+        "rejected_count": 0,
+        "scientific_confidence": "high",
+        "selection_rationale": "Selected commit_count (size=20) with score 0.96. Expected 5 windows with ~20 observations each."
+      },
+      "profile": {
+        "activity_class": "moderate",
+        "commit_count": 100,
+        "commit_density": 0.2915,
+        "metrics_available": [
+          "M-02",
+          "M-06"
+        ],
+        "observation_count": 100,
+        "observation_density": 0.2915,
+        "repo_age_days": 343,
+        "scale": "small",
+        "time_span_days": 343,
+        "volatility": "stable"
+      },
+      "readiness": {
+        "detectors": [
+          {
+            "actual_obs_per_window": {
+              "w00": 40,
+              "w01": 40,
+              "w02": 20
+            },
+            "actual_windows": 3,
+            "detector_id": "D-01",
+            "execution_confidence": 1.0,
+            "recommendation": "",
+            "required_obs_per_window": 10,
+            "required_windows": 2,
+            "skip_reason": "",
+            "state": "READY"
+          },
+          {
+            "actual_obs_per_window": {
+              "w00": 40,
+              "w01": 40,
+              "w02": 20
+            },
+            "actual_windows": 3,
+            "detector_id": "D-02",
+            "execution_confidence": 1.0,
+            "recommendation": "",
+            "required_obs_per_window": 10,
+            "required_windows": 2,
+            "skip_reason": "",
+            "state": "READY"
+          },
+          {
+            "actual_obs_per_window": {
+              "w00": 40,
+              "w01": 40,
+              "w02": 20
+            },
+            "actual_windows": 3,
+            "detector_id": "D-03",
+            "execution_confidence": 1.0,
+            "recommendation": "",
+            "required_obs_per_window": 20,
+            "required_windows": 1,
+            "skip_reason": "",
+            "state": "READY"
+          }
+        ],
+        "overall_state": "READY",
+        "partial_count": 0,
+        "ready_count": 3,
+        "skipped_count": 0
+      },
+      "warnings": [],
+      "window_summary": {
+        "strategy_used": "commit_count",
+        "total_observations": 100,
+        "total_windows": 3,
+        "unassigned_observations": 0
+      }
+    },
+    "repo_meta": {
+      "id": "E-01",
+      "name": "autogen",
+      "cat": "E",
+      "cat_name": "High-Churn / Experimental",
+      "lang": "Python",
+      "domain": "AI / Agents"
+    }
+  },
+  {
+    "repo_id": "E-02",
+    "analysis_ok": true,
+    "time_s": 2.9806814193725586,
+    "is_score": null,
+    "cs_score": null,
+    "windows": 5,
+    "observations": 0,
+    "sampling": {
+      "execution_traces": [
+        {
+          "detector_id": "D-01",
+          "evidence_generated": false,
+          "execution_decision": "skip",
+          "observation_count": 10,
+          "readiness_state": "SKIPPED",
+          "required_sample": 20,
+          "sample_size": 2,
+          "skip_reason": "minimum observations per window is 2 (required: 10)",
+          "window_count": 3
+        },
+        {
+          "detector_id": "D-02",
+          "evidence_generated": false,
+          "execution_decision": "skip",
+          "observation_count": 10,
+          "readiness_state": "SKIPPED",
+          "required_sample": 20,
+          "sample_size": 2,
+          "skip_reason": "minimum observations per window is 2 (required: 10)",
+          "window_count": 3
+        },
+        {
+          "detector_id": "D-03",
+          "evidence_generated": false,
+          "execution_decision": "skip",
+          "observation_count": 10,
+          "readiness_state": "SKIPPED",
+          "required_sample": 20,
+          "sample_size": 2,
+          "skip_reason": "minimum observations per window is 2 (required: 20)",
+          "window_count": 3
+        }
+      ],
+      "plan": {
+        "alternatives_count": 0,
+        "chosen_score": 0.3625,
+        "chosen_strategy": "temporal",
+        "chosen_window_size": 14,
+        "expected_obs_per_window": 5.0,
+        "expected_windows": 2,
+        "rejected_count": 7,
+        "scientific_confidence": "low",
+        "selection_rationale": "Selected temporal (size=14) with score 0.36. Expected 2 windows with ~5 observations each."
+      },
+      "profile": {
+        "activity_class": "moderate",
+        "commit_count": 10,
+        "commit_density": 0.3571,
+        "metrics_available": [
+          "M-02",
+          "M-06"
+        ],
+        "observation_count": 10,
+        "observation_density": 0.3571,
+        "repo_age_days": 28,
+        "scale": "tiny",
+        "time_span_days": 28,
+        "volatility": "stable"
+      },
+      "readiness": {
+        "detectors": [
+          {
+            "actual_obs_per_window": {
+              "w00": 4,
+              "w01": 4,
+              "w02": 2
+            },
+            "actual_windows": 3,
+            "detector_id": "D-01",
+            "execution_confidence": 0.0,
+            "recommendation": "Need 8 more observations per window (currently 2, required 10)",
+            "required_obs_per_window": 10,
+            "required_windows": 2,
+            "skip_reason": "minimum observations per window is 2 (required: 10)",
+            "state": "SKIPPED"
+          },
+          {
+            "actual_obs_per_window": {
+              "w00": 4,
+              "w01": 4,
+              "w02": 2
+            },
+            "actual_windows": 3,
+            "detector_id": "D-02",
+            "execution_confidence": 0.0,
+            "recommendation": "Need 8 more observations per window (currently 2, required 10)",
+            "required_obs_per_window": 10,
+            "required_windows": 2,
+            "skip_reason": "minimum observations per window is 2 (required: 10)",
+            "state": "SKIPPED"
+          },
+          {
+            "actual_obs_per_window": {
+              "w00": 4,
+              "w01": 4,
+              "w02": 2
+            },
+            "actual_windows": 3,
+            "detector_id": "D-03",
+            "execution_confidence": 0.0,
+            "recommendation": "Need 18 more observations per window (currently 2, required 20)",
+            "required_obs_per_window": 20,
+            "required_windows": 1,
+            "skip_reason": "minimum observations per window is 2 (required: 20)",
+            "state": "SKIPPED"
+          }
+        ],
+        "overall_state": "PARTIAL",
+        "partial_count": 0,
+        "ready_count": 0,
+        "skipped_count": 3
+      },
+      "warnings": [],
+      "window_summary": {
+        "strategy_used": "temporal",
+        "total_observations": 10,
+        "total_windows": 3,
+        "unassigned_observations": 0
+      }
+    },
+    "repo_meta": {
+      "id": "E-02",
+      "name": "ComfyUI",
+      "cat": "E",
+      "cat_name": "High-Churn / Experimental",
+      "lang": "Python",
+      "domain": "AI / Image"
+    }
+  },
+  {
+    "repo_id": "E-03",
+    "analysis_ok": true,
+    "time_s": 23.843428134918213,
+    "is_score": null,
+    "cs_score": null,
+    "windows": 16,
+    "observations": 0,
+    "sampling": {
+      "execution_traces": [
+        {
+          "detector_id": "D-01",
+          "evidence_generated": false,
+          "execution_decision": "skip",
+          "observation_count": 32,
+          "readiness_state": "SKIPPED",
+          "required_sample": 20,
+          "sample_size": 6,
+          "skip_reason": "minimum observations per window is 6 (required: 10)",
+          "window_count": 4
+        },
+        {
+          "detector_id": "D-02",
+          "evidence_generated": false,
+          "execution_decision": "skip",
+          "observation_count": 32,
+          "readiness_state": "SKIPPED",
+          "required_sample": 20,
+          "sample_size": 6,
+          "skip_reason": "minimum observations per window is 6 (required: 10)",
+          "window_count": 4
+        },
+        {
+          "detector_id": "D-03",
+          "evidence_generated": false,
+          "execution_decision": "skip",
+          "observation_count": 32,
+          "readiness_state": "SKIPPED",
+          "required_sample": 20,
+          "sample_size": 6,
+          "skip_reason": "minimum observations per window is 6 (required: 20)",
+          "window_count": 4
+        }
+      ],
+      "plan": {
+        "alternatives_count": 3,
+        "chosen_score": 0.7453,
+        "chosen_strategy": "hybrid",
+        "chosen_window_size": 30,
+        "expected_obs_per_window": 16.0,
+        "expected_windows": 2,
+        "rejected_count": 4,
+        "scientific_confidence": "medium",
+        "selection_rationale": "Selected hybrid (size=30) with score 0.75. Expected 2 windows with ~16 observations each."
+      },
+      "profile": {
+        "activity_class": "moderate",
+        "commit_count": 32,
+        "commit_density": 0.3048,
+        "metrics_available": [
+          "M-02",
+          "M-06"
+        ],
+        "observation_count": 32,
+        "observation_density": 0.3048,
+        "repo_age_days": 105,
+        "scale": "tiny",
+        "time_span_days": 105,
+        "volatility": "stable"
+      },
+      "readiness": {
+        "detectors": [
+          {
+            "actual_obs_per_window": {
+              "w00": 10,
+              "w01": 8,
+              "w02": 8,
+              "w03": 6
+            },
+            "actual_windows": 4,
+            "detector_id": "D-01",
+            "execution_confidence": 0.0,
+            "recommendation": "Need 4 more observations per window (currently 6, required 10)",
+            "required_obs_per_window": 10,
+            "required_windows": 2,
+            "skip_reason": "minimum observations per window is 6 (required: 10)",
+            "state": "SKIPPED"
+          },
+          {
+            "actual_obs_per_window": {
+              "w00": 10,
+              "w01": 8,
+              "w02": 8,
+              "w03": 6
+            },
+            "actual_windows": 4,
+            "detector_id": "D-02",
+            "execution_confidence": 0.0,
+            "recommendation": "Need 4 more observations per window (currently 6, required 10)",
+            "required_obs_per_window": 10,
+            "required_windows": 2,
+            "skip_reason": "minimum observations per window is 6 (required: 10)",
+            "state": "SKIPPED"
+          },
+          {
+            "actual_obs_per_window": {
+              "w00": 10,
+              "w01": 8,
+              "w02": 8,
+              "w03": 6
+            },
+            "actual_windows": 4,
+            "detector_id": "D-03",
+            "execution_confidence": 0.0,
+            "recommendation": "Need 14 more observations per window (currently 6, required 20)",
+            "required_obs_per_window": 20,
+            "required_windows": 1,
+            "skip_reason": "minimum observations per window is 6 (required: 20)",
+            "state": "SKIPPED"
+          }
+        ],
+        "overall_state": "PARTIAL",
+        "partial_count": 0,
+        "ready_count": 0,
+        "skipped_count": 3
+      },
+      "warnings": [],
+      "window_summary": {
+        "strategy_used": "hybrid",
+        "total_observations": 32,
+        "total_windows": 4,
+        "unassigned_observations": 0
+      }
+    },
+    "repo_meta": {
+      "id": "E-03",
+      "name": "llama_index",
+      "cat": "E",
+      "cat_name": "High-Churn / Experimental",
+      "lang": "Python",
+      "domain": "AI / RAG"
+    }
+  },
+  {
+    "repo_id": "E-04",
+    "analysis_ok": true,
+    "time_s": 3.7004592418670654,
+    "is_score": null,
+    "cs_score": null,
+    "windows": 31,
+    "observations": 0,
+    "sampling": {
+      "execution_traces": [
+        {
+          "detector_id": "D-01",
+          "evidence_generated": false,
+          "execution_decision": "execute",
+          "observation_count": 62,
+          "readiness_state": "READY",
+          "required_sample": 20,
+          "sample_size": 22,
+          "skip_reason": "",
+          "window_count": 2
+        },
+        {
+          "detector_id": "D-02",
+          "evidence_generated": false,
+          "execution_decision": "execute",
+          "observation_count": 62,
+          "readiness_state": "READY",
+          "required_sample": 20,
+          "sample_size": 22,
+          "skip_reason": "",
+          "window_count": 2
+        },
+        {
+          "detector_id": "D-03",
+          "evidence_generated": false,
+          "execution_decision": "execute",
+          "observation_count": 62,
+          "readiness_state": "READY",
+          "required_sample": 20,
+          "sample_size": 22,
+          "skip_reason": "",
+          "window_count": 2
+        }
+      ],
+      "plan": {
+        "alternatives_count": 6,
+        "chosen_score": 0.8724,
+        "chosen_strategy": "commit_count",
+        "chosen_window_size": 20,
+        "expected_obs_per_window": 20.7,
+        "expected_windows": 3,
+        "rejected_count": 1,
+        "scientific_confidence": "medium",
+        "selection_rationale": "Selected commit_count (size=20) with score 0.87. Expected 3 windows with ~21 observations each."
+      },
+      "profile": {
+        "activity_class": "moderate",
+        "commit_count": 62,
+        "commit_density": 0.2952,
+        "metrics_available": [
+          "M-02",
+          "M-06"
+        ],
+        "observation_count": 62,
+        "observation_density": 0.2952,
+        "repo_age_days": 210,
+        "scale": "tiny",
+        "time_span_days": 210,
+        "volatility": "moderate"
+      },
+      "readiness": {
+        "detectors": [
+          {
+            "actual_obs_per_window": {
+              "w00": 40,
+              "w01": 22
+            },
+            "actual_windows": 2,
+            "detector_id": "D-01",
+            "execution_confidence": 1.0,
+            "recommendation": "",
+            "required_obs_per_window": 10,
+            "required_windows": 2,
+            "skip_reason": "",
+            "state": "READY"
+          },
+          {
+            "actual_obs_per_window": {
+              "w00": 40,
+              "w01": 22
+            },
+            "actual_windows": 2,
+            "detector_id": "D-02",
+            "execution_confidence": 1.0,
+            "recommendation": "",
+            "required_obs_per_window": 10,
+            "required_windows": 2,
+            "skip_reason": "",
+            "state": "READY"
+          },
+          {
+            "actual_obs_per_window": {
+              "w00": 40,
+              "w01": 22
+            },
+            "actual_windows": 2,
+            "detector_id": "D-03",
+            "execution_confidence": 1.0,
+            "recommendation": "",
+            "required_obs_per_window": 20,
+            "required_windows": 1,
+            "skip_reason": "",
+            "state": "READY"
+          }
+        ],
+        "overall_state": "READY",
+        "partial_count": 0,
+        "ready_count": 3,
+        "skipped_count": 0
+      },
+      "warnings": [],
+      "window_summary": {
+        "strategy_used": "commit_count",
+        "total_observations": 62,
+        "total_windows": 2,
+        "unassigned_observations": 0
+      }
+    },
+    "repo_meta": {
+      "id": "E-04",
+      "name": "semantic-kernel",
+      "cat": "E",
+      "cat_name": "High-Churn / Experimental",
+      "lang": "C#/Python",
+      "domain": "AI / Agents"
+    }
+  },
+  {
+    "repo_id": "E-05",
+    "analysis_ok": true,
+    "time_s": 8.14184832572937,
+    "is_score": null,
+    "cs_score": null,
+    "windows": 7,
+    "observations": 0,
+    "sampling": {
+      "execution_traces": [
+        {
+          "detector_id": "D-01",
+          "evidence_generated": false,
+          "execution_decision": "skip",
+          "observation_count": 14,
+          "readiness_state": "SKIPPED",
+          "required_sample": 20,
+          "sample_size": 2,
+          "skip_reason": "minimum observations per window is 2 (required: 10)",
+          "window_count": 4
+        },
+        {
+          "detector_id": "D-02",
+          "evidence_generated": false,
+          "execution_decision": "skip",
+          "observation_count": 14,
+          "readiness_state": "SKIPPED",
+          "required_sample": 20,
+          "sample_size": 2,
+          "skip_reason": "minimum observations per window is 2 (required: 10)",
+          "window_count": 4
+        },
+        {
+          "detector_id": "D-03",
+          "evidence_generated": false,
+          "execution_decision": "skip",
+          "observation_count": 14,
+          "readiness_state": "SKIPPED",
+          "required_sample": 20,
+          "sample_size": 2,
+          "skip_reason": "minimum observations per window is 2 (required: 20)",
+          "window_count": 4
+        }
+      ],
+      "plan": {
+        "alternatives_count": 0,
+        "chosen_score": 0.2814,
+        "chosen_strategy": "temporal",
+        "chosen_window_size": 14,
+        "expected_obs_per_window": 4.7,
+        "expected_windows": 3,
+        "rejected_count": 7,
+        "scientific_confidence": "low",
+        "selection_rationale": "Selected temporal (size=14) with score 0.28. Expected 3 windows with ~5 observations each."
+      },
+      "profile": {
+        "activity_class": "moderate",
+        "commit_count": 14,
+        "commit_density": 0.3333,
+        "metrics_available": [
+          "M-02",
+          "M-06"
+        ],
+        "observation_count": 14,
+        "observation_density": 0.3333,
+        "repo_age_days": 42,
+        "scale": "tiny",
+        "time_span_days": 42,
+        "volatility": "moderate"
+      },
+      "readiness": {
+        "detectors": [
+          {
+            "actual_obs_per_window": {
+              "w00": 4,
+              "w01": 4,
+              "w02": 4,
+              "w03": 2
+            },
+            "actual_windows": 4,
+            "detector_id": "D-01",
+            "execution_confidence": 0.0,
+            "recommendation": "Need 8 more observations per window (currently 2, required 10)",
+            "required_obs_per_window": 10,
+            "required_windows": 2,
+            "skip_reason": "minimum observations per window is 2 (required: 10)",
+            "state": "SKIPPED"
+          },
+          {
+            "actual_obs_per_window": {
+              "w00": 4,
+              "w01": 4,
+              "w02": 4,
+              "w03": 2
+            },
+            "actual_windows": 4,
+            "detector_id": "D-02",
+            "execution_confidence": 0.0,
+            "recommendation": "Need 8 more observations per window (currently 2, required 10)",
+            "required_obs_per_window": 10,
+            "required_windows": 2,
+            "skip_reason": "minimum observations per window is 2 (required: 10)",
+            "state": "SKIPPED"
+          },
+          {
+            "actual_obs_per_window": {
+              "w00": 4,
+              "w01": 4,
+              "w02": 4,
+              "w03": 2
+            },
+            "actual_windows": 4,
+            "detector_id": "D-03",
+            "execution_confidence": 0.0,
+            "recommendation": "Need 18 more observations per window (currently 2, required 20)",
+            "required_obs_per_window": 20,
+            "required_windows": 1,
+            "skip_reason": "minimum observations per window is 2 (required: 20)",
+            "state": "SKIPPED"
+          }
+        ],
+        "overall_state": "PARTIAL",
+        "partial_count": 0,
+        "ready_count": 0,
+        "skipped_count": 3
+      },
+      "warnings": [],
+      "window_summary": {
+        "strategy_used": "temporal",
+        "total_observations": 14,
+        "total_windows": 4,
+        "unassigned_observations": 0
+      }
+    },
+    "repo_meta": {
+      "id": "E-05",
+      "name": "crewAI",
+      "cat": "E",
+      "cat_name": "High-Churn / Experimental",
+      "lang": "Python",
+      "domain": "AI / Agents"
+    }
+  },
+  {
+    "repo_id": "F-01",
+    "analysis_ok": true,
+    "time_s": 5.6965391635894775,
+    "is_score": null,
+    "cs_score": null,
+    "windows": 97,
+    "observations": 0,
+    "sampling": {
+      "execution_traces": [
+        {
+          "detector_id": "D-01",
+          "evidence_generated": false,
+          "execution_decision": "execute",
+          "observation_count": 194,
+          "readiness_state": "READY",
+          "required_sample": 20,
+          "sample_size": 34,
+          "skip_reason": "",
+          "window_count": 5
+        },
+        {
+          "detector_id": "D-02",
+          "evidence_generated": false,
+          "execution_decision": "execute",
+          "observation_count": 194,
+          "readiness_state": "READY",
+          "required_sample": 20,
+          "sample_size": 34,
+          "skip_reason": "",
+          "window_count": 5
+        },
+        {
+          "detector_id": "D-03",
+          "evidence_generated": false,
+          "execution_decision": "execute",
+          "observation_count": 194,
+          "readiness_state": "READY",
+          "required_sample": 20,
+          "sample_size": 34,
+          "skip_reason": "",
+          "window_count": 5
+        }
+      ],
+      "plan": {
+        "alternatives_count": 7,
+        "chosen_score": 0.9609,
+        "chosen_strategy": "commit_count",
+        "chosen_window_size": 20,
+        "expected_obs_per_window": 21.6,
+        "expected_windows": 9,
+        "rejected_count": 0,
+        "scientific_confidence": "high",
+        "selection_rationale": "Selected commit_count (size=20) with score 0.96. Expected 9 windows with ~22 observations each."
+      },
+      "profile": {
+        "activity_class": "moderate",
+        "commit_count": 194,
+        "commit_density": 0.2887,
+        "metrics_available": [
+          "M-02",
+          "M-06"
+        ],
+        "observation_count": 194,
+        "observation_density": 0.2887,
+        "repo_age_days": 672,
+        "scale": "small",
+        "time_span_days": 672,
+        "volatility": "stable"
+      },
+      "readiness": {
+        "detectors": [
+          {
+            "actual_obs_per_window": {
+              "w00": 40,
+              "w01": 40,
+              "w02": 40,
+              "w03": 40,
+              "w04": 34
+            },
+            "actual_windows": 5,
+            "detector_id": "D-01",
+            "execution_confidence": 1.0,
+            "recommendation": "",
+            "required_obs_per_window": 10,
+            "required_windows": 2,
+            "skip_reason": "",
+            "state": "READY"
+          },
+          {
+            "actual_obs_per_window": {
+              "w00": 40,
+              "w01": 40,
+              "w02": 40,
+              "w03": 40,
+              "w04": 34
+            },
+            "actual_windows": 5,
+            "detector_id": "D-02",
+            "execution_confidence": 1.0,
+            "recommendation": "",
+            "required_obs_per_window": 10,
+            "required_windows": 2,
+            "skip_reason": "",
+            "state": "READY"
+          },
+          {
+            "actual_obs_per_window": {
+              "w00": 40,
+              "w01": 40,
+              "w02": 40,
+              "w03": 40,
+              "w04": 34
+            },
+            "actual_windows": 5,
+            "detector_id": "D-03",
+            "execution_confidence": 1.0,
+            "recommendation": "",
+            "required_obs_per_window": 20,
+            "required_windows": 1,
+            "skip_reason": "",
+            "state": "READY"
+          }
+        ],
+        "overall_state": "READY",
+        "partial_count": 0,
+        "ready_count": 3,
+        "skipped_count": 0
+      },
+      "warnings": [],
+      "window_summary": {
+        "strategy_used": "commit_count",
+        "total_observations": 194,
+        "total_windows": 5,
+        "unassigned_observations": 0
+      }
+    },
+    "repo_meta": {
+      "id": "F-01",
+      "name": "stable-diffusion-webui",
+      "cat": "F",
+      "cat_name": "High-Risk & Anomalous",
+      "lang": "Python",
+      "domain": "AI / Image"
+    }
+  },
+  {
+    "repo_id": "F-02",
+    "analysis_ok": true,
+    "time_s": 2.688910484313965,
+    "is_score": null,
+    "cs_score": null,
+    "windows": 202,
+    "observations": 0,
+    "sampling": {
+      "execution_traces": [
+        {
+          "detector_id": "D-01",
+          "evidence_generated": false,
+          "execution_decision": "skip",
+          "observation_count": 404,
+          "readiness_state": "SKIPPED",
+          "required_sample": 20,
+          "sample_size": 4,
+          "skip_reason": "minimum observations per window is 4 (required: 10)",
+          "window_count": 11
+        },
+        {
+          "detector_id": "D-02",
+          "evidence_generated": false,
+          "execution_decision": "skip",
+          "observation_count": 404,
+          "readiness_state": "SKIPPED",
+          "required_sample": 20,
+          "sample_size": 4,
+          "skip_reason": "minimum observations per window is 4 (required: 10)",
+          "window_count": 11
+        },
+        {
+          "detector_id": "D-03",
+          "evidence_generated": false,
+          "execution_decision": "skip",
+          "observation_count": 404,
+          "readiness_state": "SKIPPED",
+          "required_sample": 20,
+          "sample_size": 4,
+          "skip_reason": "minimum observations per window is 4 (required: 20)",
+          "window_count": 11
+        }
+      ],
+      "plan": {
+        "alternatives_count": 7,
+        "chosen_score": 0.9775,
+        "chosen_strategy": "commit_count",
+        "chosen_window_size": 20,
+        "expected_obs_per_window": 20.2,
+        "expected_windows": 20,
+        "rejected_count": 0,
+        "scientific_confidence": "high",
+        "selection_rationale": "Selected commit_count (size=20) with score 0.98. Expected 20 windows with ~20 observations each."
+      },
+      "profile": {
+        "activity_class": "moderate",
+        "commit_count": 404,
+        "commit_density": 0.2871,
+        "metrics_available": [
+          "M-02",
+          "M-06"
+        ],
+        "observation_count": 404,
+        "observation_density": 0.2871,
+        "repo_age_days": 1407,
+        "scale": "small",
+        "time_span_days": 1407,
+        "volatility": "stable"
+      },
+      "readiness": {
+        "detectors": [
+          {
+            "actual_obs_per_window": {
+              "w00": 40,
+              "w01": 40,
+              "w02": 40,
+              "w03": 40,
+              "w04": 40,
+              "w05": 40,
+              "w06": 40,
+              "w07": 40,
+              "w08": 40,
+              "w09": 40,
+              "w10": 4
+            },
+            "actual_windows": 11,
+            "detector_id": "D-01",
+            "execution_confidence": 0.0,
+            "recommendation": "Need 6 more observations per window (currently 4, required 10)",
+            "required_obs_per_window": 10,
+            "required_windows": 2,
+            "skip_reason": "minimum observations per window is 4 (required: 10)",
+            "state": "SKIPPED"
+          },
+          {
+            "actual_obs_per_window": {
+              "w00": 40,
+              "w01": 40,
+              "w02": 40,
+              "w03": 40,
+              "w04": 40,
+              "w05": 40,
+              "w06": 40,
+              "w07": 40,
+              "w08": 40,
+              "w09": 40,
+              "w10": 4
+            },
+            "actual_windows": 11,
+            "detector_id": "D-02",
+            "execution_confidence": 0.0,
+            "recommendation": "Need 6 more observations per window (currently 4, required 10)",
+            "required_obs_per_window": 10,
+            "required_windows": 2,
+            "skip_reason": "minimum observations per window is 4 (required: 10)",
+            "state": "SKIPPED"
+          },
+          {
+            "actual_obs_per_window": {
+              "w00": 40,
+              "w01": 40,
+              "w02": 40,
+              "w03": 40,
+              "w04": 40,
+              "w05": 40,
+              "w06": 40,
+              "w07": 40,
+              "w08": 40,
+              "w09": 40,
+              "w10": 4
+            },
+            "actual_windows": 11,
+            "detector_id": "D-03",
+            "execution_confidence": 0.0,
+            "recommendation": "Need 16 more observations per window (currently 4, required 20)",
+            "required_obs_per_window": 20,
+            "required_windows": 1,
+            "skip_reason": "minimum observations per window is 4 (required: 20)",
+            "state": "SKIPPED"
+          }
+        ],
+        "overall_state": "PARTIAL",
+        "partial_count": 0,
+        "ready_count": 0,
+        "skipped_count": 3
+      },
+      "warnings": [],
+      "window_summary": {
+        "strategy_used": "commit_count",
+        "total_observations": 404,
+        "total_windows": 11,
+        "unassigned_observations": 0
+      }
+    },
+    "repo_meta": {
+      "id": "F-02",
+      "name": "NiceHashQuickMiner",
+      "cat": "F",
+      "cat_name": "High-Risk & Anomalous",
+      "lang": "C++",
+      "domain": "Mining"
+    }
+  },
+  {
+    "repo_id": "F-04",
+    "analysis_ok": false,
+    "error": "exit code 3: ",
+    "time_s": 7.935584545135498,
+    "repo_meta": {
+      "id": "F-04",
+      "name": "core",
+      "cat": "F",
+      "cat_name": "High-Risk & Anomalous",
+      "lang": "Python",
+      "domain": "IoT"
+    }
+  },
+  {
+    "repo_id": "F-05",
+    "analysis_ok": true,
+    "time_s": 2.351861000061035,
+    "is_score": null,
+    "cs_score": null,
+    "windows": 237,
+    "observations": 0,
+    "sampling": {
+      "execution_traces": [
+        {
+          "detector_id": "D-01",
+          "evidence_generated": false,
+          "execution_decision": "execute",
+          "observation_count": 474,
+          "readiness_state": "READY",
+          "required_sample": 20,
+          "sample_size": 34,
+          "skip_reason": "",
+          "window_count": 12
+        },
+        {
+          "detector_id": "D-02",
+          "evidence_generated": false,
+          "execution_decision": "execute",
+          "observation_count": 474,
+          "readiness_state": "READY",
+          "required_sample": 20,
+          "sample_size": 34,
+          "skip_reason": "",
+          "window_count": 12
+        },
+        {
+          "detector_id": "D-03",
+          "evidence_generated": false,
+          "execution_decision": "execute",
+          "observation_count": 474,
+          "readiness_state": "READY",
+          "required_sample": 20,
+          "sample_size": 34,
+          "skip_reason": "",
+          "window_count": 12
+        }
+      ],
+      "plan": {
+        "alternatives_count": 7,
+        "chosen_score": 0.9672,
+        "chosen_strategy": "commit_count",
+        "chosen_window_size": 20,
+        "expected_obs_per_window": 20.6,
+        "expected_windows": 23,
+        "rejected_count": 0,
+        "scientific_confidence": "high",
+        "selection_rationale": "Selected commit_count (size=20) with score 0.97. Expected 23 windows with ~21 observations each."
+      },
+      "profile": {
+        "activity_class": "moderate",
+        "commit_count": 474,
+        "commit_density": 0.2869,
+        "metrics_available": [
+          "M-02",
+          "M-06"
+        ],
+        "observation_count": 474,
+        "observation_density": 0.2869,
+        "repo_age_days": 1652,
+        "scale": "small",
+        "time_span_days": 1652,
+        "volatility": "stable"
+      },
+      "readiness": {
+        "detectors": [
+          {
+            "actual_obs_per_window": {
+              "w00": 40,
+              "w01": 40,
+              "w02": 40,
+              "w03": 40,
+              "w04": 40,
+              "w05": 40,
+              "w06": 40,
+              "w07": 40,
+              "w08": 40,
+              "w09": 40,
+              "w10": 40,
+              "w11": 34
+            },
+            "actual_windows": 12,
+            "detector_id": "D-01",
+            "execution_confidence": 1.0,
+            "recommendation": "",
+            "required_obs_per_window": 10,
+            "required_windows": 2,
+            "skip_reason": "",
+            "state": "READY"
+          },
+          {
+            "actual_obs_per_window": {
+              "w00": 40,
+              "w01": 40,
+              "w02": 40,
+              "w03": 40,
+              "w04": 40,
+              "w05": 40,
+              "w06": 40,
+              "w07": 40,
+              "w08": 40,
+              "w09": 40,
+              "w10": 40,
+              "w11": 34
+            },
+            "actual_windows": 12,
+            "detector_id": "D-02",
+            "execution_confidence": 1.0,
+            "recommendation": "",
+            "required_obs_per_window": 10,
+            "required_windows": 2,
+            "skip_reason": "",
+            "state": "READY"
+          },
+          {
+            "actual_obs_per_window": {
+              "w00": 40,
+              "w01": 40,
+              "w02": 40,
+              "w03": 40,
+              "w04": 40,
+              "w05": 40,
+              "w06": 40,
+              "w07": 40,
+              "w08": 40,
+              "w09": 40,
+              "w10": 40,
+              "w11": 34
+            },
+            "actual_windows": 12,
+            "detector_id": "D-03",
+            "execution_confidence": 1.0,
+            "recommendation": "",
+            "required_obs_per_window": 20,
+            "required_windows": 1,
+            "skip_reason": "",
+            "state": "READY"
+          }
+        ],
+        "overall_state": "READY",
+        "partial_count": 0,
+        "ready_count": 3,
+        "skipped_count": 0
+      },
+      "warnings": [],
+      "window_summary": {
+        "strategy_used": "commit_count",
+        "total_observations": 474,
+        "total_windows": 12,
+        "unassigned_observations": 0
+      }
+    },
+    "repo_meta": {
+      "id": "F-05",
+      "name": "public-apis",
+      "cat": "F",
+      "cat_name": "High-Risk & Anomalous",
+      "lang": "Python",
+      "domain": "API Registry"
+    }
+  }
+]

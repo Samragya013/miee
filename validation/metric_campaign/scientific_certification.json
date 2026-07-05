@@ -1,0 +1,645 @@
+{
+  "campaign_date": "2026-07-03T09:41:34.376297+00:00",
+  "total_repositories": 10,
+  "successful": 10,
+  "failed": 0,
+  "repositories": [
+    {
+      "repository": "tiangolo/typer",
+      "category": "small",
+      "success": true,
+      "clone_time_s": 0.0,
+      "orchestrator_time_s": 4.858120679855347,
+      "graph_time_s": 0.0869746208190918,
+      "metric_time_s": 0.003998279571533203,
+      "total_time_s": 4.9511027336120605,
+      "observations": 1503,
+      "providers_succeeded": [
+        "git.observation.v1"
+      ],
+      "providers_failed": [
+        "github.pr.observation.v1: Initialization failed: Rate limit check failed: Rate limit exhausted (resets at unknown)",
+        "repository.metadata.observation.v1: Initialization failed: Rate limit check failed: Rate limit exhausted (resets at unknown)"
+      ],
+      "metrics": {
+        "M-01": {
+          "value": 0.0,
+          "confidence": 0.615,
+          "observation_count": 1,
+          "provider_count": 1
+        },
+        "M-02": {
+          "value": 500.0,
+          "confidence": 0.9,
+          "observation_count": 500,
+          "provider_count": 1
+        },
+        "M-03": {
+          "value": 0.00429769130998704,
+          "confidence": 0.7,
+          "observation_count": 500,
+          "provider_count": 1
+        },
+        "M-04": {
+          "value": 0.38780804150453957,
+          "confidence": 0.46499999999999997,
+          "observation_count": 1,
+          "provider_count": 1
+        },
+        "M-05": {
+          "value": null,
+          "confidence": 0.0,
+          "observation_count": 0,
+          "provider_count": 0
+        },
+        "M-06": {
+          "value": 84490.0,
+          "confidence": 0.8955245134325173,
+          "observation_count": 500,
+          "provider_count": 1
+        },
+        "M-07": {
+          "value": 0.9965294491680813,
+          "confidence": 0.615,
+          "observation_count": 1,
+          "provider_count": 1
+        }
+      },
+      "overall_confidence": 0.8313088867040975,
+      "coverage": 0.8571428571428571
+    },
+    {
+      "repository": "tiangolo/full-stack-fastapi-template",
+      "category": "small",
+      "success": true,
+      "clone_time_s": 0.0,
+      "orchestrator_time_s": 4.582852602005005,
+      "graph_time_s": 0.08329987525939941,
+      "metric_time_s": 0.0,
+      "total_time_s": 4.6671528816223145,
+      "observations": 1503,
+      "providers_succeeded": [
+        "git.observation.v1"
+      ],
+      "providers_failed": [
+        "github.pr.observation.v1: Initialization failed: Rate limit check failed: Rate limit exhausted (resets at unknown)",
+        "repository.metadata.observation.v1: Initialization failed: Rate limit check failed: Rate limit exhausted (resets at unknown)"
+      ],
+      "metrics": {
+        "M-01": {
+          "value": 0.0,
+          "confidence": 0.615,
+          "observation_count": 1,
+          "provider_count": 1
+        },
+        "M-02": {
+          "value": 500.0,
+          "confidence": 0.9,
+          "observation_count": 500,
+          "provider_count": 1
+        },
+        "M-03": {
+          "value": 0.014223096234309595,
+          "confidence": 0.7,
+          "observation_count": 500,
+          "provider_count": 1
+        },
+        "M-04": {
+          "value": 0.09623430962343096,
+          "confidence": 0.46499999999999997,
+          "observation_count": 1,
+          "provider_count": 1
+        },
+        "M-05": {
+          "value": null,
+          "confidence": 0.0,
+          "observation_count": 0,
+          "provider_count": 0
+        },
+        "M-06": {
+          "value": 101478.0,
+          "confidence": 0.8971012616356063,
+          "observation_count": 500,
+          "provider_count": 1
+        },
+        "M-07": {
+          "value": 0.9625673242908951,
+          "confidence": 0.615,
+          "observation_count": 1,
+          "provider_count": 1
+        }
+      },
+      "overall_confidence": 0.8318334203711265,
+      "coverage": 0.8571428571428571
+    },
+    {
+      "repository": "pypa/sampleproject",
+      "category": "small",
+      "success": true,
+      "clone_time_s": 0.0,
+      "orchestrator_time_s": 4.858813047409058,
+      "graph_time_s": 0.0,
+      "metric_time_s": 0.0,
+      "total_time_s": 4.859859943389893,
+      "observations": 420,
+      "providers_succeeded": [
+        "git.observation.v1"
+      ],
+      "providers_failed": [
+        "github.pr.observation.v1: Initialization failed: Rate limit check failed: Rate limit exhausted (resets at unknown)",
+        "repository.metadata.observation.v1: Initialization failed: Rate limit check failed: Rate limit exhausted (resets at unknown)"
+      ],
+      "metrics": {
+        "M-01": {
+          "value": 0.33547986458912915,
+          "confidence": 0.615,
+          "observation_count": 1,
+          "provider_count": 1
+        },
+        "M-02": {
+          "value": 139.0,
+          "confidence": 0.9,
+          "observation_count": 139,
+          "provider_count": 1
+        },
+        "M-03": {
+          "value": 0.024700239808153474,
+          "confidence": 0.7,
+          "observation_count": 139,
+          "provider_count": 1
+        },
+        "M-04": {
+          "value": 0.16666666666666666,
+          "confidence": 0.46499999999999997,
+          "observation_count": 1,
+          "provider_count": 1
+        },
+        "M-05": {
+          "value": null,
+          "confidence": 0.0,
+          "observation_count": 0,
+          "provider_count": 0
+        },
+        "M-06": {
+          "value": 2060.0,
+          "confidence": 0.8965612401418565,
+          "observation_count": 139,
+          "provider_count": 1
+        },
+        "M-07": {
+          "value": 0.0,
+          "confidence": 0.615,
+          "observation_count": 1,
+          "provider_count": 1
+        }
+      },
+      "overall_confidence": 0.8302786009040907,
+      "coverage": 0.8571428571428571
+    },
+    {
+      "repository": "tiangolo/uvicorn",
+      "category": "medium",
+      "success": true,
+      "clone_time_s": 0.0,
+      "orchestrator_time_s": 2.842682361602783,
+      "graph_time_s": 0.08411169052124023,
+      "metric_time_s": 0.0029993057250976562,
+      "total_time_s": 2.9355924129486084,
+      "observations": 1503,
+      "providers_succeeded": [
+        "git.observation.v1"
+      ],
+      "providers_failed": [
+        "github.pr.observation.v1: Initialization failed: Rate limit check failed: Rate limit exhausted (resets at unknown)",
+        "repository.metadata.observation.v1: Initialization failed: Rate limit check failed: Rate limit exhausted (resets at unknown)"
+      ],
+      "metrics": {
+        "M-01": {
+          "value": 0.260564207076941,
+          "confidence": 0.615,
+          "observation_count": 1,
+          "provider_count": 1
+        },
+        "M-02": {
+          "value": 500.0,
+          "confidence": 0.9,
+          "observation_count": 500,
+          "provider_count": 1
+        },
+        "M-03": {
+          "value": 0.009306666666666661,
+          "confidence": 0.7,
+          "observation_count": 500,
+          "provider_count": 1
+        },
+        "M-04": {
+          "value": 0.2647058823529412,
+          "confidence": 0.46499999999999997,
+          "observation_count": 1,
+          "provider_count": 1
+        },
+        "M-05": {
+          "value": null,
+          "confidence": 0.0,
+          "observation_count": 0,
+          "provider_count": 0
+        },
+        "M-06": {
+          "value": 27060.0,
+          "confidence": 0.8971401324073575,
+          "observation_count": 500,
+          "provider_count": 1
+        },
+        "M-07": {
+          "value": 0.0,
+          "confidence": 0.615,
+          "observation_count": 1,
+          "provider_count": 1
+        }
+      },
+      "overall_confidence": 0.83184635143292,
+      "coverage": 0.8571428571428571
+    },
+    {
+      "repository": "encode/httpx",
+      "category": "medium",
+      "success": true,
+      "clone_time_s": 0.0,
+      "orchestrator_time_s": 5.397162199020386,
+      "graph_time_s": 0.0845189094543457,
+      "metric_time_s": 0.0010077953338623047,
+      "total_time_s": 5.483688831329346,
+      "observations": 1503,
+      "providers_succeeded": [
+        "git.observation.v1"
+      ],
+      "providers_failed": [
+        "github.pr.observation.v1: Initialization failed: Rate limit check failed: Rate limit exhausted (resets at unknown)",
+        "repository.metadata.observation.v1: Initialization failed: Rate limit check failed: Rate limit exhausted (resets at unknown)"
+      ],
+      "metrics": {
+        "M-01": {
+          "value": 0.2360586869533947,
+          "confidence": 0.615,
+          "observation_count": 1,
+          "provider_count": 1
+        },
+        "M-02": {
+          "value": 500.0,
+          "confidence": 0.9,
+          "observation_count": 500,
+          "provider_count": 1
+        },
+        "M-03": {
+          "value": 0.011866880000000026,
+          "confidence": 0.7,
+          "observation_count": 500,
+          "provider_count": 1
+        },
+        "M-04": {
+          "value": 0.296,
+          "confidence": 0.46499999999999997,
+          "observation_count": 1,
+          "provider_count": 1
+        },
+        "M-05": {
+          "value": null,
+          "confidence": 0.0,
+          "observation_count": 0,
+          "provider_count": 0
+        },
+        "M-06": {
+          "value": 54350.0,
+          "confidence": 0.8962970826407018,
+          "observation_count": 500,
+          "provider_count": 1
+        },
+        "M-07": {
+          "value": 0.27801142566525217,
+          "confidence": 0.615,
+          "observation_count": 1,
+          "provider_count": 1
+        }
+      },
+      "overall_confidence": 0.83156589575539,
+      "coverage": 0.8571428571428571
+    },
+    {
+      "repository": "encode/starlette",
+      "category": "medium",
+      "success": true,
+      "clone_time_s": 0.0,
+      "orchestrator_time_s": 4.0398337841033936,
+      "graph_time_s": 0.08732986450195312,
+      "metric_time_s": 0.00495457649230957,
+      "total_time_s": 4.133131742477417,
+      "observations": 1503,
+      "providers_succeeded": [
+        "git.observation.v1"
+      ],
+      "providers_failed": [
+        "github.pr.observation.v1: Initialization failed: Rate limit check failed: Rate limit exhausted (resets at unknown)",
+        "repository.metadata.observation.v1: Initialization failed: Rate limit check failed: Rate limit exhausted (resets at unknown)"
+      ],
+      "metrics": {
+        "M-01": {
+          "value": 0.39100477382493365,
+          "confidence": 0.615,
+          "observation_count": 1,
+          "provider_count": 1
+        },
+        "M-02": {
+          "value": 500.0,
+          "confidence": 0.9,
+          "observation_count": 500,
+          "provider_count": 1
+        },
+        "M-03": {
+          "value": 0.009784806201550426,
+          "confidence": 0.7,
+          "observation_count": 500,
+          "provider_count": 1
+        },
+        "M-04": {
+          "value": 0.2558139534883721,
+          "confidence": 0.46499999999999997,
+          "observation_count": 1,
+          "provider_count": 1
+        },
+        "M-05": {
+          "value": null,
+          "confidence": 0.0,
+          "observation_count": 0,
+          "provider_count": 0
+        },
+        "M-06": {
+          "value": 45233.0,
+          "confidence": 0.8959876609445107,
+          "observation_count": 500,
+          "provider_count": 1
+        },
+        "M-07": {
+          "value": 0.9165163448370628,
+          "confidence": 0.615,
+          "observation_count": 1,
+          "provider_count": 1
+        }
+      },
+      "overall_confidence": 0.8314629610593849,
+      "coverage": 0.8571428571428571
+    },
+    {
+      "repository": "pallets/flask",
+      "category": "large",
+      "success": true,
+      "clone_time_s": 0.0,
+      "orchestrator_time_s": 3.5898587703704834,
+      "graph_time_s": 0.8400735855102539,
+      "metric_time_s": 0.015929698944091797,
+      "total_time_s": 4.445862054824829,
+      "observations": 4755,
+      "providers_succeeded": [
+        "git.observation.v1"
+      ],
+      "providers_failed": [
+        "github.pr.observation.v1: Initialization failed: Rate limit check failed: Rate limit exhausted (resets at unknown)",
+        "repository.metadata.observation.v1: Initialization failed: Rate limit check failed: Rate limit exhausted (resets at unknown)"
+      ],
+      "metrics": {
+        "M-01": {
+          "value": 0.30603378492641403,
+          "confidence": 0.615,
+          "observation_count": 1,
+          "provider_count": 1
+        },
+        "M-02": {
+          "value": 1584.0,
+          "confidence": 0.9,
+          "observation_count": 1584,
+          "provider_count": 1
+        },
+        "M-03": {
+          "value": 0.018725656993665418,
+          "confidence": 0.7,
+          "observation_count": 1584,
+          "provider_count": 1
+        },
+        "M-04": {
+          "value": 0.2033898305084746,
+          "confidence": 0.46499999999999997,
+          "observation_count": 1,
+          "provider_count": 1
+        },
+        "M-05": {
+          "value": null,
+          "confidence": 0.0,
+          "observation_count": 0,
+          "provider_count": 0
+        },
+        "M-06": {
+          "value": 726585.0,
+          "confidence": 0.8990639949248845,
+          "observation_count": 1584,
+          "provider_count": 1
+        },
+        "M-07": {
+          "value": 0.8178335677679398,
+          "confidence": 0.615,
+          "observation_count": 1,
+          "provider_count": 1
+        }
+      },
+      "overall_confidence": 0.8328522330096776,
+      "coverage": 0.8571428571428571
+    },
+    {
+      "repository": "psf/requests",
+      "category": "large",
+      "success": true,
+      "clone_time_s": 0.0011279582977294922,
+      "orchestrator_time_s": 3.467682123184204,
+      "graph_time_s": 0.6850547790527344,
+      "metric_time_s": 0.0009989738464355469,
+      "total_time_s": 4.155935287475586,
+      "observations": 4236,
+      "providers_succeeded": [
+        "git.observation.v1"
+      ],
+      "providers_failed": [
+        "github.pr.observation.v1: Initialization failed: Rate limit check failed: Rate limit exhausted (resets at unknown)",
+        "repository.metadata.observation.v1: Initialization failed: Rate limit check failed: Rate limit exhausted (resets at unknown)"
+      ],
+      "metrics": {
+        "M-01": {
+          "value": 0.2165354773957376,
+          "confidence": 0.615,
+          "observation_count": 1,
+          "provider_count": 1
+        },
+        "M-02": {
+          "value": 1411.0,
+          "confidence": 0.9,
+          "observation_count": 1411,
+          "provider_count": 1
+        },
+        "M-03": {
+          "value": 0.008919042686583311,
+          "confidence": 0.7,
+          "observation_count": 1411,
+          "provider_count": 1
+        },
+        "M-04": {
+          "value": 0.11538461538461539,
+          "confidence": 0.46499999999999997,
+          "observation_count": 1,
+          "provider_count": 1
+        },
+        "M-05": {
+          "value": null,
+          "confidence": 0.0,
+          "observation_count": 0,
+          "provider_count": 0
+        },
+        "M-06": {
+          "value": 227381.0,
+          "confidence": 0.8979283756373652,
+          "observation_count": 1411,
+          "provider_count": 1
+        },
+        "M-07": {
+          "value": 0.979617828777199,
+          "confidence": 0.615,
+          "observation_count": 1,
+          "provider_count": 1
+        }
+      },
+      "overall_confidence": 0.8324532431596604,
+      "coverage": 0.8571428571428571
+    },
+    {
+      "repository": "pypa/pip",
+      "category": "archived",
+      "success": true,
+      "clone_time_s": 0.0,
+      "orchestrator_time_s": 6.548291206359863,
+      "graph_time_s": 54.692299127578735,
+      "metric_time_s": 0.15901732444763184,
+      "total_time_s": 61.46911430358887,
+      "observations": 33783,
+      "providers_succeeded": [
+        "git.observation.v1"
+      ],
+      "providers_failed": [
+        "github.pr.observation.v1: Initialization failed: Rate limit check failed: Rate limit exhausted (resets at unknown)",
+        "repository.metadata.observation.v1: Initialization failed: Rate limit check failed: Rate limit exhausted (resets at unknown)"
+      ],
+      "metrics": {
+        "M-01": {
+          "value": 0.2119920263519558,
+          "confidence": 0.615,
+          "observation_count": 1,
+          "provider_count": 1
+        },
+        "M-02": {
+          "value": 11260.0,
+          "confidence": 0.9,
+          "observation_count": 11260,
+          "provider_count": 1
+        },
+        "M-03": {
+          "value": 0.0034850141561721592,
+          "confidence": 0.7,
+          "observation_count": 11260,
+          "provider_count": 1
+        },
+        "M-04": {
+          "value": 0.21710526315789475,
+          "confidence": 0.46499999999999997,
+          "observation_count": 1,
+          "provider_count": 1
+        },
+        "M-05": {
+          "value": null,
+          "confidence": 0.0,
+          "observation_count": 0,
+          "provider_count": 0
+        },
+        "M-06": {
+          "value": 2087635.0,
+          "confidence": 0.899813139907861,
+          "observation_count": 11260,
+          "provider_count": 1
+        },
+        "M-07": {
+          "value": 0.9980944596150977,
+          "confidence": 0.615,
+          "observation_count": 1,
+          "provider_count": 1
+        }
+      },
+      "overall_confidence": 0.8332472236143184,
+      "coverage": 0.8571428571428571
+    },
+    {
+      "repository": "python/cpython",
+      "category": "experimental",
+      "success": true,
+      "clone_time_s": 0.0,
+      "orchestrator_time_s": 1.165785312652588,
+      "graph_time_s": 0.0883948802947998,
+      "metric_time_s": 0.003000020980834961,
+      "total_time_s": 1.258180856704712,
+      "observations": 1503,
+      "providers_succeeded": [
+        "git.observation.v1"
+      ],
+      "providers_failed": [],
+      "metrics": {
+        "M-01": {
+          "value": 0.16299975545164558,
+          "confidence": 0.615,
+          "observation_count": 1,
+          "provider_count": 1
+        },
+        "M-02": {
+          "value": 500.0,
+          "confidence": 0.9,
+          "observation_count": 500,
+          "provider_count": 1
+        },
+        "M-03": {
+          "value": 0.0024714077587667253,
+          "confidence": 0.7,
+          "observation_count": 500,
+          "provider_count": 1
+        },
+        "M-04": {
+          "value": 0.15009317296290023,
+          "confidence": 0.46499999999999997,
+          "observation_count": 1,
+          "provider_count": 1
+        },
+        "M-05": {
+          "value": null,
+          "confidence": 0.0,
+          "observation_count": 0,
+          "provider_count": 0
+        },
+        "M-06": {
+          "value": 3204713.0,
+          "confidence": 0.8912589824798517,
+          "observation_count": 500,
+          "provider_count": 1
+        },
+        "M-07": {
+          "value": 0.9991794024364069,
+          "confidence": 0.615,
+          "observation_count": 1,
+          "provider_count": 1
+        }
+      },
+      "overall_confidence": 0.8298898810644884,
+      "coverage": 0.8571428571428571
+    }
+  ]
+}

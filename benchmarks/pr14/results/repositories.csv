@@ -1,0 +1,111 @@
+repo_id,category,size,language,success,error,observations,metrics_computed,windows,integrity_score,confidence_score,confidence_band,pipeline_time_s,clone_time_s,deterministic_match,warnings
+BurntSushi/ripgrep,healthy,medium,rust,True,,0,6,182,1.0,0.016507502996596285,low,0.00,2.71,False,0
+FastAPI/typer,healthy,medium,python,True,,0,6,32,1.0,0.015319021682785434,low,0.00,0.00,False,0
+Homebrew/brew,healthy,large,ruby,True,,0,6,73,1.0,0.016847052432301945,low,0.00,6.61,False,0
+TheAlgorithms/Python,experimental,large,python,True,,0,6,139,1.0,0.016658763456409174,low,0.00,0.00,False,0
+VanillaExtractCS/vanilla-extract,healthy,medium,typescript,False,Clone failed: git clone failed: Cloning into 'C:\Users\Samragya\Downloads\MIEE\benchmarks\pr14\repos,0,0,0,,,,0.00,1.40,False,0
+ajeetdsouza/zoxide,experimental,small,rust,True,,0,6,316,1.0,0.017142857142857144,low,0.00,3.11,False,0
+antonio-halerpo/coursera-ml-spec,experimental,small,python,False,Clone failed: git clone failed: Cloning into 'C:\Users\Samragya\Downloads\MIEE\benchmarks\pr14\repos,0,0,0,,,,0.00,1.92,False,0
+apache/airflow,high-risk,large,python,True,,0,6,4,1.0,0.008990863075742244,low,0.00,27.56,False,0
+axios/axios,healthy,large,javascript,True,,0,6,333,1.0,0.016673146281633806,low,0.00,3.32,False,0
+babel/babel,healthy,large,javascript,True,,0,6,54,1.0,0.016627146879153683,low,0.00,24.06,False,0
+celery/celery,enterprise,large,python,True,,0,6,96,1.0,0.01573875711719439,low,0.00,0.00,False,0
+chaijs/chai,healthy,medium,javascript,True,,0,6,700,1.0,0.017142857142857144,low,0.00,2.91,False,0
+colinhacks/zod,healthy,medium,typescript,True,,0,6,52,1.0,0.015013735623788469,low,0.00,4.51,False,0
+containerd/containerd,healthy,large,go,True,,0,6,467,1.0,0.016442333243295932,low,0.00,19.34,False,0
+dani-garcia/vaultwarden,high-risk,medium,rust,True,,0,6,155,1.0,0.016223905684962108,low,0.00,0.00,False,0
+dapr/dapr,healthy,medium,go,True,,0,6,99,1.0,0.015886941305782054,low,0.00,6.41,False,0
+denoland/deno,healthy,large,rust,True,,0,6,4,1.0,0.017142857142857144,low,0.00,20.60,False,0
+django/django,enterprise,large,python,True,,0,6,31,1.0,0.014415607893868764,low,0.00,0.00,False,0
+elastic/elasticsearch,healthy,large,java,False,Clone failed: git clone failed: Cloning into 'C:\Users\Samragya\Downloads\MIEE\benchmarks\pr14\repos,0,0,0,,,,0.00,56.83,False,0
+encode/httpx,healthy,medium,python,True,,0,6,237,1.0,0.016586084270767604,low,0.00,0.00,False,0
+encode/starlette,healthy,medium,python,True,,0,6,162,1.0,0.01624402048119602,low,0.00,0.00,False,0
+etcd-io/etcd,healthy,large,go,True,,0,6,568,1.0,0.016931375622367056,low,0.00,21.27,False,0
+expressjs/express,healthy,large,javascript,True,,0,6,632,1.0,0.016801904127938094,low,0.00,0.00,False,0
+facebook/jest,healthy,large,typescript,True,,0,6,113,1.0,0.01633653293377079,low,0.00,10.28,False,0
+fmtlib/fmt,healthy,medium,c++,True,,0,6,71,1.0,0.0156852612778152,low,0.00,2.66,False,0
+go-chi/chi,healthy,medium,go,True,,0,6,560,1.0,0.017142857142857144,low,0.00,3.41,False,0
+golang/go,healthy,large,go,True,,0,6,51,1.0,0.01578238233537942,low,0.00,25.09,False,0
+google/guava,healthy,large,java,True,,0,6,59,1.0,0.015177496341343877,low,0.00,8.87,False,0
+google/leveldb,healthy,medium,c++,True,,0,6,784,1.0,0.017142857142857144,low,0.00,2.51,False,0
+grafana/grafana,healthy,large,go,False,Clone failed: git clone failed: Cloning into 'C:\Users\Samragya\Downloads\MIEE\benchmarks\pr14\repos,0,0,0,,,,0.00,36.54,False,0
+hashicorp/terraform,enterprise,large,go,False,Clone failed: git clone failed: Cloning into 'C:\Users\Samragya\Downloads\MIEE\benchmarks\pr14\repos,0,0,0,,,,0.00,7.25,False,0
+huggingface/transformers,high-risk,large,python,True,,0,6,9,1.0,0.012947776957835487,low,0.00,51.45,False,0
+jazzband/prettytable,experimental,small,python,True,,0,6,893,1.0,0.017142857142857144,low,0.00,0.00,False,0
+jekyll/jekyll,healthy,large,ruby,True,,0,6,249,1.0,0.01659966602766231,low,0.00,3.35,False,0
+jmoiron/humanize,experimental,small,python,True,,0,6,558,1.0,0.017142857142857144,low,0.00,0.00,False,0
+jonathanslenders/python-prompt-toolkit,high-risk,medium,python,True,,0,6,334,1.0,0.017142857142857144,low,0.00,5.31,False,0
+junit-team/junit5,healthy,medium,java,True,,0,6,29,1.0,0.014296262785465474,low,0.00,4.89,False,0
+kennethreitz/gallows,archived,small,python,False,Clone failed: git clone failed: Cloning into 'C:\Users\Samragya\Downloads\MIEE\benchmarks\pr14\repos,0,0,0,,,,0.00,1.20,False,0
+kennethreitz/lego,archived,small,python,False,Clone failed: git clone failed: Cloning into 'C:\Users\Samragya\Downloads\MIEE\benchmarks\pr14\repos,0,0,0,,,,0.00,1.18,False,0
+kennethreitz/maya,archived,small,python,True,,0,6,396,1.0,0.017142857142857144,low,0.00,1.92,False,0
+kennethreitz/records,archived,small,python,True,,0,6,581,1.0,0.017142857142857144,low,0.00,1.68,False,0
+kennethreitz/requests,experimental,small,python,True,,0,6,572,1.0,0.017142857142857144,low,0.00,0.00,False,0
+kennethreitz/tablib,archived,small,python,True,,0,6,543,1.0,0.017142857142857144,low,0.00,2.30,False,0
+keras-team/keras,high-risk,large,python,True,,0,6,19,1.0,0.013573238335114361,low,0.00,3.69,False,0
+kubernetes/kubernetes,enterprise,large,go,False,Clone failed: timeout,0,0,0,,,,0.00,128.77,False,0
+labmlai/announcements,experimental,small,python,False,Clone failed: git clone failed: Cloning into 'C:\Users\Samragya\Downloads\MIEE\benchmarks\pr14\repos,0,0,0,,,,0.00,2.71,False,0
+lodash/lodash,healthy,large,javascript,True,,0,6,518,1.0,0.017142857142857144,low,0.00,2.92,False,0
+maguowei/starred,experimental,small,python,True,,0,6,521,1.0,0.017142857142857144,low,0.00,0.00,False,0
+marshmallow-code/marshmallow,enterprise,medium,python,True,,0,6,360,1.0,0.016691103628337062,low,0.00,0.00,False,0
+microsoft/TypeScript,healthy,large,typescript,False,Clone failed: git clone failed: Cloning into 'C:\Users\Samragya\Downloads\MIEE\benchmarks\pr14\repos,0,0,0,,,,0.00,66.28,False,0
+moby/moby,enterprise,large,go,False,Clone failed: git clone failed: Cloning into 'C:\Users\Samragya\Downloads\MIEE\benchmarks\pr14\repos,0,0,0,,,,0.00,27.58,False,0
+mochajs/mocha,healthy,large,javascript,True,,0,6,220,1.0,0.01656497304574232,low,0.00,4.05,False,0
+mockito/mockito,healthy,medium,java,True,,0,6,182,1.0,0.017142857142857144,low,0.00,3.60,False,0
+moment/moment,healthy,large,javascript,True,,0,6,409,1.0,0.016719027594823063,low,0.00,5.97,False,0
+nlohmann/json,healthy,medium,c++,True,,0,6,434,1.0,0.017142857142857144,low,0.00,15.15,False,0
+nock/nock,healthy,medium,javascript,True,,0,6,359,1.0,0.017142857142857144,low,0.00,2.92,False,0
+numpy/numpy,healthy,large,python,True,,0,6,0,1.0,0.017055097301127014,low,35.19,0.00,False,0
+opencv/opencv,healthy,large,c++,True,,0,6,742,1.0,0.016676532452809336,low,0.00,45.12,False,0
+owid/etl,experimental,large,python,True,,0,6,9,1.0,0.01550477193547518,low,0.00,0.00,False,0
+pallets/click,healthy,medium,python,True,,0,6,635,1.0,0.01680271048126946,low,0.00,0.00,False,0
+pallets/flask,healthy,medium,python,True,,0,6,643,1.0,0.0168048330994734,low,0.00,0.00,False,0
+pallets/itsdangerous,healthy,small,python,True,,0,6,730,1.0,0.017142857142857144,low,0.00,0.00,False,0
+pallets/jinja,healthy,medium,python,True,,0,6,883,1.0,0.017142857142857144,low,0.00,0.00,False,0
+pallets/markupsafe,experimental,small,python,True,,0,6,797,1.0,0.017142857142857144,low,0.00,0.00,False,0
+pallets/werkzeug,healthy,medium,python,True,,0,6,368,1.0,0.01654683191929475,low,0.00,0.00,False,0
+pandas-dev/pandas,healthy,large,python,True,,0,6,12,1.0,0.014247927154184986,low,0.00,0.00,False,0
+prisma/prisma,healthy,large,typescript,False,Clone failed: git clone failed: Cloning into 'C:\Users\Samragya\Downloads\MIEE\benchmarks\pr14\repos,0,0,0,,,,0.00,9.42,False,0
+prometheus/prometheus,healthy,large,go,True,,0,6,556,1.0,0.0164880687387837,low,0.00,16.39,False,0
+protocolbuffers/protobuf,healthy,large,c++,True,,0,6,10,1.0,0.014762862891635527,low,0.00,6.92,False,0
+psf/requests,healthy,medium,python,True,,0,6,502,1.0,0.016760295753557624,low,0.00,0.00,False,0
+pydantic/pydantic,enterprise,medium,python,True,,0,6,70,1.0,0.016232957678183325,low,0.00,0.00,False,0
+pympler/pympler,high-risk,small,python,True,,0,6,839,1.0,0.017142857142857144,low,0.00,0.00,False,0
+pypa/pip,healthy,large,python,True,,0,6,837,1.0,0.01686938799994071,low,0.00,0.00,False,0
+pypa/setuptools,healthy,large,python,True,,0,6,1240,1.0,0.01683856121189889,low,0.00,0.00,False,0
+pypa/virtualenv,healthy,medium,python,True,,0,6,192,1.0,0.016524269677236022,low,0.00,0.00,False,0
+pytest-dev/pytest,healthy,large,python,True,,0,6,303,1.0,0.016551763700782898,low,0.00,0.00,False,0
+pytest-dev/pytest-cov,enterprise,small,python,True,,0,6,535,1.0,0.017142857142857144,low,0.00,0.00,False,0
+python/cpython,enterprise,large,python,True,,0,6,5,1.0,0.011417073871802243,low,0.00,0.00,False,0
+pytorch/pytorch,high-risk,large,python,False,Clone failed: timeout,0,0,0,,,,0.00,154.20,False,0
+radix-ui/themes,healthy,small,typescript,True,,0,6,144,1.0,0.01618937455868959,low,0.00,6.53,False,0
+rails/rails,healthy,large,ruby,True,,0,6,0,1.0,0.017052112632534706,low,46.82,0.00,False,0
+redis/redis-py,high-risk,medium,python,True,,0,6,135,1.0,0.016651661800447373,low,0.00,3.04,False,0
+rspec/rspec,healthy,medium,ruby,True,,0,6,571,1.0,0.016963584210455216,low,0.00,4.01,False,0
+ruby/ruby,healthy,large,ruby,True,,0,6,3,1.0,0.013110344379835092,low,0.00,16.76,False,0
+rust-lang/rust,healthy,large,rust,False,Clone failed: timeout,0,0,0,,,,0.00,376.21,False,0
+sarugaku/shellingham,enterprise,small,python,True,,0,6,405,1.0,0.017142857142857144,low,0.00,0.00,False,0
+scikit-learn/scikit-learn,healthy,large,python,True,,0,6,25,1.0,0.014545460066562757,low,0.00,0.00,False,0
+scrapy/scrapy,high-risk,large,python,True,,0,6,626,1.0,0.017045032119216097,low,0.00,0.00,False,0
+sdispater/cleo,enterprise,small,python,True,,0,6,643,1.0,0.017142857142857144,low,0.00,0.00,False,0
+selenium/selenium,high-risk,large,python,True,,0,6,20,1.0,0.01368480566709622,low,0.00,0.00,False,0
+serde-rs/serde,healthy,medium,rust,True,,0,6,375,1.0,0.016552426013815638,low,0.00,3.27,False,0
+sharkdp/bat,healthy,small,rust,True,,0,6,247,1.0,0.016706725418384204,low,0.00,4.59,False,0
+sharkdp/fd,healthy,small,rust,True,,0,6,324,1.0,0.017142857142857144,low,0.00,2.69,False,0
+sinonjs/sinon,healthy,medium,javascript,True,,0,6,308,1.0,0.017142857142857144,low,0.00,10.03,False,0
+spring-projects/spring-boot,healthy,large,java,False,Clone failed: git clone failed: Cloning into 'C:\Users\Samragya\Downloads\MIEE\benchmarks\pr14\repos,0,0,0,,,,0.00,8.43,False,0
+sqlalchemy/sqlalchemy,healthy,large,python,True,,0,6,155,1.0,0.017142857142857144,low,0.00,0.00,False,0
+stitches-dev/stitches,experimental,small,typescript,False,Clone failed: git clone failed: Cloning into 'C:\Users\Samragya\Downloads\MIEE\benchmarks\pr14\repos,0,0,0,,,,0.00,1.47,False,0
+tartley/colorama,enterprise,small,python,True,,0,6,630,1.0,0.017142857142857144,low,0.00,0.00,False,0
+tauri-apps/tauri,healthy,large,rust,True,,0,6,54,1.0,0.015054122685681622,low,0.00,9.59,False,0
+tiangolo/fastapi,experimental,medium,python,True,,0,6,16,1.0,0.01328428799175442,low,0.00,0.00,False,0
+tiangolo/full-stack-fastapi-template,healthy,small,python,True,,0,6,43,1.0,0.0159559082969949,low,0.00,0.00,False,0
+tiangolo/typer,healthy,medium,python,True,,0,6,32,1.0,0.015319021682785434,low,0.00,0.00,False,0
+tiangolo/uvicorn,healthy,medium,python,True,,0,6,160,1.0,0.017142857142857144,low,0.00,0.00,False,0
+tokio-rs/tokio,healthy,large,rust,True,,0,6,278,1.0,0.0162604426934089,low,0.00,4.04,False,0
+total-typescript/ts-reset,experimental,small,typescript,True,,0,6,163,1.0,0.017142857142857144,low,0.00,2.29,False,0
+tqdm/tqdm,high-risk,small,python,True,,0,6,660,1.0,0.01680921483410393,low,0.00,0.00,False,0
+trpc/trpc,healthy,medium,typescript,True,,0,6,71,1.0,0.0165633523625738,low,0.00,6.08,False,0
+twisted/twisted,enterprise,large,python,True,,0,6,0,1.0,0.017052536485818424,low,12.58,0.00,False,0
+vercel/next.js,healthy,large,typescript,False,Clone failed: git clone failed: Cloning into 'C:\Users\Samragya\Downloads\MIEE\benchmarks\pr14\repos,0,0,0,,,,0.00,31.07,False,0
+webpack/webpack,healthy,large,javascript,False,Clone failed: git clone failed: Cloning into 'C:\Users\Samragya\Downloads\MIEE\benchmarks\pr14\repos,0,0,0,,,,0.00,18.92,False,0

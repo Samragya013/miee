@@ -52,3 +52,58 @@ archive/*.log
 archive/*.txt
 archive/.coverage
 archive/*_loop.json
+
+# Campaign & validation outputs (generated, never commit)
+campaign_clones/
+campaign_output/
+campaign_reports/
+rbvc_reports/
+validation/validation/
+validation/sampling/cli_output_*/
+validation/sampling/debug_*.py
+validation/sampling/campaign_log.txt
+validation/rbvc_results/
+validation/results/
+validation/__pycache__/
+validation/fix_unicode.py
+validation/_check_status.py
+validation/_parse_catalogue.py
+
+# Large cloned repos in archive
+archive/rc_cat_*/
+archive/*_test/
+archive/cli_test_repo/
+archive/fastapi_test/
+archive/flask_audit/
+archive/flask_final/
+archive/flask_test/
+archive/markupsafe_test/
+archive/requests_test/
+archive/debug_test/
+archive/dry_run_output/
+archive/test_output/
+archive/test_output_*/
+archive/tmp_output/
+archive/tmp_output_ingestion*/
+archive/output/
+archive/out/
+archive/memory/
+
+# Scripts (development-only, not part of package)
+scripts/
+
+# Benchmarks results
+benchmarks/results/
+benchmarks/tmp/
+benchmarks/datasets/
+
+# Temporary outputs
+output/
+tmp_output/
+tmp_output_ingestion*/
+
+# Temporary benchmark/test artifacts
+archive/temporary/
+
+# Release candidate reports (generated, not source)
+release/

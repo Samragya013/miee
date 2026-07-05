@@ -13,12 +13,18 @@ SRC_DIR = ROOT_DIR / "src" / "miie"
 EXPECTED_PACKAGES = {
     "api",
     "benchmark",
+    "cli",
     "config",
     "contracts",
+    "metrics",
+    "observation_graph",
     "orchestration",
     "processing",
+    "providers",
     "reporting",
+    "sampling",
     "schemas",
+    "scientific",
     "storage",
     "utils",
 }
@@ -62,7 +68,7 @@ def test_package_init_files():
         assert init_file.exists(), f"__init__.py missing for package {package}"
 
         # Basic validation - file should be readable and contain expected content
-        content = init_file.read_text().strip()
+        content = init_file.read_text(encoding="utf-8").strip()
         assert content, f"__init__.py is empty for package {package}"
         # Should contain at least a docstring or comment
         assert (

@@ -1,0 +1,223 @@
+{
+  "suite_id": "metric-drift-v1",
+  "detector_id": "D-01",
+  "detector_version": "1.0.0",
+  "metrics": {
+    "accuracy": 0.925,
+    "precision": 0.8889,
+    "recall": 0.9412,
+    "f1": 0.9143,
+    "auc_roc": 0.925,
+    "auc_pr": 0.8889,
+    "fpr": 0.087,
+    "fnr": 0.0588
+  },
+  "confusion_matrix": {
+    "tp": 16,
+    "fp": 2,
+    "tn": 21,
+    "fn": 1
+  },
+  "per_dataset_results": {
+    "candidate_001": {
+      "predicted": 0,
+      "ground_truth": 0,
+      "correct": true
+    },
+    "candidate_002": {
+      "predicted": 1,
+      "ground_truth": 0,
+      "correct": false
+    },
+    "candidate_003": {
+      "predicted": 0,
+      "ground_truth": 0,
+      "correct": true
+    },
+    "candidate_004": {
+      "predicted": 0,
+      "ground_truth": 0,
+      "correct": true
+    },
+    "candidate_005": {
+      "predicted": 0,
+      "ground_truth": 0,
+      "correct": true
+    },
+    "candidate_006": {
+      "predicted": 0,
+      "ground_truth": 0,
+      "correct": true
+    },
+    "candidate_007": {
+      "predicted": 0,
+      "ground_truth": 0,
+      "correct": true
+    },
+    "candidate_008": {
+      "predicted": 0,
+      "ground_truth": 0,
+      "correct": true
+    },
+    "candidate_009": {
+      "predicted": 0,
+      "ground_truth": 0,
+      "correct": true
+    },
+    "candidate_010": {
+      "predicted": 1,
+      "ground_truth": 0,
+      "correct": false
+    },
+    "candidate_011": {
+      "predicted": 0,
+      "ground_truth": 0,
+      "correct": true
+    },
+    "candidate_012": {
+      "predicted": 1,
+      "ground_truth": 1,
+      "correct": true
+    },
+    "candidate_013": {
+      "predicted": 1,
+      "ground_truth": 1,
+      "correct": true
+    },
+    "candidate_014": {
+      "predicted": 1,
+      "ground_truth": 1,
+      "correct": true
+    },
+    "candidate_015": {
+      "predicted": 1,
+      "ground_truth": 1,
+      "correct": true
+    },
+    "candidate_016": {
+      "predicted": 1,
+      "ground_truth": 1,
+      "correct": true
+    },
+    "candidate_017": {
+      "predicted": 1,
+      "ground_truth": 1,
+      "correct": true
+    },
+    "candidate_018": {
+      "predicted": 1,
+      "ground_truth": 1,
+      "correct": true
+    },
+    "candidate_019": {
+      "predicted": 1,
+      "ground_truth": 1,
+      "correct": true
+    },
+    "candidate_020": {
+      "predicted": 1,
+      "ground_truth": 1,
+      "correct": true
+    },
+    "candidate_021": {
+      "predicted": 1,
+      "ground_truth": 1,
+      "correct": true
+    },
+    "candidate_022": {
+      "predicted": 1,
+      "ground_truth": 1,
+      "correct": true
+    },
+    "candidate_023": {
+      "predicted": 1,
+      "ground_truth": 1,
+      "correct": true
+    },
+    "candidate_024": {
+      "predicted": 1,
+      "ground_truth": 1,
+      "correct": true
+    },
+    "candidate_025": {
+      "predicted": 0,
+      "ground_truth": 1,
+      "correct": false
+    },
+    "candidate_026": {
+      "predicted": 1,
+      "ground_truth": 1,
+      "correct": true
+    },
+    "candidate_027": {
+      "predicted": 1,
+      "ground_truth": 1,
+      "correct": true
+    },
+    "candidate_028": {
+      "predicted": 0,
+      "ground_truth": 0,
+      "correct": true
+    },
+    "candidate_029": {
+      "predicted": 0,
+      "ground_truth": 0,
+      "correct": true
+    },
+    "candidate_030": {
+      "predicted": 1,
+      "ground_truth": 1,
+      "correct": true
+    },
+    "candidate_031": {
+      "predicted": 0,
+      "ground_truth": 0,
+      "correct": true
+    },
+    "candidate_032": {
+      "predicted": 0,
+      "ground_truth": 0,
+      "correct": true
+    },
+    "candidate_033": {
+      "predicted": 0,
+      "ground_truth": 0,
+      "correct": true
+    },
+    "candidate_034": {
+      "predicted": 0,
+      "ground_truth": 0,
+      "correct": true
+    },
+    "candidate_035": {
+      "predicted": 0,
+      "ground_truth": 0,
+      "correct": true
+    },
+    "candidate_036": {
+      "predicted": 0,
+      "ground_truth": 0,
+      "correct": true
+    },
+    "candidate_037": {
+      "predicted": 0,
+      "ground_truth": 0,
+      "correct": true
+    },
+    "candidate_038": {
+      "predicted": 0,
+      "ground_truth": 0,
+      "correct": true
+    },
+    "candidate_039": {
+      "predicted": 0,
+      "ground_truth": 0,
+      "correct": true
+    },
+    "candidate_040": {
+      "predicted": 0,
+      "ground_truth": 0,
+      "correct": true
+    }
+  }
+}

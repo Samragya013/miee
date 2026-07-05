@@ -104,7 +104,7 @@ class TestAnalysisPipelineWithRealIngestion:
         assert pipeline.benchmark_engine is not None
         assert pipeline.evaluation_engine is not None
 
-    def test_run_analysis_success_with_real_ingestion(self, real_ingestion_engine, mock_engines, sample_repo):
+    def test_run_analysis_success_with_real_ingestion(self, real_ingestion_engine, mock_engines, sample_repo, tmp_path):
         """Test successful execution of the full analysis pipeline with real ingestion."""
         # Arrange
         pipeline = AnalysisPipeline(
@@ -120,7 +120,7 @@ class TestAnalysisPipelineWithRealIngestion:
 
         repo_path = sample_repo
         metric_list = ["M-01", "M-02", "M-03"]
-        output_dir = Path("./tmp_output_ingestion")
+        output_dir = tmp_path / "output_ingestion"
 
         # Act
         result = pipeline.run_analysis(repo_path=repo_path, metric_list=metric_list, output_dir=output_dir)
@@ -156,7 +156,7 @@ class TestAnalysisPipelineWithRealIngestion:
         assert (output_dir / "analysis_report.json").exists()
         assert (output_dir / "analysis_report.md").exists()
 
-    def test_run_analysis_with_different_params(self, real_ingestion_engine, mock_engines, sample_repo):
+    def test_run_analysis_with_different_params(self, real_ingestion_engine, mock_engines, sample_repo, tmp_path):
         """Test pipeline with different configuration parameters."""
         # Arrange
         pipeline = AnalysisPipeline(
@@ -172,7 +172,7 @@ class TestAnalysisPipelineWithRealIngestion:
 
         repo_path = sample_repo
         metric_list = ["M-06"]
-        output_dir = Path("./tmp_output_ingestion2")
+        output_dir = tmp_path / "output_ingestion2"
         since = datetime.now() - timedelta(days=1)
         until = datetime.now()
 
@@ -299,7 +299,7 @@ class TestAnalysisPipelineWithRealIngestion:
             result = pipeline.run_analysis(
                 repo_path=str(repo_path),
                 metric_list=["M-01"],
-                output_dir=Path("./tmp_output"),
+                output_dir=Path(tmpdir) / "output",
             )
             assert result is not None
 
@@ -310,7 +310,7 @@ class TestAnalysisPipelineWithRealIngestion:
         with pytest.raises(RuntimeError, match="Evaluation engine not available"):
             pipeline.evaluate_benchmark(BenchmarkRun(predictions={}, metadata={}), {})
 
-    def test_error_propagation_ingestion_failure(self, mock_engines):
+    def test_error_propagation_ingestion_failure(self, mock_engines, tmp_path):
         """Test that IngestionError from real ingestion engine propagates as ACS error."""
         # Arrange
         pipeline = AnalysisPipeline(
@@ -332,7 +332,7 @@ class TestAnalysisPipelineWithRealIngestion:
             pipeline.run_analysis(
                 repo_path=non_existent_path,
                 metric_list=["M-01"],
-                output_dir=Path("./tmp_output"),
+                output_dir=tmp_path / "output",
             )
 
         # Verify it's an ACS error (IngestionError is a MIIEError)

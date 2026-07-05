@@ -190,7 +190,7 @@ class DistributionDriftDetector(BaseDetector):
         """
         detector_outputs: Dict[str, Any] = {}
 
-        available_metrics = [m for m in self.supported_metrics if m in metric_dataframe.metrics]
+        available_metrics = [m for m in self.supported_metrics if m in metric_dataframe.metrics and metric_dataframe.metrics[m] is not None]
 
         if not available_metrics:
             detector_outputs[self.detector_id] = self._empty_output([], [])

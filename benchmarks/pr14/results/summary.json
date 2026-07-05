@@ -1,0 +1,119 @@
+{
+  "campaign": "PR-14 Large-Scale Scientific Benchmark",
+  "version": "1.6",
+  "timestamp": "2026-07-04T06:41:55.243395+00:00",
+  "seed": 42,
+  "catalogue_size": 110,
+  "successful": 92,
+  "failed": 18,
+  "success_rate": 0.8363636363636363,
+  "metric_coverage": {
+    "M-01": 1.0,
+    "M-02": 1.0,
+    "M-03": 1.0,
+    "M-04": 1.0,
+    "M-05": 0.0,
+    "M-06": 1.0,
+    "M-07": 1.0
+  },
+  "detector_execution_rates": {
+    "D-01": 0.967391304347826,
+    "D-02": 0.967391304347826,
+    "D-03": 0.967391304347826
+  },
+  "detection_rates": {
+    "D-01": 0.0,
+    "D-02": 0.0,
+    "D-03": 0.0
+  },
+  "score_statistics": {
+    "integrity_score": {
+      "mean": 1.0,
+      "min": 1.0,
+      "max": 1.0,
+      "count": 92
+    },
+    "confidence_score": {
+      "mean": 0.016233173451004345,
+      "min": 0.008990863075742244,
+      "max": 0.017142857142857144,
+      "count": 92
+    }
+  },
+  "performance": {
+    "mean_pipeline_time_s": 1.0281521739130433,
+    "max_pipeline_time_s": 46.82,
+    "min_pipeline_time_s": 0.0,
+    "total_time_s": 94.58999999999999
+  },
+  "category_breakdown": {
+    "enterprise": {
+      "total": 13,
+      "successful": 10,
+      "success_rate": 0.7692307692307693
+    },
+    "healthy": {
+      "total": 68,
+      "successful": 59,
+      "success_rate": 0.8676470588235294
+    },
+    "experimental": {
+      "total": 13,
+      "successful": 10,
+      "success_rate": 0.7692307692307693
+    },
+    "archived": {
+      "total": 5,
+      "successful": 3,
+      "success_rate": 0.6
+    },
+    "high-risk": {
+      "total": 11,
+      "successful": 10,
+      "success_rate": 0.9090909090909091
+    }
+  },
+  "language_breakdown": {
+    "go": {
+      "total": 10,
+      "successful": 6,
+      "success_rate": 0.6
+    },
+    "ruby": {
+      "total": 5,
+      "successful": 5,
+      "success_rate": 1.0
+    },
+    "rust": {
+      "total": 10,
+      "successful": 9,
+      "success_rate": 0.9
+    },
+    "typescript": {
+      "total": 10,
+      "successful": 5,
+      "success_rate": 0.5
+    },
+    "c++": {
+      "total": 5,
+      "successful": 5,
+      "success_rate": 1.0
+    },
+    "java": {
+      "total": 5,
+      "successful": 3,
+      "success_rate": 0.6
+    },
+    "javascript": {
+      "total": 10,
+      "successful": 9,
+      "success_rate": 0.9
+    },
+    "python": {
+      "total": 55,
+      "successful": 50,
+      "success_rate": 0.9090909090909091
+    }
+  },
+  "determinism_verified": 4
+}

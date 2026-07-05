@@ -1,0 +1,7 @@
+provider_id,metric_id,declared_unit,expected_unit,match,aggregation,confidence,requires_network,requires_token
+git.observation.v1,M-02,count,count,true,sum,1.0,false,false
+git.observation.v1,M-06,count,count,true,sum,1.0,false,false
+github.pr.observation.v1,M-02,count,count,true,sum,1.0,true,false
+github.pr.observation.v1,M-05,hours,hours,true,mean,1.0,true,false
+repository.metadata.observation.v1,M-02,count,count,true,sum,1.0,true,false
+repository.metadata.observation.v1,M-05,hours,hours,true,mean,1.0,true,false
