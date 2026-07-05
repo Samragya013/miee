@@ -16,6 +16,7 @@ from typing import Any, Dict, List, Optional
 import numpy as np
 
 from miie.processing.detection.base import BaseDetector
+from miie.processing.detection.diagnostics import d01_diagnostics
 from miie.processing.detection.inference import StatisticalInferenceEngine
 from miie.processing.detection.statistics import compute_psi, ks_2samp
 from miie.schemas.models import DetectorResult, MetricDataFrame
@@ -80,6 +81,7 @@ class DistributionDriftDetector(BaseDetector):
         window_ids = [w.window_id for w in windows]
 
         drift_events: List[Dict[str, Any]] = []
+        drift_diagnostics: List[Dict[str, Any]] = []
         ks_statistics: Dict[str, Dict[str, float]] = {}
         psi_values: Dict[str, Dict[str, float]] = {}
         drift_directions: Dict[str, Dict[str, str]] = {}
@@ -132,6 +134,18 @@ class DistributionDriftDetector(BaseDetector):
                         }
                     )
 
+                    # PR-16B: Compute diagnostics with actual values
+                    d_diag = d01_diagnostics(
+                        vals_start=vals_start,
+                        vals_end=vals_end,
+                        ks_stat=float(ks_stat),
+                        ks_p=float(ks_p),
+                        alpha=ks_threshold,
+                    )
+                    d_diag["metric"] = metric
+                    d_diag["window_pair"] = [w_start, w_end]
+                    drift_diagnostics.append(d_diag)
+
             ks_statistics[metric] = metric_ks
             psi_values[metric] = metric_psi
             drift_directions[metric] = metric_directions
@@ -176,6 +190,10 @@ class DistributionDriftDetector(BaseDetector):
         total_ks_tests = sum(f["num_tests"] for f in inference_families)
         total_ks_rejections = sum(f["num_rejections"] for f in inference_families)
 
+        # ------------------------------------------------------------------
+        # PR-16B: Power / effect-size / sample-adequacy diagnostics
+        # ------------------------------------------------------------------
+
         detector_outputs[self.detector_id] = {
             "drift_detected": drift_detected,
             "drift_magnitude": drift_magnitude,
@@ -193,6 +211,10 @@ class DistributionDriftDetector(BaseDetector):
                     "total_ks_tests": total_ks_tests,
                     "total_ks_rejections": total_ks_rejections,
                 },
+            },
+            "diagnostics": {
+                "enabled": True,
+                "per_event": drift_diagnostics,
             },
         }
 
@@ -242,6 +264,7 @@ class DistributionDriftDetector(BaseDetector):
         window_ids = sorted(set.union(*window_sets)) if window_sets else []
 
         drift_events: List[Dict[str, Any]] = []
+        drift_diagnostics_legacy: List[Dict[str, Any]] = []
         ks_statistics: Dict[str, Dict[str, float]] = {}
         psi_values: Dict[str, Dict[str, float]] = {}
         drift_directions: Dict[str, Dict[str, str]] = {}
@@ -290,6 +313,18 @@ class DistributionDriftDetector(BaseDetector):
                             "sample_sizes": [len(vals_start), len(vals_end)],
                         }
                     )
+
+                    # PR-16B: Diagnostics with actual values
+                    d_diag = d01_diagnostics(
+                        vals_start=vals_start,
+                        vals_end=vals_end,
+                        ks_stat=float(ks_statistic),
+                        ks_p=float(ks_p_value),
+                        alpha=self.ks_p_value_threshold,
+                    )
+                    d_diag["metric"] = metric
+                    d_diag["window_pair"] = [window_start, window_end]
+                    drift_diagnostics_legacy.append(d_diag)
 
             ks_statistics[metric] = metric_ks
             psi_values[metric] = metric_psi
@@ -349,6 +384,10 @@ class DistributionDriftDetector(BaseDetector):
                     "total_ks_tests": total_ks_tests,
                     "total_ks_rejections": total_ks_rejections,
                 },
+            },
+            "diagnostics": {
+                "enabled": True,
+                "per_event": drift_diagnostics_legacy,
             },
         }
 

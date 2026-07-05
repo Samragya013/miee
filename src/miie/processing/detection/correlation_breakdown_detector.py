@@ -17,6 +17,7 @@ from typing import Any, Dict, List, Optional, Tuple
 import numpy as np
 
 from miie.processing.detection.base import BaseDetector
+from miie.processing.detection.diagnostics import d02_diagnostics
 from miie.processing.detection.inference import StatisticalInferenceEngine
 from miie.processing.detection.statistics import (
     fisher_z_ci,
@@ -96,6 +97,7 @@ class CorrelationBreakdownDetector(BaseDetector):
         window_ids = [w.window_id for w in windows]
 
         breakdown_events: List[Dict[str, Any]] = []
+        breakdown_diagnostics: List[Dict[str, Any]] = []
         pearson_trajectories: Dict[str, List[Optional[float]]] = {}
         spearman_trajectories: Dict[str, List[Optional[float]]] = {}
         confidence_intervals: Dict[Tuple[str, str, str], List[float]] = {}
@@ -147,6 +149,34 @@ class CorrelationBreakdownDetector(BaseDetector):
                 erosion_end,
             )
             breakdown_events.extend(pair_breakdowns)
+
+            # PR-16B: Compute diagnostics for each breakdown event
+            for bd in pair_breakdowns:
+                wp = bd["window_pair"]
+                # Find sample size and r for the first window in the pair
+                r_for_diag = None
+                n_for_diag = 0
+                for idx, wid in enumerate(window_ids):
+                    if wid == wp[0] and idx < len(pearson_values) and pearson_values[idx] is not None:
+                        vi, vj = self._extract_paired_values(
+                            windows[idx],
+                            metric_i,
+                            metric_j,
+                        )
+                        n_for_diag = min(len(vi), len(vj))
+                        r_for_diag = pearson_values[idx]
+                        break
+
+                if r_for_diag is not None and n_for_diag >= 4:
+                    diag = d02_diagnostics(
+                        r=r_for_diag,
+                        n=n_for_diag,
+                        alpha=0.05,
+                    )
+                    diag["metric_pair"] = [metric_i, metric_j]
+                    diag["breakdown_type"] = bd["breakdown_type"]
+                    diag["window_pair"] = wp
+                    breakdown_diagnostics.append(diag)
 
         breakdown_detected = len(breakdown_events) > 0
         breakdown_type = None
@@ -209,6 +239,10 @@ class CorrelationBreakdownDetector(BaseDetector):
                     "total_correlation_rejections": total_corr_rejections,
                 },
             },
+            "diagnostics": {
+                "enabled": True,
+                "per_event": breakdown_diagnostics,
+            },
         }
 
         return DetectorResult(detector_outputs=detector_outputs)
@@ -259,6 +293,7 @@ class CorrelationBreakdownDetector(BaseDetector):
         window_ids = sorted(set.union(*window_sets)) if window_sets else []
 
         breakdown_events: List[Dict[str, Any]] = []
+        breakdown_diagnostics_legacy: List[Dict[str, Any]] = []
         pearson_trajectories: Dict[str, List[Optional[float]]] = {}
         spearman_trajectories: Dict[str, List[Optional[float]]] = {}
         confidence_intervals: Dict[Tuple[str, str, str], List[float]] = {}
@@ -303,6 +338,30 @@ class CorrelationBreakdownDetector(BaseDetector):
                 confidence_intervals,
             )
             breakdown_events.extend(pair_breakdowns)
+
+            # PR-16B: Compute diagnostics for each breakdown event
+            for bd in pair_breakdowns:
+                wp = bd["window_pair"]
+                r_for_diag = None
+                n_for_diag = 0
+                for idx, wid in enumerate(window_ids):
+                    if wid == wp[0] and idx < len(pearson_values) and pearson_values[idx] is not None:
+                        vi = metric_dataframe.metrics[metric_i].get(wid, [])
+                        vj = metric_dataframe.metrics[metric_j].get(wid, [])
+                        n_for_diag = min(len(vi), len(vj))
+                        r_for_diag = pearson_values[idx]
+                        break
+
+                if r_for_diag is not None and n_for_diag >= 4:
+                    diag = d02_diagnostics(
+                        r=r_for_diag,
+                        n=n_for_diag,
+                        alpha=0.05,
+                    )
+                    diag["metric_pair"] = [metric_i, metric_j]
+                    diag["breakdown_type"] = bd["breakdown_type"]
+                    diag["window_pair"] = wp
+                    breakdown_diagnostics_legacy.append(diag)
 
         breakdown_detected = len(breakdown_events) > 0
         breakdown_type = None
@@ -363,6 +422,10 @@ class CorrelationBreakdownDetector(BaseDetector):
                     "total_correlation_tests": total_corr_tests,
                     "total_correlation_rejections": total_corr_rejections,
                 },
+            },
+            "diagnostics": {
+                "enabled": True,
+                "per_event": breakdown_diagnostics_legacy,
             },
         }
 

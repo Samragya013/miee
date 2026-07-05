@@ -16,13 +16,13 @@ from typing import Any, Dict, List
 import numpy as np
 
 from miie.processing.detection.base import BaseDetector
+from miie.processing.detection.diagnostics import d03_diagnostics
 from miie.processing.detection.inference import StatisticalInferenceEngine
 from miie.processing.detection.statistics import (
     auto_thresholds,
     compute_epsilon,
     dip_test,
     excess_mass_test,
-    z_to_p,
 )
 from miie.schemas.models import DetectorResult, MetricDataFrame
 
@@ -105,6 +105,7 @@ class ThresholdCompressionDetector(BaseDetector):
         window_ids = [w.window_id for w in windows]
 
         compression_events: List[Dict[str, Any]] = []
+        compression_diagnostics: List[Dict[str, Any]] = []
         thresholds_used: Dict[str, List[float]] = {}
         excess_mass_z_scores: Dict[str, float] = {}
         dip_test_statistics: Dict[str, float] = {}
@@ -170,6 +171,21 @@ class ThresholdCompressionDetector(BaseDetector):
                             }
                         )
 
+                        # PR-16B: Diagnostics
+                        d_diag = d03_diagnostics(
+                            vals=vals,
+                            threshold=threshold,
+                            eps=float(eps),
+                            z_score=float(z_score),
+                            dip_stat=float(dip_stat),
+                            dip_p=float(dip_p),
+                            alpha=dip_p_thresh,
+                        )
+                        d_diag["metric"] = metric
+                        d_diag["window"] = wid
+                        d_diag["threshold"] = threshold
+                        compression_diagnostics.append(d_diag)
+
         compression_detected = len(compression_events) > 0
         compression_index = 0.0
         if compression_events:
@@ -212,6 +228,10 @@ class ThresholdCompressionDetector(BaseDetector):
             "dip_test_statistics": dip_test_statistics,
             "dip_test_p_values": dip_test_p_values,
             "windows_analyzed": sorted(list(processed_windows)),
+            "diagnostics": {
+                "enabled": True,
+                "per_event": compression_diagnostics,
+            },
             "inference": {
                 "method": "bonferroni",
                 "alpha": dip_p_thresh,
@@ -269,6 +289,7 @@ class ThresholdCompressionDetector(BaseDetector):
         window_ids = sorted(set.union(*window_sets)) if window_sets else []
 
         compression_events: List[Dict[str, Any]] = []
+        compression_diagnostics_legacy: List[Dict[str, Any]] = []
         thresholds_used: Dict[str, List[float]] = {}
         excess_mass_z_scores: Dict[str, float] = {}
         dip_test_statistics: Dict[str, float] = {}
@@ -342,6 +363,21 @@ class ThresholdCompressionDetector(BaseDetector):
                             }
                         )
 
+                        # PR-16B: Diagnostics
+                        d_diag = d03_diagnostics(
+                            vals=vals,
+                            threshold=threshold,
+                            eps=float(eps),
+                            z_score=float(z_score),
+                            dip_stat=float(dip_stat),
+                            dip_p=float(dip_p),
+                            alpha=self.dip_test_p_threshold,
+                        )
+                        d_diag["metric"] = metric
+                        d_diag["window"] = window_id
+                        d_diag["threshold"] = threshold
+                        compression_diagnostics_legacy.append(d_diag)
+
         compression_detected = len(compression_events) > 0
         compression_index = 0.0
         if compression_events:
@@ -384,6 +420,10 @@ class ThresholdCompressionDetector(BaseDetector):
             "dip_test_statistics": dip_test_statistics,
             "dip_test_p_values": dip_test_p_values,
             "windows_analyzed": sorted(list(processed_windows)),
+            "diagnostics": {
+                "enabled": True,
+                "per_event": compression_diagnostics_legacy,
+            },
             "inference": {
                 "method": "bonferroni",
                 "alpha": self.dip_test_p_threshold,
