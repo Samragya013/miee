@@ -421,7 +421,7 @@ This is a direct architectural contradiction that must be resolved.
 | G-02 | Statistical | No multiple testing correction implemented | **HIGH** | 01, 04 |
 | G-03 | Statistical | No sensitivity analysis for thresholds | **HIGH** | 04 |
 | G-04 | Statistical | No empirical calibration of α = 0.05 | **MEDIUM** | 04 |
-| G-05 | Metric | M-01 tokenization strategy unspecified | **CRITICAL** | 02 |
+| G-05 | Metric | M-01 tokenization strategy unspecified | **RESOLVED** | 02, SR-02 |
 | G-06 | Metric | M-03→M-07 dependency not functional | **MEDIUM** | 02 |
 | G-07 | Metric | No metric cross-validation | **MEDIUM** | 05 |
 | G-08 | Confidence | Three incompatible confidence models | **HIGH** | 01, 05 |
@@ -441,7 +441,7 @@ This is a direct architectural contradiction that must be resolved.
 
 1. **G-01: No power analysis.** The repository cannot justify its sample size requirements without formal power analysis. This undermines all statistical claims.
 
-2. **G-05: M-01 tokenization unspecified.** M-01 (Commit Entropy Ratio) depends on tokenizing commit messages, but the tokenization strategy is not specified. This is a reproducibility blocker.
+2. ~~**G-05: M-01 tokenization unspecified.**~~ **RESOLVED (SR-02).** M-01 now specifies category-level tokenization via conventional-commit regex patterns. Implementation in `m01_entropy_ratio.py` with comprehensive tests.
 
 3. **G-09: No ground truth datasets.** Without ground truth, the detectors cannot be calibrated or validated empirically. The validation framework (Doc 05) defines levels but cannot be executed.
 
@@ -812,7 +812,7 @@ The implementation is functional and tested (2282 tests passing), but cannot be 
 | G-02 | Statistical | No multiple testing correction | HIGH | 01, 04 | Implement Bonferroni/BH |
 | G-03 | Statistical | No sensitivity analysis | HIGH | 04 | Add analysis |
 | G-04 | Statistical | No empirical α calibration | MEDIUM | 04 | Domain study |
-| G-05 | Metric | M-01 tokenization unspecified | CRITICAL | 02 | Specify strategy |
+| G-05 | Metric | M-01 tokenization unspecified | RESOLVED | 02, SR-02 | Category-level tokens |
 | G-06 | Metric | M-03→M-07 dependency not functional | MEDIUM | 02 | Implement or remove |
 | G-07 | Metric | No metric cross-validation | MEDIUM | 05 | Add logic |
 | G-08 | Confidence | Three incompatible models | HIGH | 01, 05 | Unify/reconcile |

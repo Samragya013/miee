@@ -288,11 +288,23 @@ Entropy ratios near 0 suggest low diversity (e.g., repeated "fix typo" commits).
 
 Given a set of commit messages C = {c₁, c₂, ..., cₙ} within a window:
 
-1. Tokenize each message into words or n-grams
-2. Compute the frequency distribution of tokens: f(tᵢ) = count(tᵢ) / total_tokens
-3. Compute Shannon entropy: H = -Σᵢ f(tᵢ) × log₂(f(tᵢ))
-4. Normalize by maximum entropy: H_max = log₂(|V|) where |V| is the vocabulary size
-5. Entropy ratio: ER = H / H_max
+1. **Tokenization (Category-Level):** Classify each message into a conventional-commit category using regex pattern matching:
+   - Categories: `feat`, `fix`, `docs`, `refactor`, `test`, `chore`, `ci`, `other`
+   - Pattern: `^{category}[\s(:]` (case-insensitive)
+   - Fallback: `other` if no pattern matches
+   - Empty/whitespace-only messages are excluded from computation
+
+2. **Frequency Distribution:** Count messages per category: nₖ = |{cᵢ : cat(cᵢ) = k}|
+
+3. **Proportions:** pₖ = nₖ / n where n = total non-excluded messages
+
+4. **Shannon Entropy:** H = -Σₖ pₖ × log₂(pₖ)
+
+5. **Normalization:** H_max = log₂(|V|) where |V| = number of categories with nₖ > 0 (observed vocabulary)
+
+6. **Entropy Ratio:** ER = H / H_max
+
+**Tokenization justification:** Category-level tokenization is chosen over word-level because it is deterministic (same input → same output), reproducible (no stemming/stopword/language dependencies), and maps directly to the integrity signal (diversity of change types). Word-level tokenization introduces vocabulary size variability and language dependence that undermine reproducibility.
 
 For a uniform distribution over V tokens: ER = 1.0
 For a single token repeated: ER = 0.0
@@ -350,23 +362,25 @@ None.
 
 #### Limitations
 
-- **Tokenization sensitivity**: The entropy ratio depends on the tokenization strategy. Word-level, character-level, and n-gram tokenization produce different results.
-- **Language dependence**: Commit messages in different languages have different vocabulary sizes, affecting normalization.
-- **Message quality**: Entropy measures diversity, not quality. A diverse set of meaningless messages produces high entropy.
-- **Merge commits**: Merge commits may inflate commit counts and introduce non-representative messages.
+- **Category-level granularity:** The entropy ratio measures diversity of change *types*, not diversity of change *content*. Two repositories with identical category distributions but very different messages within each category will have the same ER.
+- **Language dependence:** Category names are English-based (feat, fix, etc.). Non-English commit messages that don't use conventional-commit prefixes will be classified as "other", reducing apparent diversity.
+- **Message quality:** Entropy measures diversity, not quality. A diverse set of meaningless messages produces high entropy.
+- **Merge commits:** Merge commits may inflate commit counts and introduce non-representative messages (typically classified as "other").
 
 #### Threats to Validity
 
-- **Construct validity**: Commit message diversity may not accurately reflect development activity breadth.
-- **Measurement bias**: Tokenization strategy introduces systematic bias.
-- **Provider bias**: Git commit messages may differ from PR descriptions.
+- **Construct validity**: Commit message diversity may not accurately reflect development activity breadth. A repository with diverse commit types may still be mono-functional.
+- **Classification bias**: The 8-category scheme may not capture all relevant development activity types (e.g., "security", "perf", "build" are classified as "other").
+- **Provider bias**: Git commit messages may differ from PR descriptions, which may differ from actual code changes.
 
 #### Acceptance Criteria
 
 - ER ∈ [0, 1] for all valid inputs
-- ER = 0 for identical messages
-- ER = 1 for uniformly distributed tokens
+- ER = 0 for identical messages or single category
+- ER = 1 for uniformly distributed messages across all observed categories
 - Deterministic: identical messages produce identical ER values
+- Tokenization: category-level classification via conventional-commit regex patterns
+- Edge cases: empty messages excluded, empty list returns 0.0
 
 #### Future Evolution
 

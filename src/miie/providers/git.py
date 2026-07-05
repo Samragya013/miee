@@ -11,10 +11,13 @@ Reference: OPA-v1.0 §9.4, PR-11A specification, PR-13 SOEMC.
 from __future__ import annotations
 
 import datetime
-import math
 import re
 from typing import Any, Dict, List, Optional
 
+from miie.metrics.computation.m01_entropy_ratio import (
+    classify_commit_message,
+    compute_message_entropy,
+)
 from miie.processing.observation.models import (
     Observation,
     ObservationProvenance,
@@ -63,16 +66,6 @@ _BOT_PATTERNS: tuple[str, ...] = (
 
 _INSERTIONS_RE = re.compile(r"(\d+)\s+insertion")
 _DELETIONS_RE = re.compile(r"(\d+)\s+deletion")
-
-_COMMIT_CATEGORY_PATTERNS: tuple[tuple[str, re.Pattern[str]], ...] = (
-    ("feat", re.compile(r"^feat[\s(:]")),
-    ("fix", re.compile(r"^fix[\s(:]")),
-    ("docs", re.compile(r"^docs[\s(:]")),
-    ("refactor", re.compile(r"^refactor[\s(:]")),
-    ("test", re.compile(r"^test[\s(:]")),
-    ("chore", re.compile(r"^chore[\s(:]")),
-    ("ci", re.compile(r"^ci[\s(:]")),
-)
 
 _TEST_FILE_RE = re.compile(
     r"(?:^|/)test_[^/]*\.py$"
@@ -150,48 +143,6 @@ def _parse_author_date(date_str: str) -> Optional[datetime.datetime]:
             return None
 
     return naive_dt.replace(tzinfo=datetime.timezone.utc)
-
-
-# ---------------------------------------------------------------------------
-# M-01 — Commit Entropy
-# ---------------------------------------------------------------------------
-
-
-def _classify_commit_message(message: str) -> str:
-    """Classify a commit message into a category."""
-    msg_lower = message.lower().strip()
-    for category, pattern in _COMMIT_CATEGORY_PATTERNS:
-        if pattern.match(msg_lower):
-            return category
-    return "other"
-
-
-def _compute_message_entropy(messages: List[str]) -> float:
-    """Compute normalized Shannon entropy of commit message categories.
-
-    Returns value in [0, 1] where 1.0 = maximum diversity.
-    """
-    if not messages:
-        return 0.0
-
-    categories: Dict[str, int] = {}
-    for msg in messages:
-        cat = _classify_commit_message(msg)
-        categories[cat] = categories.get(cat, 0) + 1
-
-    n = len(messages)
-    entropy = 0.0
-    for count in categories.values():
-        if count > 0:
-            p = count / n
-            entropy -= p * math.log2(p)
-
-    num_categories = len(categories)
-    if num_categories <= 1:
-        return 0.0
-
-    max_entropy = math.log2(num_categories)
-    return entropy / max_entropy if max_entropy > 0 else 0.0
 
 
 # ---------------------------------------------------------------------------
@@ -447,26 +398,6 @@ class GitObservationProvider(BaseGitProvider):
                 )
                 all_obs.append(obs_m06)
 
-            # M-01 — Commit Entropy (ratio, per-commit category signal)
-            if METRIC_ID_M01 in requested:
-                cat = _classify_commit_message(message)
-                # Binary signal: 1.0 if this commit belongs to a recognized category
-                # (contributes to diversity when aggregated via mean)
-                entropy_value = 1.0 if cat != "other" else 0.0
-                obs_m01 = Observation(
-                    observation_id=generate_observation_id("commit", sha, "M-01"),
-                    source_type="commit",
-                    source_id=sha,
-                    metric_id="M-01",
-                    value=entropy_value,
-                    unit="ratio",
-                    timestamp=commit_ts,
-                    quality="complete",
-                    provenance=provenance,
-                    metadata={**commit_meta, "category": cat},
-                )
-                all_obs.append(obs_m01)
-
             # M-03 — Code Churn Ratio (ratio, per-commit)
             if METRIC_ID_M03 in requested:
                 churn_ratio = _compute_churn_ratio(insertions, deletions, total_lines)
@@ -484,12 +415,20 @@ class GitObservationProvider(BaseGitProvider):
                 )
                 all_obs.append(obs_m03)
 
-        # M-01 — Full entropy observation (replaces per-commit binary signals)
-        # Use the aggregate Shannon entropy across all messages
+        # M-01 — Aggregate entropy observation (SR-02: category-level tokenization)
+        # The entropy is computed over the full set of messages in this window.
+        # Per-commit binary signals are not produced; the aggregate is the
+        # meaningful measurement (see m01_entropy_ratio.py for formal definition).
         if METRIC_ID_M01 in requested and all_messages:
-            entropy_value = _compute_message_entropy(all_messages)
-            # Use a synthetic source_id for the aggregate observation
+            entropy_value = compute_message_entropy(all_messages)
             agg_source_id = f"entropy-{len(commits)}-commits"
+
+            # Build category distribution for metadata (deterministic ordering)
+            cat_dist: Dict[str, int] = {}
+            for m in all_messages:
+                cat = classify_commit_message(m)
+                cat_dist[cat] = cat_dist.get(cat, 0) + 1
+
             obs_m01_agg = Observation(
                 observation_id=generate_observation_id("file", agg_source_id, "M-01"),
                 source_type="file",
@@ -502,16 +441,11 @@ class GitObservationProvider(BaseGitProvider):
                 provenance=provenance,
                 metadata={
                     "commit_count": str(len(commits)),
-                    "category_distribution": str(
-                        {
-                            cat: sum(1 for m in all_messages if _classify_commit_message(m) == cat)
-                            for cat in set(_classify_commit_message(m) for m in all_messages)
-                        }
-                    ),
+                    "category_distribution": str(cat_dist),
+                    "tokenization": "category",
+                    "formula": "H/log2(|V|)",
                 },
             )
-            # Remove per-commit M-01 observations (binary signals) and replace with aggregate
-            all_obs = [o for o in all_obs if not (o.metric_id == "M-01")]
             all_obs.append(obs_m01_agg)
 
         # M-07 — Branch Freshness (single observation for HEAD)

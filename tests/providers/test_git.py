@@ -7,6 +7,10 @@ from unittest.mock import patch
 
 import pytest
 
+from miie.metrics.computation.m01_entropy_ratio import (
+    classify_commit_message,
+    compute_message_entropy,
+)
 from miie.processing.observation.models import (
     ObservationProvenance,
     generate_observation_id,
@@ -22,10 +26,8 @@ from miie.providers.exceptions import ExtractionError, ProviderDisposedError
 from miie.providers.git import (
     PROVIDER_ID,
     GitObservationProvider,
-    _classify_commit_message,
     _compute_branch_freshness,
     _compute_churn_ratio,
-    _compute_message_entropy,
     _compute_test_file_ratio,
     _is_test_file,
     _parse_author_date,
@@ -697,41 +699,41 @@ class TestRegistryIntegration:
 
 class TestCommitEntropyHelpers:
     def test_classify_feat(self):
-        assert _classify_commit_message("feat: add login") == "feat"
+        assert classify_commit_message("feat: add login") == "feat"
 
     def test_classify_fix(self):
-        assert _classify_commit_message("fix: resolve crash") == "fix"
+        assert classify_commit_message("fix: resolve crash") == "fix"
 
     def test_classify_docs(self):
-        assert _classify_commit_message("docs: update readme") == "docs"
+        assert classify_commit_message("docs: update readme") == "docs"
 
     def test_classify_refactor(self):
-        assert _classify_commit_message("refactor: clean up") == "refactor"
+        assert classify_commit_message("refactor: clean up") == "refactor"
 
     def test_classify_test(self):
-        assert _classify_commit_message("test: add unit tests") == "test"
+        assert classify_commit_message("test: add unit tests") == "test"
 
     def test_classify_chore(self):
-        assert _classify_commit_message("chore: bump deps") == "chore"
+        assert classify_commit_message("chore: bump deps") == "chore"
 
     def test_classify_ci(self):
-        assert _classify_commit_message("ci: add workflow") == "ci"
+        assert classify_commit_message("ci: add workflow") == "ci"
 
     def test_classify_other(self):
-        assert _classify_commit_message("random message") == "other"
+        assert classify_commit_message("random message") == "other"
 
     def test_entropy_empty(self):
-        assert _compute_message_entropy([]) == 0.0
+        assert compute_message_entropy([]) == 0.0
 
     def test_entropy_single_category(self):
         # All same category → entropy = 0
         msgs = ["feat: a", "feat: b", "feat: c"]
-        assert _compute_message_entropy(msgs) == 0.0
+        assert compute_message_entropy(msgs) == 0.0
 
     def test_entropy_two_categories(self):
         # Two equal categories → entropy = 1.0 (max for 2 categories)
         msgs = ["feat: a", "feat: b", "fix: a", "fix: b"]
-        assert abs(_compute_message_entropy(msgs) - 1.0) < 0.01
+        assert abs(compute_message_entropy(msgs) - 1.0) < 0.01
 
     def test_entropy_diverse(self):
         # All 7 categories → high entropy
@@ -744,7 +746,7 @@ class TestCommitEntropyHelpers:
             "chore: f",
             "ci: g",
         ]
-        entropy = _compute_message_entropy(msgs)
+        entropy = compute_message_entropy(msgs)
         assert entropy > 0.8  # Should be close to 1.0
 
 
