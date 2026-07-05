@@ -407,24 +407,23 @@ class ScoringEngine(IScoringEngine):
         evidence_package: Optional[EvidencePackage] = None,
         observation_metadata: Optional[Dict[str, Any]] = None,
     ) -> Dict[str, Any]:
-        """Compute confidence score per TFS Section 7.4-7.5.
+        """Compute score confidence (C_s) per TFS Section 7.4-7.5.
 
-        CS = f₁ × f₂ × f₃ × f₄ × f₅ × f₆
+        Formula: C_s = β₁ × β₂ × β₃ × β₄ × β₅ × β₆
 
-        Where:
-        - f₁ = min(1.0, mean_n / 50.0)  # Sample Size Factor
-        - f₂ = 1.0 - min(1.0, mean_CV / 0.5)  # Variance Factor
-        - f₃ = 1.0 - (missing_pairs / total_pairs)  # Missing Data Factor
-        - f₄ = 1.0 - min(1.0, std_size / mean_size)  # Window Balance Factor
-        - f₅ = successful_runs / total_attempts  # Detector Success Factor
-        - f₆ = observation quality factor (IMS Phase 4 extension)
+        Factors (β):
+            β₁ (sample_size_adequacy): min(1, mean_n/50) — Is the overall sample adequate?
+            β₂ (variance_stability): 1 - min(1, mean_CV/0.5) — Are metrics stable across windows?
+            β₃ (data_completeness): 1 - (missing/total) — Is data complete?
+            β₄ (window_balance): 1 - min(1, std/mean) — Are windows balanced?
+            β₅ (detector_coverage): successful/total — Did detectors execute successfully?
+            β₆ (evidence_quality): (complete + 0.5·partial)/total — Is observation evidence high quality?
 
-        When evidence_package is provided:
-        - f₁ uses observation counts from observation_summary
-        - f₃ uses observation coverage
-        - f₄ uses observation counts per window for better balance
-        - f₅ uses detector execution metadata
-        - f₆ is computed from observation_quality counts
+        Composition rationale: Multiplicative because all factors are necessary conditions.
+        If any factor is zero (e.g., no detectors executed, no observations available),
+        the entire score confidence must be zero. The multiplicative model enforces this.
+
+        Reference: 01_CONFIDENCE_MODEL_UNIFICATION.md §7.4
 
         Args:
             detector_results: Container for detector outputs
@@ -442,36 +441,36 @@ class ScoringEngine(IScoringEngine):
         if observation_metadata is None:
             observation_metadata = self._extract_observation_metadata(evidence_package)
 
-        # f₁: Sample Size Factor - enhanced with observation counts
-        f1 = self._compute_sample_size_factor(metric_dataframe, windows, observation_metadata)
+        # β₁: Sample Size Factor - enhanced with observation counts
+        beta_1 = self._compute_sample_size_factor(metric_dataframe, windows, observation_metadata)
 
-        # f₂: Variance Factor
-        f2 = self._compute_variance_factor(metric_dataframe, windows)
+        # β₂: Variance Factor
+        beta_2 = self._compute_variance_factor(metric_dataframe, windows)
 
-        # f₃: Missing Data Factor - enhanced with observation coverage
-        f3 = self._compute_missing_data_factor(metric_dataframe, windows, observation_metadata)
+        # β₃: Missing Data Factor - enhanced with observation coverage
+        beta_3 = self._compute_missing_data_factor(metric_dataframe, windows, observation_metadata)
 
-        # f₄: Window Balance Factor - enhanced with observation counts
-        f4 = self._compute_window_balance_factor(windows, observation_metadata)
+        # β₄: Window Balance Factor - enhanced with observation counts
+        beta_4 = self._compute_window_balance_factor(windows, observation_metadata)
 
-        # f₅: Detector Success Factor - enhanced with execution metadata
-        f5 = self._compute_detector_success_factor(detector_results, metric_dataframe, evidence_package)
+        # β₅: Detector Success Factor - enhanced with execution metadata
+        beta_5 = self._compute_detector_success_factor(detector_results, metric_dataframe, evidence_package)
 
-        # f₆: Observation Quality Factor (IMS Phase 4 extension)
-        f6 = self._compute_observation_quality_factor(observation_metadata)
+        # β₆: Observation Quality Factor (IMS Phase 4 extension)
+        beta_6 = self._compute_observation_quality_factor(observation_metadata)
 
-        # CS = f₁ × f₂ × f₃ × f₄ × f₅ × f₆
-        confidence_score = f1 * f2 * f3 * f4 * f5 * f6
+        # C_s = β₁ × β₂ × β₃ × β₄ × β₅ × β₆
+        confidence_score = beta_1 * beta_2 * beta_3 * beta_4 * beta_5 * beta_6
         confidence_score = compute_clamped(confidence_score)
 
         # Deterministic factor ordering (IMS Phase 7)
         factors = {
-            "sample_size": f1,
-            "variance": f2,
-            "missing_data": f3,
-            "window_balance": f4,
-            "detector_success": f5,
-            "observation_quality": f6,
+            "sample_size": beta_1,
+            "variance": beta_2,
+            "missing_data": beta_3,
+            "window_balance": beta_4,
+            "detector_success": beta_5,
+            "observation_quality": beta_6,
         }
 
         # Determine confidence band

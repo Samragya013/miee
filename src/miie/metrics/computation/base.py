@@ -123,37 +123,46 @@ class BaseMetricComputer(MetricComputer):
         uncertainty: float,
         value: float,
     ) -> float:
-        """Compute confidence score.
+        """Compute metric confidence (C_m) using weighted additive composition.
 
-        Factors:
-        1. Observation count (more = higher confidence)
-        2. Quality (complete > estimated > missing)
-        3. Uncertainty relative to value (lower relative uncertainty = higher)
+        Formula: C_m = 0.3·α₁ + 0.3·α₂ + 0.2·α₃ + 0.2·α₄
+
+        Factors (α):
+            α₁ (sample_sufficiency): min(1, n/20) — Is the sample large enough?
+            α₂ (observation_quality): mean(quality_tags) — Are observations high quality?
+            α₃ (value_stability): 1 - min(1, CV) — Is the value stable?
+            α₄ (provider_diversity): min(1, n_providers/2) — Are there multiple sources?
+
+        Composition rationale: Additive because factors represent independent quality
+        dimensions that contribute to reliability. A low sample size reduces confidence
+        but does not invalidate it entirely.
+
+        Reference: 01_CONFIDENCE_MODEL_UNIFICATION.md §7.4
         """
         n = len(observations)
 
-        # Factor 1: sample size (asymptotic to 1.0 at ~20 observations)
-        f1 = min(1.0, n / 20.0)
+        # α₁: sample sufficiency (asymptotic to 1.0 at ~20 observations)
+        alpha_1 = min(1.0, n / 20.0)
 
-        # Factor 2: quality
+        # α₂: observation quality
         quality_scores = {"complete": 1.0, "estimated": 0.5, "derived": 0.7, "missing": 0.0}
         qualities = [quality_scores.get(obs.quality, 0.5) for obs in observations]
-        f2 = sum(qualities) / len(qualities) if qualities else 0.0
+        alpha_2 = sum(qualities) / len(qualities) if qualities else 0.0
 
-        # Factor 3: relative uncertainty
+        # α₃: value stability (inverse of relative uncertainty)
         if value != 0.0 and abs(value) > 1e-10:
             relative_uncertainty = abs(uncertainty / value)
-            f3 = max(0.0, 1.0 - min(1.0, relative_uncertainty))
+            alpha_3 = max(0.0, 1.0 - min(1.0, relative_uncertainty))
         else:
             # For values near zero, use absolute uncertainty
-            f3 = max(0.0, 1.0 - min(1.0, uncertainty))
+            alpha_3 = max(0.0, 1.0 - min(1.0, uncertainty))
 
-        # Factor 4: provider diversity
+        # α₄: provider diversity
         providers = {obs.provider_id for obs in observations}
-        f4 = min(1.0, len(providers) / 2.0)
+        alpha_4 = min(1.0, len(providers) / 2.0)
 
-        # Weighted combination
-        confidence = 0.3 * f1 + 0.3 * f2 + 0.2 * f3 + 0.2 * f4
+        # C_m = 0.3·α₁ + 0.3·α₂ + 0.2·α₃ + 0.2·α₄
+        confidence = 0.3 * alpha_1 + 0.3 * alpha_2 + 0.2 * alpha_3 + 0.2 * alpha_4
         return max(0.0, min(1.0, confidence))
 
     def _check_warnings(

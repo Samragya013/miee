@@ -491,7 +491,7 @@ A **frozen** component is one whose interface, algorithm, or data schema must no
 | **Provider Contracts** | `IObservationProvider` protocol, `ProviderCapability`, lifecycle states | Providers implement these contracts. Changing them breaks all provider implementations. |
 | **Public APIs** | CLI commands, Python API signatures, REST API endpoints, configuration schema | External consumers depend on these interfaces. Breaking changes require major version bumps. |
 | **Evidence Package Schema** | Provenance fields, observation summaries, statistical artifacts | Evidence consumers depend on this structure. |
-| **Confidence Formula** | `0.3*f1 + 0.3*f2 + 0.2*f3 + 0.2*f4` (sample size, quality, uncertainty, provider diversity) | This determines how confidence is computed. Changing it changes score interpretation. |
+| **Confidence Formula** | `C_m = 0.3·α₁ + 0.3·α₂ + 0.2·α₃ + 0.2·α₄` (metric), `C_s = β₁ × β₂ × β₃ × β₄ × β₅ × β₆` (score) | This determines how confidence is computed. Changing it changes score interpretation. |
 | **Integrity Score Formula** | `IS = 1.0 - (w1*d1 + w2*d2 + w3*d3)` with observation-aware adjustment | This is the core scientific output. |
 
 ### 7.3 What is NOT Frozen
@@ -586,16 +586,57 @@ All detection algorithms use established statistical tests:
 
 ### 8.7 Confidence
 
-Confidence quantifies the reliability of a computed metric value. It is a weighted combination of:
+MIIE uses a five-level confidence hierarchy. Each level measures a different property at a different abstraction layer.
 
-| Factor | Weight | Description |
-|--------|--------|-------------|
-| Sample size (f1) | 0.30 | `min(1, n/20)` — asymptotes at 20 observations |
-| Quality (f2) | 0.30 | Mean observation quality score |
-| Uncertainty (f3) | 0.20 | `max(0, 1 - |σ/μ|)` — relative uncertainty |
-| Provider diversity (f4) | 0.20 | `min(1, num_providers/2)` — multi-source bonus |
+**Confidence Levels:**
 
-**Final:** `confidence = 0.3*f1 + 0.3*f2 + 0.2*f3 + 0.2*f4`, clamped to [0, 1]
+| Level | Name | Symbol | Formula | Purpose |
+|-------|------|--------|---------|---------|
+| L1 | Observation Confidence | C_o | `0.3·src + 0.25·cv + 0.2·stat + 0.15·prov + 0.1·qual` | Probability observation is correct |
+| L2 | Provider Confidence | C_p | `max(0.5, n/10)` | Quality of provider extraction |
+| L3 | Metric Confidence | C_m | `0.3·α₁ + 0.3·α₂ + 0.2·α₃ + 0.2·α₄` | Reliability of metric value |
+| L4 | Score Confidence | C_s | `β₁ × β₂ × β₃ × β₄ × β₅ × β₆` | Reliability of integrity assessment |
+| L5 | Repository Confidence | C_r | TBD | Overall trust in results |
+
+**Metric Confidence (C_m) — Additive Composition:**
+
+| Factor | Name | Weight | Formula |
+|--------|------|--------|---------|
+| α₁ | Sample Sufficiency | 0.30 | `min(1, n/20)` — asymptotes at 20 observations |
+| α₂ | Observation Quality | 0.30 | Mean observation quality score |
+| α₃ | Value Stability | 0.20 | `max(0, 1 - |σ/μ|)` — inverse relative uncertainty |
+| α₄ | Provider Diversity | 0.20 | `min(1, num_providers/2)` — multi-source bonus |
+
+**Formula:** `C_m = 0.3·α₁ + 0.3·α₂ + 0.2·α₃ + 0.2·α₄`, clamped to [0, 1]
+
+**Composition rationale:** Additive because factors represent independent quality dimensions that contribute to reliability. A low sample size reduces confidence but does not invalidate it entirely.
+
+**Score Confidence (C_s) — Multiplicative Composition:**
+
+| Factor | Name | Formula |
+|--------|------|---------|
+| β₁ | Sample Size Adequacy | `min(1, mean_n/50)` |
+| β₂ | Variance Stability | `1 - min(1, mean_CV/0.5)` |
+| β₃ | Data Completeness | `1 - (missing/total)` |
+| β₄ | Window Balance | `1 - min(1, std/mean)` |
+| β₅ | Detector Coverage | `successful/total` |
+| β₆ | Evidence Quality | `(complete + 0.5·partial)/total` |
+
+**Formula:** `C_s = β₁ × β₂ × β₃ × β₄ × β₅ × β₆`, clamped to [0, 1]
+
+**Composition rationale:** Multiplicative because all factors are necessary conditions. If any factor is zero (e.g., no detectors executed), the entire score confidence must be zero.
+
+**Confidence Propagation Chain:**
+
+```
+Raw Data → [Provider Extraction] → C_p
+    → [Observation Creation] → C_o (not yet implemented)
+    → [Metric Computation] → C_m
+    → [Scoring] → C_s (consumes C_m via β₆)
+    → [Final Report] → Uses C_s
+```
+
+Reference: `01_CONFIDENCE_MODEL_UNIFICATION.md` for full derivation.
 
 ### 8.8 Uncertainty
 

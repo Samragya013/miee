@@ -277,7 +277,7 @@ Coverage measures the completeness of the observation set across metrics and win
 coverage = observed_pairs / (num_metrics × num_windows)
 ```
 
-Low coverage indicates that the analysis is based on partial information. The confidence score penalizes low coverage through the missing data factor (f₃).
+Low coverage indicates that the analysis is based on partial information. The confidence score penalizes low coverage through the missing data factor (β₃).
 
 ### 4.4 Missing Observations
 
@@ -351,42 +351,56 @@ Quality reflects the provenance of observations. Complete observations (directly
 
 ### 5.5 Confidence Composition
 
-MIIE uses two distinct confidence formulas:
+MIIE uses a five-level confidence hierarchy. Each level measures a different property. See `01_CONFIDENCE_MODEL_UNIFICATION.md` for full derivation.
 
-**Metric-level confidence** (BaseMetricComputer):
-
-```
-confidence = 0.3 × f₁ + 0.3 × f₂ + 0.2 × f₃ + 0.2 × f₄
-```
-
-where:
-- f₁ = min(1.0, n / 20) — sample size factor
-- f₂ = mean(quality_scores) — quality factor
-- f₃ = max(0, 1 - |σ/μ|) — relative uncertainty factor
-- f₄ = min(1.0, num_providers / 2) — provider diversity factor
-
-**Score-level confidence** (ScoringEngine):
+**Metric Confidence (C_m) — Additive Composition:**
 
 ```
-confidence = f₁ × f₂ × f₃ × f₄ × f₅ × f₆
+C_m = 0.3 × α₁ + 0.3 × α₂ + 0.2 × α₃ + 0.2 × α₄
 ```
 
 where:
-- f₁ = min(1.0, mean_n / 50) — sample size factor (target: 50)
-- f₂ = 1 - min(1, mean_CV / 0.5) — variance factor
-- f₃ = 1 - (missing_pairs / total_pairs) — missing data factor
-- f₄ = 1 - min(1, std_size / mean_size) — window balance factor
-- f₅ = successful_runs / total_attempts — detector success factor
-- f₆ = (complete + 0.5 × partial) / (complete + partial + estimated) — observation quality factor
+- α₁ (sample_sufficiency) = min(1.0, n / 20) — sample size adequacy
+- α₂ (observation_quality) = mean(quality_scores) — observation quality tags
+- α₃ (value_stability) = max(0, 1 - |σ/μ|) — inverse relative uncertainty
+- α₄ (provider_diversity) = min(1.0, num_providers / 2) — source diversity
+
+**Composition rationale:** Additive because factors represent independent quality dimensions that contribute to reliability. A low sample size reduces confidence but does not invalidate it entirely.
+
+**Score Confidence (C_s) — Multiplicative Composition:**
+
+```
+C_s = β₁ × β₂ × β₃ × β₄ × β₅ × β₆
+```
+
+where:
+- β₁ (sample_size_adequacy) = min(1.0, mean_n / 50) — overall sample adequacy
+- β₂ (variance_stability) = 1 - min(1, mean_CV / 0.5) — metric stability across windows
+- β₃ (data_completeness) = 1 - (missing_pairs / total_pairs) — data completeness
+- β₄ (window_balance) = 1 - min(1, std_size / mean_size) — window size balance
+- β₅ (detector_coverage) = successful_runs / total_attempts — detector execution success
+- β₆ (evidence_quality) = (complete + 0.5 × partial) / (complete + partial + estimated) — observation evidence quality
+
+**Composition rationale:** Multiplicative because all factors are necessary conditions. If any factor is zero (e.g., no detectors executed), the entire score confidence must be zero. The multiplicative model enforces this: any zero factor zeroes the product.
+
+**Confidence Propagation Chain:**
+
+```
+Raw Data → [Provider Extraction] → C_p (provider confidence)
+    → [Observation Creation] → C_o (observation confidence, not yet implemented)
+    → [Metric Computation] → C_m (metric confidence)
+    → [Scoring] → C_s (score confidence, consumes C_m via β₆)
+    → [Final Report] → Uses C_s
+```
 
 ### 5.6 Sample Size Effects
 
-Small samples produce unreliable estimates. The sample size factor captures this:
+Small samples produce unreliable estimates. The sample size factors capture this:
 
-- At n=1: f₁ = 0.05 (very low confidence)
-- At n=10: f₁ = 0.50 (moderate confidence)
-- At n=20: f₁ = 1.00 (full confidence at metric level)
-- At n=50: f₁ = 1.00 (full confidence at score level)
+- At n=1: α₁ = 0.05 (very low confidence)
+- At n=10: α₁ = 0.50 (moderate confidence)
+- At n=20: α₁ = 1.00 (full confidence at metric level)
+- At n=50: β₁ = 1.00 (full confidence at score level)
 
 The difference in targets (20 vs 50) reflects the different requirements: metric computation can produce a reasonable estimate with fewer observations, while the overall score requires a more robust foundation.
 
@@ -394,7 +408,7 @@ The difference in targets (20 vs 50) reflects the different requirements: metric
 
 Measurement quality affects confidence through two mechanisms:
 
-1. **Direct effect**: The quality factor (f₂ at metric level, f₆ at score level) weights observations by their provenance
+1. **Direct effect**: The quality factor (α₂ at metric level, β₆ at score level) weights observations by their provenance
 2. **Indirect effect**: Low-quality observations reduce the effective sample size, which reduces the sample size factor
 
 ### 5.8 Provider Diversity
@@ -416,12 +430,12 @@ CV = σ / |μ|
 The variance factor is:
 
 ```
-f₂ = 1 - min(1, CV / 0.5)
+β₂ = 1 - min(1, CV / 0.5)
 ```
 
-At CV=0 (no variance): f₂ = 1.0 (full confidence)
-At CV=0.5 (moderate variance): f₂ = 0.0 (no confidence contribution)
-At CV>0.5 (high variance): f₂ = 0.0 (clamped)
+At CV=0 (no variance): β₂ = 1.0 (full confidence)
+At CV=0.5 (moderate variance): β₂ = 0.0 (no confidence contribution)
+At CV>0.5 (high variance): β₂ = 0.0 (clamped)
 
 **Special case**: When the mean is 0, if all values are 0 (perfect consistency), CV=0. If values vary around 0, CV is set to 1.0 (maximum penalty), reflecting the high uncertainty of measurements near zero.
 
@@ -430,12 +444,12 @@ At CV>0.5 (high variance): f₂ = 0.0 (clamped)
 Missing information reduces confidence proportionally to the fraction of missing metric-window pairs:
 
 ```
-f₃ = 1 - (missing_pairs / total_pairs)
+β₃ = 1 - (missing_pairs / total_pairs)
 ```
 
-At 0% missing: f₃ = 1.0
-At 50% missing: f₃ = 0.5
-At 100% missing: f₃ = 0.0
+At 0% missing: β₃ = 1.0
+At 50% missing: β₃ = 0.5
+At 100% missing: β₃ = 0.0
 
 ---
 
@@ -1106,11 +1120,11 @@ where σ is the population standard deviation and μ is the mean.
 The variance factor in the confidence score is:
 
 ```
-f₂ = 1 - min(1, CV / 0.5)
+β₂ = 1 - min(1, CV / 0.5)
 ```
 
-At CV = 0: f₂ = 1.0 (full confidence)
-At CV = 0.5: f₂ = 0.0 (no confidence)
+At CV = 0: β₂ = 1.0 (full confidence)
+At CV = 0.5: β₂ = 0.0 (no confidence)
 
 #### Assumptions
 
@@ -2001,8 +2015,8 @@ Individual observations may be biased or inaccurate.
 | Epsilon | ε = max(0.02\|T\|, 0.01×range(X)) | §6.7 |
 | Dip statistic | dip = max_x \|F̂(x) - U(x)\| | §6.6 |
 | CV | CV = σ/\|μ\| | §6.11 |
-| Metric confidence | c = 0.3f₁ + 0.3f₂ + 0.2f₃ + 0.2f₄ | §5.5 |
-| Score confidence | CS = f₁×f₂×f₃×f₄×f₅×f₆ | §5.5 |
+| Metric confidence (C_m) | C_m = 0.3·α₁ + 0.3·α₂ + 0.2·α₃ + 0.2·α₄ | §5.5 |
+| Score confidence (C_s) | C_s = β₁×β₂×β₃×β₄×β₅×β₆ | §5.5 |
 | Integrity score | IS = 1.0 - (w₁d₁ + w₂d₂ + w₃d₃) | §6.9 |
 | Drift magnitude | min(1.0, KS/0.5) | §6.9 |
 | Breakdown magnitude | min(1.0, \|Δr\|/0.3) | §6.9 |

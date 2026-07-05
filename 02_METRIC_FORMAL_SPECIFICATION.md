@@ -212,11 +212,17 @@ Each metric specifies how observations within a window are combined:
 
 ### 4.4 Confidence
 
-Each metric produces a confidence value in [0, 1] quantifying the reliability of the computed value. Confidence is computed from four factors:
+Each metric produces a confidence value in [0, 1] quantifying the reliability of the computed value. Confidence is computed from four independent quality dimensions using an additive composition:
 
 ```
-confidence = 0.3 × sample_size + 0.3 × quality + 0.2 × uncertainty + 0.2 × provider_diversity
+C_m = 0.3 × α₁ + 0.3 × α₂ + 0.2 × α₃ + 0.2 × α₄
 ```
+
+where α₁ = sample_sufficiency, α₂ = observation_quality, α₃ = value_stability, α₄ = provider_diversity. See §9.1 for detailed formulas.
+
+**Composition rationale:** Additive because factors represent independent quality dimensions. A low sample size reduces confidence but does not invalidate it entirely — each factor contributes its own weight to the overall reliability assessment.
+
+**Confidence propagation:** `Raw Data → C_p (provider) → C_o (observation, not yet implemented) → C_m (metric) → C_s (score) → Final Report`
 
 ### 4.5 Uncertainty
 
@@ -1187,20 +1193,26 @@ Across windows, per-window metric values are aggregated using the same aggregati
 
 ### 9.1 Confidence Calculation
 
-The metric-level confidence is computed as:
+The metric-level confidence (C_m) is computed as:
 
 ```
-confidence = 0.3 × f₁ + 0.3 × f₂ + 0.2 × f₃ + 0.2 × f₄
+C_m = 0.3 × α₁ + 0.3 × α₂ + 0.2 × α₃ + 0.2 × α₄
 ```
 
 where:
 
-| Factor | Formula | Range | Interpretation |
-|--------|---------|-------|---------------|
-| f₁ (sample size) | min(1.0, n / 20) | [0, 1] | More observations → higher confidence |
-| f₂ (quality) | mean(quality_scores) | [0, 1] | Higher quality → higher confidence |
-| f₃ (uncertainty) | max(0, 1 - \|σ/μ\|) | [0, 1] | Lower relative uncertainty → higher confidence |
-| f₄ (provider diversity) | min(1.0, num_providers / 2) | [0, 1] | More providers → higher confidence |
+| Factor | Symbol | Formula | Range | Interpretation |
+|--------|--------|---------|-------|---------------|
+| Sample size | α₁ | min(1.0, n / 20) | [0, 1] | More observations → higher confidence |
+| Quality | α₂ | mean(quality_scores) | [0, 1] | Higher quality → higher confidence |
+| Uncertainty | α₃ | max(0, 1 - \|σ/μ\|) | [0, 1] | Lower relative uncertainty → higher confidence |
+| Provider diversity | α₄ | min(1.0, num_providers / 2) | [0, 1] | More providers → higher confidence |
+
+**Composition rationale:** Additive because factors represent independent quality dimensions that contribute to reliability. A low sample size reduces confidence but does not invalidate it entirely.
+
+**Score-level confidence** (C_s) uses a multiplicative model: `C_s = β₁ × β₂ × β₃ × β₄ × β₅ × β₆`. Multiplicative because all factors are necessary conditions — any zero factor zeroes the product.
+
+Reference: `01_CONFIDENCE_MODEL_UNIFICATION.md` for full derivation.
 
 ### 9.2 Uncertainty Estimation
 
@@ -1223,23 +1235,23 @@ Quality scores are mapped to weights:
 | estimated | 0.5 |
 | missing | 0.0 |
 
-The quality factor f₂ is the mean of these weights across all observations.
+The quality factor α₂ is the mean of these weights across all observations.
 
 ### 9.4 Provider Diversity
 
-The provider diversity factor rewards multi-source validation:
+The provider diversity factor α₄ rewards multi-source validation:
 
 ```
-f₄ = min(1.0, num_providers / 2)
+α₄ = min(1.0, num_providers / 2)
 ```
 
-At 1 provider: f₄ = 0.5
-At 2 providers: f₄ = 1.0 (maximum)
-At ≥2 providers: f₄ = 1.0
+At 1 provider: α₄ = 0.5
+At 2 providers: α₄ = 1.0 (maximum)
+At ≥2 providers: α₄ = 1.0
 
 ### 9.5 Sample Size Effects
 
-| Observations | f₁ | Interpretation |
+| Observations | α₁ | Interpretation |
 |-------------|-----|---------------|
 | 1 | 0.05 | Very low confidence |
 | 5 | 0.25 | Low confidence |
@@ -1621,7 +1633,7 @@ High uncertainty reduces the relative uncertainty factor in the confidence score
 | Review latency | RL = (t_review - t_create) / 3600 | M-05 |
 | File change count | FCC = \|{files changed in window}\| | M-06 |
 | Branch freshness | BF = max(0.0, 1.0 - days_since / 180) | M-07 |
-| Confidence | c = 0.3f₁ + 0.3f₂ + 0.2f₃ + 0.2f₄ | all |
+| Confidence (C_m) | C_m = 0.3·α₁ + 0.3·α₂ + 0.2·α₃ + 0.2·α₄ | all |
 | Uncertainty | σ = √(Σ(xᵢ - μ)² / n) | all |
 | Clamping | v' = max(min, min(max, v)) | all |
 

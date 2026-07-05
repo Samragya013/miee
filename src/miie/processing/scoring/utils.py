@@ -1,7 +1,19 @@
 """Scoring Utilities Module.
 
-Shared utility functions for scoring computations, extracted from ScoringEngine
-to reduce duplication and improve testability.
+Shared utility functions for score confidence (C_s) computations, extracted from
+ScoringEngine to reduce duplication and improve testability.
+
+Score confidence factors use β notation:
+    β₁: sample_size_adequacy    (compute_sample_size_factor)
+    β₂: variance_stability      (compute_variance_factor)
+    β₃: data_completeness       (compute_missing_data_factor)
+    β₄: window_balance          (compute_balance_factor)
+    β₅: detector_coverage       (compute_detector_success_factor)
+    β₆: evidence_quality        (compute_observation_quality_factor)
+
+Formula: C_s = β₁ × β₂ × β₃ × β₄ × β₅ × β₆
+
+Reference: 01_CONFIDENCE_MODEL_UNIFICATION.md §7.4
 
 IMS Phase 5 (Scoring Utilities Extraction).
 """
@@ -116,17 +128,19 @@ def compute_coverage_ratio(present: int, total: int) -> float:
 
 
 def compute_balance_factor(sizes: Sequence[float]) -> float:
-    """Compute the balance factor: 1 - min(1, std/mean).
+    """Compute β₄ (window_balance): 1 - min(1, std/mean).
 
     Measures how evenly distributed window sizes are.
     A perfect balance (all sizes equal) gives 1.0.
     Highly uneven sizes approach 0.0.
 
+    Reference: 01_CONFIDENCE_MODEL_UNIFICATION.md §7.4
+
     Args:
         sizes: Sequence of window sizes (observations per window)
 
     Returns:
-        Balance factor in [0, 1]
+        Window balance factor in [0, 1]
     """
     if not sizes:
         return 0.0
@@ -143,7 +157,9 @@ def compute_balance_factor(sizes: Sequence[float]) -> float:
 
 
 def compute_sample_size_factor(mean_n: float, target: float = 50.0) -> float:
-    """Compute the sample size factor: min(1.0, mean_n / target).
+    """Compute β₁ (sample_size_adequacy): min(1.0, mean_n / target).
+
+    Reference: 01_CONFIDENCE_MODEL_UNIFICATION.md §7.4
 
     Args:
         mean_n: Average number of observations per metric
@@ -156,7 +172,9 @@ def compute_sample_size_factor(mean_n: float, target: float = 50.0) -> float:
 
 
 def compute_variance_factor(mean_cv: float, threshold: float = 0.5) -> float:
-    """Compute the variance factor: 1 - min(1, mean_cv / threshold).
+    """Compute β₂ (variance_stability): 1 - min(1, mean_cv / threshold).
+
+    Reference: 01_CONFIDENCE_MODEL_UNIFICATION.md §7.4
 
     Args:
         mean_cv: Average coefficient of variation across windows
@@ -169,7 +187,9 @@ def compute_variance_factor(mean_cv: float, threshold: float = 0.5) -> float:
 
 
 def compute_missing_data_factor(missing_pairs: int, total_pairs: int) -> float:
-    """Compute the missing data factor: 1 - (missing / total).
+    """Compute β₃ (data_completeness): 1 - (missing / total).
+
+    Reference: 01_CONFIDENCE_MODEL_UNIFICATION.md §7.4
 
     Args:
         missing_pairs: Number of missing metric-window pairs
@@ -182,7 +202,9 @@ def compute_missing_data_factor(missing_pairs: int, total_pairs: int) -> float:
 
 
 def compute_detector_success_factor(successful_runs: int, total_attempts: int) -> float:
-    """Compute the detector success factor: successful_runs / total_attempts.
+    """Compute β₅ (detector_coverage): successful_runs / total_attempts.
+
+    Reference: 01_CONFIDENCE_MODEL_UNIFICATION.md §7.4
 
     Args:
         successful_runs: Number of successful detector executions
@@ -195,9 +217,11 @@ def compute_detector_success_factor(successful_runs: int, total_attempts: int) -
 
 
 def compute_observation_quality_factor(complete: int, partial: int, estimated: int) -> float:
-    """Compute observation quality factor from quality counts.
+    """Compute β₆ (evidence_quality) from quality counts.
 
-    Quality factor = (complete + 0.5*partial) / (complete + partial + estimated)
+    Formula: (complete + 0.5*partial) / (complete + partial + estimated)
+
+    Reference: 01_CONFIDENCE_MODEL_UNIFICATION.md §7.4
 
     Args:
         complete: Number of observations with complete data

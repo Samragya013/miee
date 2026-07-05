@@ -232,9 +232,9 @@ Three distinct confidence models exist:
 
 | Model | Formula | Documents | Level |
 |-------|---------|-----------|-------|
-| Metric confidence | `0.3·f₁ + 0.3·f₂ + 0.2·f₃ + 0.2·f₄` | 00, 01, 02 | Metric |
-| Score confidence | `f₁ × f₂ × f₃ × f₄ × f₅ × f₆` | 01 | Score |
-| Observation confidence | `0.3·src + 0.25·cv + 0.2·stat + 0.15·prov + 0.1·qual` | 05 | Observation |
+| Metric confidence (C_m) | `0.3·α₁ + 0.3·α₂ + 0.2·α₃ + 0.2·α₄` | 00, 01, 02 | Metric |
+| Score confidence (C_s) | `β₁ × β₂ × β₃ × β₄ × β₅ × β₆` | 01 | Score |
+| Observation confidence (C_o) | `0.3·src + 0.25·cv + 0.2·stat + 0.15·prov + 0.1·qual` | 05 | Observation |
 
 **Finding:** Three different confidence formulas with different factor counts (4, 6, 5), different composition methods (additive, multiplicative, weighted additive), and different factor definitions exist without explicit reconciliation. This is the most significant scientific inconsistency in the repository.
 
@@ -346,7 +346,7 @@ Providers → Observations → Graph → Windows → Detectors → Scoring → E
 |----------|---------|----------|
 | Confidence formulas | 3 incompatible models (4/6/5 factors) | **HIGH** |
 | Validation levels | Doc 00: 3 levels; Doc 05: 5 levels | **HIGH** |
-| Mathematical notation | f1 vs f₁ vs descriptive names | LOW |
+| Mathematical notation | f₁–f₆ vs α/β notation | LOW — resolved by SR-01 |
 | Multiplication symbol | `*` vs `×` | LOW |
 | Metric naming | "Churn Ratio" vs "Code Churn Ratio" | LOW |
 | "Confidence" usage | 5 different concepts, no unified glossary | **MEDIUM** |
@@ -362,9 +362,9 @@ Providers → Observations → Graph → Windows → Detectors → Scoring → E
 
 | Formula | Factors | Method | Used For |
 |---------|---------|--------|----------|
-| `0.3·f₁ + 0.3·f₂ + 0.2·f₃ + 0.2·f₄` | 4 | Additive | Metric reliability |
-| `f₁ × f₂ × f₃ × f₄ × f₅ × f₆` | 6 | Multiplicative | Score reliability |
-| `0.3·src + 0.25·cv + 0.2·stat + 0.15·prov + 0.1·qual` | 5 | Weighted additive | Observation reliability |
+| `C_m = 0.3·α₁ + 0.3·α₂ + 0.2·α₃ + 0.2·α₄` | 4 | Additive | Metric reliability |
+| `C_s = β₁ × β₂ × β₃ × β₄ × β₅ × β₆` | 6 | Multiplicative | Score reliability |
+| `C_o = 0.3·src + 0.25·cv + 0.2·stat + 0.15·prov + 0.1·qual` | 5 | Weighted additive | Observation reliability |
 
 **Problem:** No document explicitly reconciles these three models. A reader encountering "confidence" in any document cannot determine which formula applies without knowing the exact context. The mathematical properties differ significantly: multiplicative models penalize weak factors more severely than additive models.
 
@@ -851,8 +851,8 @@ The implementation is functional and tested (2282 tests passing), but cannot be 
 
 | Component | Spec Formula | Implementation | Match |
 |-----------|-------------|----------------|-------|
-| Metric confidence | `0.3·f₁ + 0.3·f₂ + 0.2·f₃ + 0.2·f₄` | `0.3·f₁ + 0.3·f₂ + 0.2·f₃ + 0.2·f₄` | ✓ |
-| Score confidence | `f₁ × f₂ × f₃ × f₄ × f₅ × f₆` | `f₁ × f₂ × f₃ × f₄ × f₅ × f₆` | ✓ |
+| Metric confidence (C_m) | `0.3·α₁ + 0.3·α₂ + 0.2·α₃ + 0.2·α₄` | `0.3 * alpha_1 + ...` (base.py) | ✓ |
+| Score confidence (C_s) | `β₁ × β₂ × β₃ × β₄ × β₅ × β₆` | `beta_1 * beta_2 * ...` (engine.py) | ✓ |
 | Integrity score | `1.0 - (0.40·d₁ + 0.35·d₂ + 0.25·d₃)` | `1.0 - (0.40·d₁ + 0.35·d₂ + 0.25·d₃)` | ✓ |
 | D-01 threshold | `p < 0.05, PSI > 0.25` | `p < 0.05, PSI > 0.25` | ✓ |
 | D-02 threshold | `|Δr| > 0.3` | `|Δr| > 0.3` | ✓ |
