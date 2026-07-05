@@ -4,7 +4,10 @@ Shared statistical utilities for MIIE v1.5 detectors.
 Implements the reusable statistical functions defined in DES v2.0 §25.
 Each function is a pure computation with no detector-specific state.
 
-Reference: DES-v2.0 §25, DSVP-v1.0
+Extended in v1.6 with z_to_p() and fisher_z_test() for PR-16A
+multiple-testing correction support.
+
+Reference: DES-v2.0 §25, DSVP-v1.0, PR-16A
 """
 
 from __future__ import annotations
@@ -362,3 +365,53 @@ def auto_thresholds(
             thresholds.add(t)
 
     return sorted(thresholds)
+
+
+# ---------------------------------------------------------------------------
+# Hypothesis testing utilities (PR-16A)
+# ---------------------------------------------------------------------------
+
+
+def z_to_p(z: float, alternative: str = "two-sided") -> float:
+    """Convert a z-score to a p-value using the standard normal distribution.
+
+    Args:
+        z: Observed z-score.
+        alternative: "two-sided" (H1: μ ≠ 0), "greater" (H1: μ > 0),
+            or "less" (H1: μ < 0).
+
+    Returns:
+        P-value in [0, 1].
+    """
+    from scipy.stats import norm
+
+    if alternative == "two-sided":
+        return 2.0 * (1.0 - norm.cdf(abs(z)))
+    elif alternative == "greater":
+        return 1.0 - norm.cdf(z)
+    else:
+        return norm.cdf(z)
+
+
+def fisher_z_test(r: float, n: int) -> float:
+    """Test H0: ρ = 0 using Fisher z-transform.
+
+    Computes z_obs = fisher_z(r) * sqrt(n - 3), then returns the
+    two-sided p-value from the standard normal distribution.
+
+    Args:
+        r: Observed Pearson correlation in (-1, 1).
+        n: Sample size (must be >= 4).
+
+    Returns:
+        Two-sided p-value. Returns 1.0 if n < 4.
+    """
+    if n < 4:
+        return 1.0
+
+    from scipy.stats import norm
+
+    z_r = fisher_z(r)
+    se = 1.0 / math.sqrt(n - 3)
+    z_obs = z_r / se
+    return 2.0 * (1.0 - norm.cdf(abs(z_obs)))

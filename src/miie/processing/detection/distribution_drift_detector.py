@@ -16,6 +16,7 @@ from typing import Any, Dict, List, Optional
 import numpy as np
 
 from miie.processing.detection.base import BaseDetector
+from miie.processing.detection.inference import StatisticalInferenceEngine
 from miie.processing.detection.statistics import compute_psi, ks_2samp
 from miie.schemas.models import DetectorResult, MetricDataFrame
 
@@ -147,6 +148,34 @@ class DistributionDriftDetector(BaseDetector):
             normalized = [min(1.0, ks / 0.5) for ks in ks_vals]
             drift_magnitude = float(np.mean(normalized))
 
+        # ------------------------------------------------------------------
+        # PR-16A: Multiple-testing correction (Bonferroni per window pair)
+        # ------------------------------------------------------------------
+        inference_families: List[Dict[str, Any]] = []
+        for i in range(len(window_ids) - 1):
+            w_start = window_ids[i]
+            w_end = window_ids[i + 1]
+            pair_key = f"{w_start}_{w_end}"
+
+            family_p_values: List[float] = []
+            family_test_ids: List[str] = []
+            for metric in available_metrics:
+                kp = ks_statistics.get(metric, {}).get(pair_key)
+                if kp is not None:
+                    family_p_values.append(kp)
+                    family_test_ids.append(f"{metric}_{pair_key}")
+
+            if family_p_values:
+                result = StatisticalInferenceEngine.bonferroni(
+                    family_p_values,
+                    alpha=ks_threshold,
+                    family_id=f"KS_{pair_key}",
+                )
+                inference_families.append(StatisticalInferenceEngine.result_to_dict(result))
+
+        total_ks_tests = sum(f["num_tests"] for f in inference_families)
+        total_ks_rejections = sum(f["num_rejections"] for f in inference_families)
+
         detector_outputs[self.detector_id] = {
             "drift_detected": drift_detected,
             "drift_magnitude": drift_magnitude,
@@ -156,6 +185,15 @@ class DistributionDriftDetector(BaseDetector):
             "psi_values": flat_psi,
             "drift_directions": flat_dirs,
             "window_pairs_analyzed": [[window_ids[i], window_ids[i + 1]] for i in range(len(window_ids) - 1)],
+            "inference": {
+                "method": "bonferroni",
+                "alpha": ks_threshold,
+                "families": inference_families,
+                "summary": {
+                    "total_ks_tests": total_ks_tests,
+                    "total_ks_rejections": total_ks_rejections,
+                },
+            },
         }
 
         return DetectorResult(detector_outputs=detector_outputs)
@@ -190,7 +228,11 @@ class DistributionDriftDetector(BaseDetector):
         """
         detector_outputs: Dict[str, Any] = {}
 
-        available_metrics = [m for m in self.supported_metrics if m in metric_dataframe.metrics and metric_dataframe.metrics[m] is not None]
+        available_metrics = [
+            m
+            for m in self.supported_metrics
+            if m in metric_dataframe.metrics and metric_dataframe.metrics[m] is not None
+        ]
 
         if not available_metrics:
             detector_outputs[self.detector_id] = self._empty_output([], [])
@@ -260,6 +302,34 @@ class DistributionDriftDetector(BaseDetector):
             normalized_ks = [min(1.0, ks / 0.5) for ks in ks_vals]
             drift_magnitude = float(np.mean(normalized_ks))
 
+        # ------------------------------------------------------------------
+        # PR-16A: Multiple-testing correction (Bonferroni per window pair)
+        # ------------------------------------------------------------------
+        inference_families: List[Dict[str, Any]] = []
+        for i in range(len(window_ids) - 1):
+            ws = window_ids[i]
+            we = window_ids[i + 1]
+            pair_key = f"{ws}_{we}"
+
+            fam_p: List[float] = []
+            fam_ids: List[str] = []
+            for metric in available_metrics:
+                kp = ks_statistics.get(metric, {}).get(pair_key)
+                if kp is not None:
+                    fam_p.append(kp)
+                    fam_ids.append(f"{metric}_{pair_key}")
+
+            if fam_p:
+                result = StatisticalInferenceEngine.bonferroni(
+                    fam_p,
+                    alpha=self.ks_p_value_threshold,
+                    family_id=f"KS_{pair_key}",
+                )
+                inference_families.append(StatisticalInferenceEngine.result_to_dict(result))
+
+        total_ks_tests = sum(f["num_tests"] for f in inference_families)
+        total_ks_rejections = sum(f["num_rejections"] for f in inference_families)
+
         detector_outputs[self.detector_id] = {
             "drift_detected": drift_detected,
             "drift_magnitude": drift_magnitude,
@@ -271,6 +341,15 @@ class DistributionDriftDetector(BaseDetector):
                 f"{m}_{wp}": direction for m, dir_dict in drift_directions.items() for wp, direction in dir_dict.items()
             },
             "window_pairs_analyzed": [[window_ids[i], window_ids[i + 1]] for i in range(len(window_ids) - 1)],
+            "inference": {
+                "method": "bonferroni",
+                "alpha": self.ks_p_value_threshold,
+                "families": inference_families,
+                "summary": {
+                    "total_ks_tests": total_ks_tests,
+                    "total_ks_rejections": total_ks_rejections,
+                },
+            },
         }
 
         return DetectorResult(detector_outputs=detector_outputs)

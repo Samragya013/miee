@@ -16,11 +16,13 @@ from typing import Any, Dict, List
 import numpy as np
 
 from miie.processing.detection.base import BaseDetector
+from miie.processing.detection.inference import StatisticalInferenceEngine
 from miie.processing.detection.statistics import (
     auto_thresholds,
     compute_epsilon,
     dip_test,
     excess_mass_test,
+    z_to_p,
 )
 from miie.schemas.models import DetectorResult, MetricDataFrame
 
@@ -173,6 +175,33 @@ class ThresholdCompressionDetector(BaseDetector):
         if compression_events:
             compression_index = float(np.mean([e["compression_index"] for e in compression_events]))
 
+        # ------------------------------------------------------------------
+        # PR-16A: Multiple-testing correction (Bonferroni per window)
+        # ------------------------------------------------------------------
+        inference_families: List[Dict[str, Any]] = []
+        for wid in window_ids:
+            fam_p: List[float] = []
+            fam_ids: List[str] = []
+            for metric in available_metrics:
+                thresholds = thresholds_used.get(metric, [])
+                for threshold in thresholds:
+                    key = f"{metric}_{threshold}_{wid}"
+                    dip_p = dip_test_p_values.get(key)
+                    if dip_p is not None:
+                        fam_p.append(dip_p)
+                        fam_ids.append(key)
+
+            if fam_p:
+                result = StatisticalInferenceEngine.bonferroni(
+                    fam_p,
+                    alpha=dip_p_thresh,
+                    family_id=f"DIP_{wid}",
+                )
+                inference_families.append(StatisticalInferenceEngine.result_to_dict(result))
+
+        total_dip_tests = sum(f["num_tests"] for f in inference_families)
+        total_dip_rejections = sum(f["num_rejections"] for f in inference_families)
+
         detector_outputs[self.detector_id] = {
             "compression_detected": compression_detected,
             "compression_index": compression_index,
@@ -183,6 +212,15 @@ class ThresholdCompressionDetector(BaseDetector):
             "dip_test_statistics": dip_test_statistics,
             "dip_test_p_values": dip_test_p_values,
             "windows_analyzed": sorted(list(processed_windows)),
+            "inference": {
+                "method": "bonferroni",
+                "alpha": dip_p_thresh,
+                "families": inference_families,
+                "summary": {
+                    "total_dip_tests": total_dip_tests,
+                    "total_dip_rejections": total_dip_rejections,
+                },
+            },
         }
 
         return DetectorResult(detector_outputs=detector_outputs)
@@ -217,7 +255,11 @@ class ThresholdCompressionDetector(BaseDetector):
         """
         detector_outputs: Dict[str, Any] = {}
 
-        available_metrics = [m for m in self.supported_metrics if m in metric_dataframe.metrics and metric_dataframe.metrics[m] is not None]
+        available_metrics = [
+            m
+            for m in self.supported_metrics
+            if m in metric_dataframe.metrics and metric_dataframe.metrics[m] is not None
+        ]
 
         if not available_metrics:
             detector_outputs[self.detector_id] = self._empty_output()
@@ -305,6 +347,33 @@ class ThresholdCompressionDetector(BaseDetector):
         if compression_events:
             compression_index = float(np.mean([e["compression_index"] for e in compression_events]))
 
+        # ------------------------------------------------------------------
+        # PR-16A: Multiple-testing correction (Bonferroni per window)
+        # ------------------------------------------------------------------
+        inference_families: List[Dict[str, Any]] = []
+        for wid in window_ids:
+            fam_p: List[float] = []
+            fam_ids: List[str] = []
+            for metric in available_metrics:
+                thresholds = thresholds_used.get(metric, [])
+                for threshold in thresholds:
+                    key = f"{metric}_{threshold}_{wid}"
+                    dip_p = dip_test_p_values.get(key)
+                    if dip_p is not None:
+                        fam_p.append(dip_p)
+                        fam_ids.append(key)
+
+            if fam_p:
+                result = StatisticalInferenceEngine.bonferroni(
+                    fam_p,
+                    alpha=self.dip_test_p_threshold,
+                    family_id=f"DIP_{wid}",
+                )
+                inference_families.append(StatisticalInferenceEngine.result_to_dict(result))
+
+        total_dip_tests = sum(f["num_tests"] for f in inference_families)
+        total_dip_rejections = sum(f["num_rejections"] for f in inference_families)
+
         detector_outputs[self.detector_id] = {
             "compression_detected": compression_detected,
             "compression_index": compression_index,
@@ -315,6 +384,15 @@ class ThresholdCompressionDetector(BaseDetector):
             "dip_test_statistics": dip_test_statistics,
             "dip_test_p_values": dip_test_p_values,
             "windows_analyzed": sorted(list(processed_windows)),
+            "inference": {
+                "method": "bonferroni",
+                "alpha": self.dip_test_p_threshold,
+                "families": inference_families,
+                "summary": {
+                    "total_dip_tests": total_dip_tests,
+                    "total_dip_rejections": total_dip_rejections,
+                },
+            },
         }
 
         return DetectorResult(detector_outputs=detector_outputs)

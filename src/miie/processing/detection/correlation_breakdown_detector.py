@@ -17,8 +17,10 @@ from typing import Any, Dict, List, Optional, Tuple
 import numpy as np
 
 from miie.processing.detection.base import BaseDetector
+from miie.processing.detection.inference import StatisticalInferenceEngine
 from miie.processing.detection.statistics import (
     fisher_z_ci,
+    fisher_z_test,
     pearson_r,
     spearman_rho,
 )
@@ -160,6 +162,35 @@ class CorrelationBreakdownDetector(BaseDetector):
                 key=lambda t: type_priority[t],
             )
 
+        # ------------------------------------------------------------------
+        # PR-16A: Multiple-testing correction (BH across metric pairs)
+        # ------------------------------------------------------------------
+        inference_families: List[Dict[str, Any]] = []
+        for window_idx, wid in enumerate(window_ids):
+            fam_p: List[float] = []
+            fam_ids: List[str] = []
+            for metric_i, metric_j in metric_pairs:
+                pair_key = f"{metric_i}_{metric_j}"
+                traj = pearson_trajectories.get(pair_key, [])
+                if window_idx < len(traj) and traj[window_idx] is not None:
+                    vals_i, vals_j = self._extract_paired_values(windows[window_idx], metric_i, metric_j)
+                    n = min(len(vals_i), len(vals_j))
+                    if n >= 4:
+                        p_val = fisher_z_test(traj[window_idx], n)
+                        fam_p.append(p_val)
+                        fam_ids.append(f"{pair_key}_{wid}")
+
+            if fam_p:
+                result = StatisticalInferenceEngine.benjamini_hochberg(
+                    fam_p,
+                    alpha=0.05,
+                    family_id=f"CORR_{wid}",
+                )
+                inference_families.append(StatisticalInferenceEngine.result_to_dict(result))
+
+        total_corr_tests = sum(f["num_tests"] for f in inference_families)
+        total_corr_rejections = sum(f["num_rejections"] for f in inference_families)
+
         detector_outputs[self.detector_id] = {
             "breakdown_detected": breakdown_detected,
             "breakdown_type": breakdown_type,
@@ -169,6 +200,15 @@ class CorrelationBreakdownDetector(BaseDetector):
             "spearman_trajectories": spearman_trajectories,
             "confidence_intervals": {f"{m1}_{m2}_{w}": ci for (m1, m2, w), ci in confidence_intervals.items()},
             "window_pairs_flagged": [[e["window_pair"][0], e["window_pair"][1]] for e in breakdown_events],
+            "inference": {
+                "method": "benjamini_hochberg",
+                "alpha": 0.05,
+                "families": inference_families,
+                "summary": {
+                    "total_correlation_tests": total_corr_tests,
+                    "total_correlation_rejections": total_corr_rejections,
+                },
+            },
         }
 
         return DetectorResult(detector_outputs=detector_outputs)
@@ -203,7 +243,11 @@ class CorrelationBreakdownDetector(BaseDetector):
         """
         detector_outputs: Dict[str, Any] = {}
 
-        available_metrics = [m for m in self.supported_metrics if m in metric_dataframe.metrics and metric_dataframe.metrics[m] is not None]
+        available_metrics = [
+            m
+            for m in self.supported_metrics
+            if m in metric_dataframe.metrics and metric_dataframe.metrics[m] is not None
+        ]
 
         if len(available_metrics) < 2:
             detector_outputs[self.detector_id] = self._empty_output()
@@ -274,6 +318,34 @@ class CorrelationBreakdownDetector(BaseDetector):
                 key=lambda t: type_priority[t],
             )
 
+        # ------------------------------------------------------------------
+        # PR-16A: Multiple-testing correction (BH across metric pairs)
+        # ------------------------------------------------------------------
+        inference_families: List[Dict[str, Any]] = []
+        for w_idx, wid in enumerate(window_ids):
+            fam_p: List[float] = []
+            fam_ids: List[str] = []
+            for metric_i, metric_j in metric_pairs:
+                vals_i = metric_dataframe.metrics[metric_i].get(wid, [])
+                vals_j = metric_dataframe.metrics[metric_j].get(wid, [])
+                n = min(len(vals_i), len(vals_j))
+                if n >= 4:
+                    r = pearson_r(vals_i, vals_j)
+                    p_val = fisher_z_test(r, n)
+                    fam_p.append(p_val)
+                    fam_ids.append(f"{metric_i}_{metric_j}_{wid}")
+
+            if fam_p:
+                result = StatisticalInferenceEngine.benjamini_hochberg(
+                    fam_p,
+                    alpha=0.05,
+                    family_id=f"CORR_{wid}",
+                )
+                inference_families.append(StatisticalInferenceEngine.result_to_dict(result))
+
+        total_corr_tests = sum(f["num_tests"] for f in inference_families)
+        total_corr_rejections = sum(f["num_rejections"] for f in inference_families)
+
         detector_outputs[self.detector_id] = {
             "breakdown_detected": breakdown_detected,
             "breakdown_type": breakdown_type,
@@ -283,6 +355,15 @@ class CorrelationBreakdownDetector(BaseDetector):
             "spearman_trajectories": spearman_trajectories,
             "confidence_intervals": {f"{m1}_{m2}_{w}": ci for (m1, m2, w), ci in confidence_intervals.items()},
             "window_pairs_flagged": [[event["window_pair"][0], event["window_pair"][1]] for event in breakdown_events],
+            "inference": {
+                "method": "benjamini_hochberg",
+                "alpha": 0.05,
+                "families": inference_families,
+                "summary": {
+                    "total_correlation_tests": total_corr_tests,
+                    "total_correlation_rejections": total_corr_rejections,
+                },
+            },
         }
 
         return DetectorResult(detector_outputs=detector_outputs)
