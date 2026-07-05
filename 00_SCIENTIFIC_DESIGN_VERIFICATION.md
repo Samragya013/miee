@@ -299,7 +299,7 @@ The graph architecture is sound:
 - Deterministic construction pipeline
 - Provenance tracking
 
-**CRITICAL FINDING:** Graph immutability is claimed in Doc 06 (graph is immutable after construction) but Doc 07 describes streaming updates that mutate the graph. This is a direct architectural contradiction.
+**RESOLVED (SR-04):** Graph immutability contradiction between Doc 06/07 is resolved via unified state model (`observation_graph/state.py`). Doc 03/06 "immutable" refers to scientific snapshots; Doc 07 "mutable" refers to working state. See ADR-005 update.
 
 ### 4.3 Streaming Architecture (Doc 07)
 
@@ -375,12 +375,12 @@ Providers → Observations → Graph → Windows → Detectors → Scoring → E
 
 Doc 00 is outdated. It predates the addition of Benchmark and Certification levels in Doc 05.
 
-#### 5.2.3 Graph Immutability Contradiction
+#### 5.2.3 Graph Immutability Contradiction — RESOLVED (SR-04)
 
 - **Doc 06:** Graph is immutable after construction (immutability invariant)
 - **Doc 07:** Streaming architecture mutates graph incrementally
 
-This is a direct architectural contradiction that must be resolved.
+**Resolution:** Unified state model distinguishes immutable snapshots (scientific record) from mutable working state (operational). Doc 03/06 immutability applies to snapshots; Doc 07 mutability applies to working state. Implementation: `observation_graph/state.py` with `GraphSnapshot` (immutable), `WorkingGraph` (mutable), `GraphEvent` (audit trail), `GraphVersion` (lineage).
 
 ---
 
@@ -445,7 +445,7 @@ This is a direct architectural contradiction that must be resolved.
 
 3. ~~**G-09: No ground truth datasets.**~~ **RESOLVED (SR-03).** Ground Truth Dataset Framework implemented: Doc 12 (framework spec), JSON schemas, Python models, repository taxonomy, detector/metric benchmark matrices, 75 unit tests. SDV CF-03 remediated.
 
-4. **G-11: Graph immutability contradiction.** Doc 06 and Doc 07 make incompatible claims about graph mutability. This blocks streaming implementation.
+4. ~~**G-11: Graph immutability contradiction.**~~ **RESOLVED (SR-04).** Unified state model resolves contradiction: immutable snapshots for scientific record, mutable working state for streaming. Implementation in `observation_graph/state.py` with 46 tests.
 
 ---
 
@@ -455,7 +455,7 @@ This is a direct architectural contradiction that must be resolved.
 
 **For core pipeline: YES** — Metrics, detectors, scoring, and evidence are implemented and tested (2429 tests passing).
 
-**For streaming: NO** — Blocked by graph immutability contradiction (G-11) and missing roadmap (G-13).
+**For streaming: CONDITIONAL** — Graph immutability contradiction (G-11) resolved (SR-04). Blocked only by missing roadmap (G-13).
 
 **For AI detection: NO** — Blocked by missing specification details and no validation framework.
 
@@ -659,9 +659,9 @@ However, the repository has **4 critical findings** and **7 high-severity findin
 
 **Critical Findings (Must fix before production use):**
 1. Three incompatible confidence models with no reconciliation
-2. M-01 tokenization strategy unspecified (reproducibility blocker)
-3. No ground truth datasets (validation blocker)
-4. Graph immutability contradiction between Docs 06/07 (streaming blocker)
+2. ~~M-01 tokenization strategy unspecified (reproducibility blocker)~~ **RESOLVED (SR-02)**
+3. ~~No ground truth datasets (validation blocker)~~ **RESOLVED (SR-03)**
+4. ~~Graph immutability contradiction between Docs 06/07 (streaming blocker)~~ **RESOLVED (SR-04)**
 
 **High Findings (Must fix before publication):**
 1. No formal power analysis
@@ -795,7 +795,7 @@ The implementation is functional and tested (2429 tests passing), but cannot be 
 | R-02 | Scientific | No power analysis | HIGH | MEDIUM | HIGH | Conduct analysis |
 | R-03 | Scientific | M-01 tokenization unspecified | HIGH | HIGH | CRITICAL | Specify strategy |
 | R-04 | Scientific | Multiple testing not corrected | HIGH | MEDIUM | HIGH | Implement correction |
-| R-05 | Architectural | Graph immutability contradiction | HIGH | HIGH | CRITICAL | Resolve contradiction |
+| R-05 | Architectural | Graph immutability contradiction | HIGH | HIGH | CRITICAL | ~~Resolve contradiction~~ **RESOLVED (SR-04)** |
 | R-06 | Validation | No ground truth datasets | HIGH | HIGH | CRITICAL | Create datasets |
 | R-07 | Validation | No empirical benchmarks | HIGH | MEDIUM | HIGH | Conduct benchmarks |
 | R-08 | Engineering | Missing roadmap (Doc 11) | HIGH | MEDIUM | HIGH | Create roadmap |
@@ -818,7 +818,7 @@ The implementation is functional and tested (2429 tests passing), but cannot be 
 | G-08 | Confidence | Three incompatible models | HIGH | 01, 05 | Unify/reconcile |
 | G-09 | Validation | No ground truth datasets | RESOLVED | 05, 09, SR-03 | Doc 12 + schemas + models + matrices + tests |
 | G-10 | Validation | No empirical benchmarks | HIGH | 05, 09 | Conduct study |
-| G-11 | Architecture | Graph immutability contradiction | CRITICAL | 06, 07 | Resolve |
+| G-11 | Architecture | Graph immutability contradiction | RESOLVED | 06, 07, SR-04 | Unified state model |
 | G-12 | Architecture | No interface contracts | MEDIUM | All | Define contracts |
 | G-13 | Documentation | Doc 11 missing | HIGH | — | Create document |
 | G-14 | Publication | No alternative comparison | HIGH | — | Add study |

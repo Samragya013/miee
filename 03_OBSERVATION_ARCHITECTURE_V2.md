@@ -560,7 +560,7 @@ The observation graph is a directed acyclic graph (DAG) that models the relation
 - GRA-1: The graph is a DAG (no cycles)
 - GRA-2: Every node has at least one incoming or outgoing edge (no orphans)
 - GRA-3: Edge directions respect causal and temporal ordering
-- GRA-4: The graph is immutable after construction
+- GRA-4: Snapshots are immutable after creation; working state may be modified during streaming (see `observation_graph/state.py`)
 
 ### 4.6 ObservationEdge
 

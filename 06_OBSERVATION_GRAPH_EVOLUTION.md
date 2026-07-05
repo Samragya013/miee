@@ -125,7 +125,7 @@ Every entity in the graph carries scientific provenance — the complete record 
 
 ### 2.5 Graph Immutability
 
-Once constructed, the Observation Graph is immutable. New observations create new nodes and edges, but existing nodes and edges are not modified. Immutability ensures:
+Once constructed, graph **snapshots** are immutable. The working graph state may be modified during streaming operations, but snapshots taken from it are permanent and provide the scientific record. Immutability of snapshots ensures:
 
 **Reproducibility**: The graph can be reconstructed identically.
 
@@ -1404,9 +1404,10 @@ An AI-generated activity graph identifies artificial contributions:
 
 ### 15.5 Immutability
 
-- Nodes are immutable after creation.
-- Edges are immutable after creation.
-- The graph is immutable after construction.
+- Nodes are immutable after creation (GraphNode frozen dataclass).
+- Edges are immutable after creation (GraphEdge frozen dataclass).
+- Snapshots are immutable after creation (GraphSnapshot frozen dataclass).
+- Working state may be modified during streaming; snapshots provide the immutable record (see `observation_graph/state.py`).
 
 ### 15.6 Ownership
 
@@ -1615,16 +1616,17 @@ Graph versioning follows:
 
 ### 18.5 ADR-005: Graph Immutability
 
-**Decision**: The graph is immutable after construction.
+**Decision**: Snapshots are immutable after creation. Working state may be modified during streaming.
 
-**Rationale**: Immutability ensures reproducibility, auditability, and temporal integrity.
+**Rationale**: Immutability of snapshots ensures reproducibility, auditability, and temporal integrity. Mutable working state enables incremental updates without full graph reconstruction. The state model (`observation_graph/state.py`) distinguishes `GraphSnapshot` (immutable) from `WorkingGraph` (mutable), reconciling Doc 03/06 immutability with Doc 07 streaming.
 
 **Trade-offs**:
 - (+) Reproducibility
 - (+) Auditability
 - (+) No concurrent modification conflicts
-- (-) Requires new graph for updates
-- (-) Higher memory usage
+- (+) Incremental updates without reconstruction
+- (-) Requires snapshot/working state distinction
+- (-) Higher memory usage for snapshots
 
 ### 18.6 ADR-006: Deterministic Construction
 

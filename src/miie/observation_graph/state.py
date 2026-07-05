@@ -26,10 +26,11 @@ from miie.observation_graph.models import GraphEdge, GraphNode
 
 class StateType(Enum):
     """Types of graph state."""
-    SNAPSHOT = "snapshot"          # Immutable scientific record
-    WORKING = "working"            # Mutable operational state
-    EVENT = "event"                # Audit trail entry
-    VERSION = "version"            # Version lineage node
+
+    SNAPSHOT = "snapshot"  # Immutable scientific record
+    WORKING = "working"  # Mutable operational state
+    EVENT = "event"  # Audit trail entry
+    VERSION = "version"  # Version lineage node
 
 
 @dataclass(frozen=True)
@@ -56,6 +57,7 @@ class GraphSnapshot:
         metadata: Snapshot metadata (provider counts, metrics, etc.)
         parent_snapshot: Previous snapshot ID (for lineage)
     """
+
     snapshot_id: str
     graph_id: str
     version: int
@@ -155,6 +157,7 @@ class GraphEvent:
         payload: Event-specific data
         metadata: Event metadata (provider, source, etc.)
     """
+
     event_id: str
     event_type: str
     timestamp: str
@@ -218,6 +221,7 @@ class GraphVersion:
         timestamp: ISO-8601 creation timestamp
         metadata: Version metadata (changes, reason, etc.)
     """
+
     version_id: str
     snapshot_id: str
     parent_version: Optional[str]
@@ -260,21 +264,21 @@ class GraphVersion:
 
 class WorkingGraph:
     """
-    Mutable graph container for streaming/operational use.
+        Mutable graph container for streaming/operational use.
 
-    This is the working state that gets modified during processing.
-    It can be snapshotted at any point to create an immutable record.
+        This is the working state that gets modified during processing.
+        It can be snapshotted at any point to create an immutable record.
 
-    The working graph maintains:
-- Current nodes and edges
-- Version counter
-- Last snapshot ID
-- Event history reference
+        The working graph maintains:
+    - Current nodes and edges
+    - Version counter
+    - Last snapshot ID
+    - Event history reference
 
-    Design principle: The working graph is mutable, but snapshots
-    taken from it are immutable. This satisfies both:
-- Doc 03/06: "Graph is immutable after construction" (via snapshots)
-- Doc 07: "Graph is updated incrementally" (via working state)
+        Design principle: The working graph is mutable, but snapshots
+        taken from it are immutable. This satisfies both:
+    - Doc 03/06: "Graph is immutable after construction" (via snapshots)
+    - Doc 07: "Graph is updated incrementally" (via working state)
     """
 
     def __init__(self, graph_id: str):
@@ -371,9 +375,9 @@ class WorkingGraph:
 
         del self._nodes[observation_id]
         self._edges = [
-            e for e in self._edges
-            if e.source_observation_id != observation_id
-            and e.target_observation_id != observation_id
+            e
+            for e in self._edges
+            if e.source_observation_id != observation_id and e.target_observation_id != observation_id
         ]
         self._version += 1
         return True
@@ -508,13 +512,13 @@ class WorkingGraph:
 
 class GraphStateManager:
     """
-    Manages graph state transitions and version lineage.
+        Manages graph state transitions and version lineage.
 
-    This is the top-level coordinator that ensures:
-- Snapshots are immutable after creation
-- Events form an append-only log
-- Versions form a DAG
-- Working state can be snapshotted and restored
+        This is the top-level coordinator that ensures:
+    - Snapshots are immutable after creation
+    - Events form an append-only log
+    - Versions form a DAG
+    - Working state can be snapshotted and restored
     """
 
     def __init__(self, graph_id: str):

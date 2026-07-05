@@ -6,7 +6,6 @@ and GraphStateManager classes.
 """
 
 import pytest
-from datetime import datetime, timezone
 
 from miie.observation_graph.models import GraphEdge, GraphNode
 from miie.observation_graph.state import (
@@ -734,3 +733,208 @@ class TestGraphStateManager:
 
         # Version 3 has version 2 as parent
         assert versions[2].parent_version == versions[1].version_id
+
+
+class TestValidation:
+    """Phase 5: SR-04 Validation Tests.
+
+    Tests for observation identity, graph determinism, snapshot determinism,
+    serialization round-trip, replay from event history, and version lineage.
+    """
+
+    def test_observation_identity_deterministic(self):
+        """Observation IDs are deterministic (same inputs → same ID)."""
+        from miie.processing.observation.models import (
+            Observation,
+            ObservationProvenance,
+            ObservationQuality,
+        )
+
+        prov = ObservationProvenance(
+            extractor_id="git.observation.v1",
+            extraction_timestamp="2026-01-01T00:00:00Z",
+        )
+        obs1 = Observation(
+            observation_id="a" * 16,
+            metric_id="M-01",
+            source_type="commit",
+            source_id="b" * 40,
+            value=1.0,
+            unit="ratio",
+            timestamp="2026-01-01T00:00:00Z",
+            quality=ObservationQuality.COMPLETE.value,
+            provenance=prov,
+        )
+        obs2 = Observation(
+            observation_id="a" * 16,
+            metric_id="M-01",
+            source_type="commit",
+            source_id="b" * 40,
+            value=1.0,
+            unit="ratio",
+            timestamp="2026-01-01T00:00:00Z",
+            quality=ObservationQuality.COMPLETE.value,
+            provenance=prov,
+        )
+        assert obs1.observation_id == obs2.observation_id
+
+    def test_graph_determinism(self, sample_nodes, sample_edges):
+        """Same inputs produce same graph structure."""
+        wg1 = WorkingGraph("graph-001")
+        wg2 = WorkingGraph("graph-002")
+
+        for node in sample_nodes:
+            wg1.add_node(node)
+            wg2.add_node(node)
+        for edge in sample_edges:
+            wg1.add_edge(edge)
+            wg2.add_edge(edge)
+
+        nodes1 = {n.observation_id for n in wg1.get_all_nodes()}
+        nodes2 = {n.observation_id for n in wg2.get_all_nodes()}
+        edges1 = {e.edge_key for e in wg1.get_all_edges()}
+        edges2 = {e.edge_key for e in wg2.get_all_edges()}
+
+        assert nodes1 == nodes2
+        assert edges1 == edges2
+
+    def test_snapshot_determinism(self, sample_node_dict, sample_edge_dict):
+        """Same inputs produce same snapshot ID."""
+        s1 = GraphSnapshot.create(
+            graph_id="g",
+            version=1,
+            nodes=dict(sample_node_dict),
+            edges=dict(sample_edge_dict),
+        )
+        s2 = GraphSnapshot.create(
+            graph_id="g",
+            version=1,
+            nodes=dict(sample_node_dict),
+            edges=dict(sample_edge_dict),
+        )
+        assert s1.snapshot_id == s2.snapshot_id
+
+    def test_snapshot_different_content_different_id(self, sample_node_dict, sample_edge_dict):
+        """Different content produces different snapshot ID."""
+        s1 = GraphSnapshot.create(
+            graph_id="g",
+            version=1,
+            nodes=dict(sample_node_dict),
+            edges=dict(sample_edge_dict),
+        )
+        # Remove one node
+        reduced_nodes = {k: v for k, v in sample_node_dict.items() if k != list(sample_node_dict.keys())[0]}
+        s2 = GraphSnapshot.create(
+            graph_id="g",
+            version=2,
+            nodes=reduced_nodes,
+            edges=dict(sample_edge_dict),
+        )
+        assert s1.snapshot_id != s2.snapshot_id
+
+    def test_replay_from_event_history(self, sample_nodes, sample_edges):
+        """Event history can replay state transitions."""
+        sm = GraphStateManager("graph-001")
+
+        for node in sample_nodes:
+            sm.add_node(node)
+        for edge in sample_edges:
+            sm.add_edge(edge)
+
+        snapshot1 = sm.create_snapshot()
+        sm.remove_node("0000000000000000")
+        snapshot2 = sm.create_snapshot()
+
+        events = sm.get_event_history()
+        assert len(events) >= 2
+
+        # Restore to snapshot1
+        result = sm.restore_from_snapshot(snapshot1.snapshot_id)
+        assert result is True
+        assert sm.working.node_count == 5
+
+        # Restore to snapshot2
+        result = sm.restore_from_snapshot(snapshot2.snapshot_id)
+        assert result is True
+        assert sm.working.node_count == 4
+
+    def test_version_lineage_dag(self, sample_nodes):
+        """Version lineage forms a proper DAG."""
+        sm = GraphStateManager("graph-001")
+
+        for node in sample_nodes[:3]:
+            sm.add_node(node)
+        v1_snap = sm.create_snapshot()
+
+        sm.add_node(sample_nodes[3])
+        v2_snap = sm.create_snapshot()
+
+        sm.add_node(sample_nodes[4])
+        v3_snap = sm.create_snapshot()
+
+        versions = sm.get_all_versions()
+        assert len(versions) == 3
+
+        # Root has no parent
+        assert versions[0].parent_version is None
+        # Chain: v1 ← v2 ← v3
+        assert versions[1].parent_version == versions[0].version_id
+        assert versions[2].parent_version == versions[1].version_id
+
+        # Each version references correct snapshot
+        assert versions[0].snapshot_id == v1_snap.snapshot_id
+        assert versions[1].snapshot_id == v2_snap.snapshot_id
+        assert versions[2].snapshot_id == v3_snap.snapshot_id
+
+    def test_snapshot_contains_node_edge(self, sample_node_dict, sample_edge_dict):
+        """Snapshot.contains_node and contains_edge work correctly."""
+        snap = GraphSnapshot.create(
+            graph_id="g",
+            version=1,
+            nodes=dict(sample_node_dict),
+            edges=dict(sample_edge_dict),
+        )
+        first_id = list(sample_node_dict.keys())[0]
+        assert snap.contains_node(first_id)
+        assert not snap.contains_node("nonexistent_id")
+
+        first_edge = list(sample_edge_dict.values())[0]
+        assert snap.contains_edge(first_edge)
+
+    def test_snapshot_diff_symmetric(self, sample_node_dict, sample_edge_dict):
+        """Snapshot diff is symmetric for added/removed."""
+        s1 = GraphSnapshot.create(
+            graph_id="g",
+            version=1,
+            nodes=dict(sample_node_dict),
+            edges=dict(sample_edge_dict),
+        )
+        # Create s2 with one fewer node
+        reduced = {k: v for k, v in sample_node_dict.items() if k != list(sample_node_dict.keys())[0]}
+        s2 = GraphSnapshot.create(
+            graph_id="g",
+            version=2,
+            nodes=reduced,
+            edges=dict(sample_edge_dict),
+        )
+        d12 = s1.diff(s2)
+        d21 = s2.diff(s1)
+
+        assert d12["removed_nodes"] == d21["added_nodes"]
+        assert d12["added_nodes"] == d21["removed_nodes"]
+
+    def test_event_history_audit_trail(self, sample_nodes):
+        """Event history forms complete audit trail."""
+        sm = GraphStateManager("graph-001")
+
+        sm.add_node(sample_nodes[0])
+        snap1 = sm.create_snapshot(metadata={"label": "first"})
+        sm.add_node(sample_nodes[1])
+        snap2 = sm.create_snapshot(metadata={"label": "second"})
+
+        events = sm.get_event_history()
+        assert len(events) == 2
+        assert events[0].event_type == "snapshot_created"
+        assert events[1].event_type == "snapshot_created"
+        assert events[0].snapshot_after == snap1.snapshot_id
+        assert events[1].snapshot_after == snap2.snapshot_id

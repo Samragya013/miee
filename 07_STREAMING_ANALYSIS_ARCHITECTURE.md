@@ -504,17 +504,20 @@ Updated evidence triggers score updates:
 
 ### 6.1 Incremental Graph Updates
 
-The observation graph is updated incrementally as new observations arrive:
+The observation graph is updated incrementally as new observations arrive. The state model (`observation_graph/state.py`) distinguishes mutable working state from immutable snapshots:
 
-**Node Addition**: New observation nodes are added to the graph.
+**Working State (mutable)**:
+- **Node Addition**: New observation nodes are added to the working graph.
+- **Edge Addition**: New relationship edges are added to the working graph.
+- **Node Metadata Update**: Node metadata (quality, confidence) is updated in working state.
+- **Edge Metadata Update**: Edge metadata (strength, confidence) is updated in working state.
 
-**Edge Addition**: New relationship edges are added to the graph.
+**Snapshots (immutable)**:
+- Snapshots capture the complete graph state at a point in time.
+- Snapshots are immutable after creation (`GraphSnapshot` frozen dataclass).
+- Snapshots provide the scientific record for reproducibility and audit.
 
-**Node Metadata Update**: Node metadata (quality, confidence) is updated.
-
-**Edge Metadata Update**: Edge metadata (strength, confidence) is updated.
-
-Incremental updates avoid full graph reconstruction.
+Incremental updates avoid full graph reconstruction. Snapshots are taken at configurable intervals or on demand.
 
 ### 6.2 Relationship Evolution
 
