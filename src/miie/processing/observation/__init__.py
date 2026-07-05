@@ -3,7 +3,8 @@
 Exports:
     Observation, ObservationWindow, ObservationCollection, ObservationProvenance,
     ObservationStatistics, ObservationRelationship, WindowConfig, WindowBuilderResult,
-    DetectorAdapterOutput, create_observation, generate_observation_id.
+    DetectorAdapterOutput, create_observation, generate_observation_id,
+    compute_observation_confidence, compute_batch_observation_confidence.
 """
 
 from miie.processing.observation.models import (  # noqa: F401
@@ -16,6 +17,8 @@ from miie.processing.observation.models import (  # noqa: F401
     ObservationWindow,
     WindowBuilderResult,
     WindowConfig,
+    compute_batch_observation_confidence,
+    compute_observation_confidence,
     create_observation,
     generate_observation_id,
 )

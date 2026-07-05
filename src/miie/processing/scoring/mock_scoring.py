@@ -46,6 +46,7 @@ class MockScoringEngine(IScoringEngine):
                     "detector_success": 0.95,
                 },
                 band="medium",
+                level="score",
             ),
             timestamp=datetime(2023, 6, 15, 12, 0, 0, tzinfo=timezone.utc),
             config_hash="mock-config-hash",
@@ -77,6 +78,7 @@ class MockZeroScoringEngine(IScoringEngine):
                     "detector_success": 0.0,
                 },
                 band="low",
+                level="score",
             ),
             timestamp=datetime(2023, 6, 15, 12, 0, 0, tzinfo=timezone.utc),
             config_hash="mock-config-hash",
@@ -112,7 +114,7 @@ class MockPerfectScoringEngine(IScoringEngine):
 
         return ScorePackage(
             integrity=IntegrityScore(overall=1.0, per_metric=per_metric, formula_version="1.0.0"),
-            confidence=ConfidenceScore(overall=1.0, factors=factors, band="high"),
+            confidence=ConfidenceScore(overall=1.0, factors=factors, band="high", level="score"),
             timestamp=datetime(2023, 6, 15, 12, 0, 0, tzinfo=timezone.utc),
             config_hash="mock-config-hash",
             formula_version="TFS_v1.0",

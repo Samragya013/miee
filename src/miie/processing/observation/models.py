@@ -267,8 +267,95 @@ class Observation:
 
 
 # ---------------------------------------------------------------------------
-# ObservationWindow (ODSS §8)
+# Observation Confidence — L1 (C_o)
 # ---------------------------------------------------------------------------
+
+# Source reliability weights by source type.
+# Commit-level data is the most reliable (direct git data).
+# Branch and tag data are less reliable (indirect signals).
+_SOURCE_RELIABILITY: Dict[str, float] = {
+    "commit": 1.0,
+    "file": 0.8,
+    "branch": 0.6,
+    "tag": 0.5,
+}
+
+# Quality tag weights.
+_QUALITY_WEIGHTS: Dict[str, float] = {
+    "complete": 1.0,
+    "derived": 0.7,
+    "estimated": 0.5,
+    "missing": 0.0,
+}
+
+
+def compute_observation_confidence(
+    observation: "Observation",
+    *,
+    has_cross_validation: bool = False,
+    value_in_range: bool = True,
+) -> Dict[str, float]:
+    """Compute L1 observation confidence (C_o) for a single observation.
+
+    Formula (SR-01 §7.1):
+        C_o = 0.3·src + 0.25·cv + 0.2·stat + 0.15·prov + 0.1·qual
+
+    This is a weighted additive model because the five factors represent
+    independent quality dimensions of the observation itself.
+
+    Args:
+        observation: The observation to evaluate.
+        has_cross_validation: Whether this observation was validated by
+            a second independent provider (cv factor).
+        value_in_range: Whether the observation value falls within the
+            metric's expected range (stat factor).
+
+    Returns:
+        Dict with keys: overall, src, cv, stat, prov, qual (all floats in [0, 1]).
+    """
+    # src: source reliability based on source type
+    src = _SOURCE_RELIABILITY.get(observation.source_type, 0.5)
+
+    # cv: cross-validation (binary — was a second provider consulted?)
+    cv = 1.0 if has_cross_validation else 0.0
+
+    # stat: statistical validity (is the value within expected range?)
+    stat = 1.0 if value_in_range else 0.0
+
+    # prov: provenance reliability (was extraction method documented?)
+    prov = 1.0 if observation.provenance and observation.provenance.extractor_id else 0.3
+
+    # qual: quality tag weight
+    qual = _QUALITY_WEIGHTS.get(observation.quality, 0.5)
+
+    # C_o = 0.3·src + 0.25·cv + 0.2·stat + 0.15·prov + 0.1·qual
+    overall = 0.3 * src + 0.25 * cv + 0.2 * stat + 0.15 * prov + 0.1 * qual
+    overall = max(0.0, min(1.0, overall))
+
+    return {
+        "overall": overall,
+        "src": src,
+        "cv": cv,
+        "stat": stat,
+        "prov": prov,
+        "qual": qual,
+    }
+
+
+def compute_batch_observation_confidence(
+    observations: List["Observation"],
+    **kwargs,
+) -> List[Dict[str, float]]:
+    """Compute C_o for a batch of observations.
+
+    Args:
+        observations: List of observations to evaluate.
+        **kwargs: Forwarded to compute_observation_confidence.
+
+    Returns:
+        List of confidence dicts, one per observation, in the same order.
+    """
+    return [compute_observation_confidence(obs, **kwargs) for obs in observations]
 
 
 @dataclass

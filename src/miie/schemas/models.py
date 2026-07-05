@@ -663,11 +663,19 @@ class ConfidenceScore:
     Container for confidence scores.
 
     Source: ACS v1.0 Section 9.2 (Score Package)
+
+    Attributes:
+        overall: Aggregate confidence in [0.0, 1.0].
+        factors: Per-factor breakdown (keys depend on level).
+        band: Human-readable band (high/medium/low/critical).
+        level: Which confidence level this score represents
+               (metric = C_m, score = C_s, observation = C_o).
     """
 
     overall: float  # [0.0, 1.0]
     factors: Dict[str, float]  # sample_size, variance, missing_data, window_balance, detector_success
     band: Optional[str]  # "high" | "medium" | "low" | "critical"
+    level: Optional[str] = None  # "metric" | "score" | "observation"
 
     def __post_init__(self):
         """Validate ConfidenceScore constraints."""
@@ -683,6 +691,12 @@ class ConfidenceScore:
             "critical",
         }:
             raise ValueError(f"confidence.band must be one of 'high', 'medium', 'low', 'critical', got {self.band}")
+        if self.level is not None and self.level not in {
+            "metric",
+            "score",
+            "observation",
+        }:
+            raise ValueError(f"confidence.level must be one of 'metric', 'score', 'observation', got {self.level}")
 
 
 @dataclass

@@ -89,7 +89,7 @@ class ScoringEngine(IScoringEngine):
         if not detector_results.detector_outputs or not windows or not metric_dataframe.metrics:
             return ScorePackage(
                 integrity=IntegrityScore(overall=1.0, per_metric={}, formula_version="TFS_v1.0"),
-                confidence=ConfidenceScore(overall=0.0, factors={}, band="low"),
+                confidence=ConfidenceScore(overall=0.0, factors={}, band="low", level="score"),
                 timestamp=datetime.now(timezone.utc),
                 config_hash="",
                 formula_version="TFS_v1.0",
@@ -485,6 +485,7 @@ class ScoringEngine(IScoringEngine):
             overall=confidence_score,
             factors=factors,
             band=band,
+            level="score",
         )
 
     def _extract_observation_metadata(self, evidence_package: Optional[EvidencePackage]) -> Dict[str, Any]:
