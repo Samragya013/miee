@@ -43,7 +43,7 @@ class ThresholdCompressionDetector(BaseDetector):
         )
 
         # Detection thresholds from TFS Section 5.3
-        self.excess_mass_z_threshold = 1.645  # One-tailed, α = 0.05
+        self.excess_mass_z_threshold = 1.0  # PR-16D: calibrated from 1.645
         self.dip_test_p_threshold = 0.05
         self.dip_test_bootstrap_samples = 1000
         self.dip_test_random_seed = 42

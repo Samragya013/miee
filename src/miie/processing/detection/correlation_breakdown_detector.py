@@ -45,7 +45,7 @@ class CorrelationBreakdownDetector(BaseDetector):
         )
 
         # Detection thresholds from TFS Section 5.2
-        self.sudden_drop_threshold = 0.3
+        self.sudden_drop_threshold = 0.15  # PR-16D: calibrated from 0.30
         self.sign_reversal_min_correlation = 0.2
         self.gradual_erosion_slope_threshold = -0.1
         self.gradual_erosion_window_start_min = 0.3

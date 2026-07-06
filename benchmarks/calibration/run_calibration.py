@@ -72,6 +72,7 @@ from miie.processing.detection.power import (
     power_ks_test,
     power_proportion_test,
     power_t_test,
+    sample_size_correlation,
     sample_size_ks,
     sample_size_t_test,
 )
