@@ -16,6 +16,7 @@ EXPECTED_PACKAGES = {
     "cli",
     "config",
     "contracts",
+    "experimental",
     "metrics",
     "observation_graph",
     "orchestration",

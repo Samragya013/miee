@@ -1,0 +1,355 @@
+{
+  "timestamp": "2026-07-07T02:35:12.910797",
+  "total_datasets": 40,
+  "seed": 42,
+  "determinism_check": {
+    "match_same_seed": true,
+    "mismatches": [],
+    "different_seed_match_rate": "0/40"
+  },
+  "summary": {
+    "total_scenarios": 40,
+    "scenario_counts": {
+      "drift": 12,
+      "correlation": 6,
+      "threshold": 6,
+      "stress": 11,
+      "multivariate": 5
+    },
+    "difficulty_counts": {
+      "2": 13,
+      "1": 9,
+      "3": 14,
+      "4": 4
+    },
+    "scenario_types": [
+      "drift",
+      "correlation",
+      "threshold",
+      "stress",
+      "multivariate"
+    ]
+  },
+  "datasets": [
+    {
+      "id": "V2-DRIFT-ABRUPT-0.2",
+      "name": "Abrupt Drift d=0.2",
+      "type": "drift",
+      "difficulty": 2,
+      "hash": "f45161d094f30b149c274322370f2fbdf997d25989060dc28418ecdf8a614885",
+      "anomaly_present": false
+    },
+    {
+      "id": "V2-DRIFT-ABRUPT-0.5",
+      "name": "Abrupt Drift d=0.5",
+      "type": "drift",
+      "difficulty": 1,
+      "hash": "549dae4c3b5c7044959e87f09d16e828107c5444303e07818e237639fcdb5025",
+      "anomaly_present": true
+    },
+    {
+      "id": "V2-DRIFT-ABRUPT-0.8",
+      "name": "Abrupt Drift d=0.8",
+      "type": "drift",
+      "difficulty": 1,
+      "hash": "3b5c4e6f1fcf6b20a36d722a99825e66854091f002e6771f1a5922fde60229b0",
+      "anomaly_present": true
+    },
+    {
+      "id": "V2-DRIFT-ABRUPT-1.0",
+      "name": "Abrupt Drift d=1.0",
+      "type": "drift",
+      "difficulty": 1,
+      "hash": "734affcca6b392a9f5ffc8a44f116e67796f4f6cd6bd4fe5642f95a027bf2745",
+      "anomaly_present": true
+    },
+    {
+      "id": "V2-DRIFT-GRADUAL-0.2",
+      "name": "Gradual Drift d=0.2",
+      "type": "drift",
+      "difficulty": 2,
+      "hash": "d4bb1f733d24f05bdf5ccf8756e6f445129dbb282467be9969e1ae49646a525c",
+      "anomaly_present": false
+    },
+    {
+      "id": "V2-DRIFT-GRADUAL-0.5",
+      "name": "Gradual Drift d=0.5",
+      "type": "drift",
+      "difficulty": 2,
+      "hash": "1c19144fed6d963f5e91175968f251003b16459eeca7b47a242de490f3838cc3",
+      "anomaly_present": true
+    },
+    {
+      "id": "V2-DRIFT-GRADUAL-0.8",
+      "name": "Gradual Drift d=0.8",
+      "type": "drift",
+      "difficulty": 2,
+      "hash": "66c695f4f341580c0f1ff0eb2ff1eb1ce7ffd3dba8166bb6091fbc4dc0832f0d",
+      "anomaly_present": true
+    },
+    {
+      "id": "V2-DRIFT-SEASONAL-P4",
+      "name": "Seasonal Drift period=4",
+      "type": "drift",
+      "difficulty": 3,
+      "hash": "b7e1a83adce5833fff1f3e0a75aa733e41475cb9e008e1cab126e15c5b154b25",
+      "anomaly_present": true
+    },
+    {
+      "id": "V2-DRIFT-SEASONAL-P8",
+      "name": "Seasonal Drift period=8",
+      "type": "drift",
+      "difficulty": 3,
+      "hash": "981113736a1a750724fa45c363696024879bd59ef95a0a77a6aed7bfd279bef5",
+      "anomaly_present": true
+    },
+    {
+      "id": "V2-DRIFT-SEASONAL-P12",
+      "name": "Seasonal Drift period=12",
+      "type": "drift",
+      "difficulty": 3,
+      "hash": "caa45f5a9f98e70be55329fce395ca7f5d4253597be61c2d111b2553189a9426",
+      "anomaly_present": true
+    },
+    {
+      "id": "V2-DRIFT-INTERMITTENT",
+      "name": "Intermittent Drift",
+      "type": "drift",
+      "difficulty": 2,
+      "hash": "47da7d0c2f3965a452085d49aeae55fb8bfced655a79a09603a46d993966c90c",
+      "anomaly_present": true
+    },
+    {
+      "id": "V2-DRIFT-INCREMENTAL",
+      "name": "Incremental Drift",
+      "type": "drift",
+      "difficulty": 3,
+      "hash": "0b4233056df7e17df44dbb23553fe8f1c9832c09b52428a96d143836b07e8e31",
+      "anomaly_present": true
+    },
+    {
+      "id": "V2-CORR-WEAK-0.2",
+      "name": "Correlation Weakening \u0394r=0.2",
+      "type": "correlation",
+      "difficulty": 1,
+      "hash": "57ca6db2b6f500940a365c5f2aec24b1a8c2e7aa4392492e549b39a91ab870e0",
+      "anomaly_present": false
+    },
+    {
+      "id": "V2-CORR-WEAK-0.4",
+      "name": "Correlation Weakening \u0394r=0.4",
+      "type": "correlation",
+      "difficulty": 1,
+      "hash": "62f75a77aa72ac4cf36fc7045033c91dc97c17e6174d1a11415631503220f292",
+      "anomaly_present": true
+    },
+    {
+      "id": "V2-CORR-WEAK-0.6",
+      "name": "Correlation Weakening \u0394r=0.6",
+      "type": "correlation",
+      "difficulty": 1,
+      "hash": "b6f9bf65a2532ade10fefb8f6eb2301eb9533e0bf85da1f1b6ac9d7d90126eba",
+      "anomaly_present": true
+    },
+    {
+      "id": "V2-CORR-REVERSAL",
+      "name": "Correlation Reversal",
+      "type": "correlation",
+      "difficulty": 2,
+      "hash": "38649c194a609647efa8368f00f1ed35062440f84d6443c2d3786e33bc4b3740",
+      "anomaly_present": true
+    },
+    {
+      "id": "V2-CORR-EMERGENCE",
+      "name": "Correlation Emergence",
+      "type": "correlation",
+      "difficulty": 2,
+      "hash": "d3a027c81b457e70a57872cd0643555929bbb78c997481c901bce23db875eef6",
+      "anomaly_present": true
+    },
+    {
+      "id": "V2-CORR-NONLINEAR",
+      "name": "Nonlinear Correlation",
+      "type": "correlation",
+      "difficulty": 3,
+      "hash": "d3cb7edd61d5902595d2da43076597d35357118c70067e730587373f78b7ec70",
+      "anomaly_present": false
+    },
+    {
+      "id": "V2-THRESH-COMP-0.3",
+      "name": "Threshold Compression 30%",
+      "type": "threshold",
+      "difficulty": 1,
+      "hash": "83a360dac948e0ec729d9b2f1d7104b7930e084cf1abd984fa48f078206d12e8",
+      "anomaly_present": false
+    },
+    {
+      "id": "V2-THRESH-COMP-0.5",
+      "name": "Threshold Compression 50%",
+      "type": "threshold",
+      "difficulty": 1,
+      "hash": "9ba775f1e6d2571cb8e54f9474265fc68fbb528ea71f39e4fd4da38d1b94bf51",
+      "anomaly_present": true
+    },
+    {
+      "id": "V2-THRESH-COMP-0.7",
+      "name": "Threshold Compression 70%",
+      "type": "threshold",
+      "difficulty": 1,
+      "hash": "0d339f94994f94258f7d223e76910c9181e2b52ead062741270cc3f16028a163",
+      "anomaly_present": true
+    },
+    {
+      "id": "V2-THRESH-BIMODAL",
+      "name": "Bimodal Distribution",
+      "type": "threshold",
+      "difficulty": 2,
+      "hash": "d0f99460fbd4e81193f6353c8045c6a34376e6baa6da64b4b120b898da7d5b2f",
+      "anomaly_present": true
+    },
+    {
+      "id": "V2-THRESH-HEAVY",
+      "name": "Heavy-tailed Distribution",
+      "type": "threshold",
+      "difficulty": 3,
+      "hash": "9e1d867141cc2720ece086e35dab4606bd48e67e4203f636a21f068624c2ea64",
+      "anomaly_present": true
+    },
+    {
+      "id": "V2-THRESH-SKEWED",
+      "name": "Skewed Distribution",
+      "type": "threshold",
+      "difficulty": 3,
+      "hash": "5ac6cd19056496b68a918c88d95430f6b0f80f988b8d3db4cd2f20906c042292",
+      "anomaly_present": false
+    },
+    {
+      "id": "V2-STRESS-SMALL-100",
+      "name": "Small Sample n=100",
+      "type": "stress",
+      "difficulty": 3,
+      "hash": "62433beb7f8609f8db595dc9d7836d21e8d8fa23bc1fc28cb59c909650f4a0f5",
+      "anomaly_present": false
+    },
+    {
+      "id": "V2-STRESS-SMALL-150",
+      "name": "Small Sample n=150",
+      "type": "stress",
+      "difficulty": 3,
+      "hash": "67b8e8f825b33110edcb7c80b0d11a0a9895f158ef3230f47a03f1ef8dd261af",
+      "anomaly_present": false
+    },
+    {
+      "id": "V2-STRESS-NOISE-SNR0.5",
+      "name": "High Noise SNR=0.5",
+      "type": "stress",
+      "difficulty": 3,
+      "hash": "b9d379eb8ecbc034b13b04035df85d348db60356633043516340a3bf6eb515ce",
+      "anomaly_present": false
+    },
+    {
+      "id": "V2-STRESS-NOISE-SNR1.0",
+      "name": "High Noise SNR=1.0",
+      "type": "stress",
+      "difficulty": 3,
+      "hash": "59e75e6383d8e3b9df4524f0927e008d0e9cd9054dc67d241b9d59ef03b9efc1",
+      "anomaly_present": false
+    },
+    {
+      "id": "V2-STRESS-NOISE-SNR2.0",
+      "name": "High Noise SNR=2.0",
+      "type": "stress",
+      "difficulty": 2,
+      "hash": "dc767f612aef9ad1424656ee241a5164ad0cc67070ea755f7480a85298c5e1df",
+      "anomaly_present": false
+    },
+    {
+      "id": "V2-STRESS-MISSING-10",
+      "name": "Missing Data 10%",
+      "type": "stress",
+      "difficulty": 2,
+      "hash": "f6c89806fb0b13ae6281458c3c9ee7fe7204d42dec377affdf9f466a34a1014b",
+      "anomaly_present": false
+    },
+    {
+      "id": "V2-STRESS-MISSING-25",
+      "name": "Missing Data 25%",
+      "type": "stress",
+      "difficulty": 2,
+      "hash": "4d3819edf9d4796dce0df4a4099c3b672daab7ee18ef11f25956b7b2ec6694d8",
+      "anomaly_present": false
+    },
+    {
+      "id": "V2-STRESS-MISSING-50",
+      "name": "Missing Data 50%",
+      "type": "stress",
+      "difficulty": 4,
+      "hash": "188e080dbdf1727745fe895c9d4ede06a69ef46db281a15ebb3693656a5918fe",
+      "anomaly_present": false
+    },
+    {
+      "id": "V2-STRESS-OUTLIERS-5",
+      "name": "Outliers 5%",
+      "type": "stress",
+      "difficulty": 2,
+      "hash": "7f78adb60a047291d5f402f106934eb487aaaca119464c0734e983ef790e6d09",
+      "anomaly_present": false
+    },
+    {
+      "id": "V2-STRESS-OUTLIERS-10",
+      "name": "Outliers 10%",
+      "type": "stress",
+      "difficulty": 2,
+      "hash": "0aaca4204b4f9548ee69697b166bba7c486f16440a19df7acf4282329ccb640c",
+      "anomaly_present": false
+    },
+    {
+      "id": "V2-STRESS-OUTLIERS-20",
+      "name": "Outliers 20%",
+      "type": "stress",
+      "difficulty": 3,
+      "hash": "2452d14e2e370dcdff0243e65d58ecf4206b419986a2f1db5d37139c45f96a93",
+      "anomaly_present": false
+    },
+    {
+      "id": "V2-MULTI-BIVAR-INDEP",
+      "name": "Bivariate Independent Drift",
+      "type": "multivariate",
+      "difficulty": 3,
+      "hash": "7b798aee4b4bbd784d30543cd7611e5a18b0aad6ec74024a350e0df22b6add32",
+      "anomaly_present": true
+    },
+    {
+      "id": "V2-MULTI-BIVAR-CORR",
+      "name": "Bivariate Correlated Drift",
+      "type": "multivariate",
+      "difficulty": 3,
+      "hash": "6e8288371ecba03fdcc54baaefca247d8f0c5095d90590f0fc0771c476f3efc5",
+      "anomaly_present": true
+    },
+    {
+      "id": "V2-MULTI-TRIVAR",
+      "name": "Trivariate Drift",
+      "type": "multivariate",
+      "difficulty": 4,
+      "hash": "601e2dc1c8b3c983f24e469ffd8c11028ebeaf544d22fdddc66e825ceb9d9105",
+      "anomaly_present": true
+    },
+    {
+      "id": "V2-MULTI-MIXED",
+      "name": "Mixed Drift Types",
+      "type": "multivariate",
+      "difficulty": 4,
+      "hash": "9b9a5235ebac7d8ae34ce5f5621f93b16449ff6021abeeb29fc5c47c11eb1f62",
+      "anomaly_present": true
+    },
+    {
+      "id": "V2-MULTI-CASCADE",
+      "name": "Cascade Drift",
+      "type": "multivariate",
+      "difficulty": 4,
+      "hash": "1217935cb7176fad863994ce0f24434ce22de430547a3281f05c55944b404d14",
+      "anomaly_present": true
+    }
+  ]
+}

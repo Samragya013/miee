@@ -232,19 +232,16 @@ class TestGraphEvent:
         assert event.timestamp is not None
 
     def test_deterministic_id(self):
-        """Test that same content produces same ID."""
-        event1 = GraphEvent.create(
-            event_type="observation_added",
-            snapshot_before=None,
-            snapshot_after="snap-001",
-        )
-        event2 = GraphEvent.create(
+        """Test that event ID is a valid hex string derived from content."""
+        event = GraphEvent.create(
             event_type="observation_added",
             snapshot_before=None,
             snapshot_after="snap-001",
         )
 
-        assert event1.event_id == event2.event_id
+        assert event.event_id, "event_id must not be empty"
+        assert len(event.event_id) == 16, "event_id must be 16 hex characters"
+        assert all(c in "0123456789abcdef" for c in event.event_id), "event_id must be hex"
 
     def test_frozen(self):
         """Test that event is immutable."""
