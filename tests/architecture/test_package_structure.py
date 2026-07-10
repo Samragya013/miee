@@ -28,6 +28,7 @@ EXPECTED_PACKAGES = {
     "scientific",
     "storage",
     "utils",
+    "validation",
 }
 
 

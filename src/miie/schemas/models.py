@@ -282,7 +282,25 @@ class Provenance:
         # Basic validation - timestamp should be a string
         if not isinstance(self.timestamp, str):
             raise ValueError(f"provenance.timestamp must be a string, got {type(self.timestamp)}")
-        # TODO: Add proper ISO 8601 UTC validation
+
+        # ISO 8601 UTC timestamp validation
+        from datetime import datetime
+        try:
+            # Handle both 'Z' suffix and '+00:00' suffix
+            ts = self.timestamp.replace("Z", "+00:00")
+            dt = datetime.fromisoformat(ts)
+            # Verify it's UTC (offset should be 0)
+            if dt.utcoffset().total_seconds() != 0:
+                raise ValueError(
+                    f"provenance.timestamp must be UTC (offset +00:00), got {self.timestamp}"
+                )
+        except (ValueError, AttributeError) as e:
+            if "must be UTC" in str(e):
+                raise
+            raise ValueError(
+                f"provenance.timestamp must be ISO 8601 UTC format "
+                f"(e.g., '2024-01-15T10:30:00+00:00'), got: {self.timestamp}"
+            ) from e
 
 
 @dataclass
@@ -364,14 +382,14 @@ class EvidencePackage:
         },
         "correlation_artifacts": {
             "D-02": {
-                "correlation_matrices": Dict[str, List[List[float]]],
-                "fisher_z_scores": Dict[str, float]
+                "pearson_trajectories": Dict[str, List[float]],
+                "confidence_intervals": Dict[str, Tuple[float, float]]
             }
         },
         "compression_artifacts": {
             "D-03": {
-                "dip_statistics": Dict[str, float],
-                "excess_mass_statistics": Dict[str, float]
+                "dip_test_statistics": Dict[str, float],
+                "excess_mass_z_scores": Dict[str, float]
             }
         }
     }
@@ -584,10 +602,8 @@ class EvidencePackage:
         return completeness
 
 
-# TODO: These are placeholder implementations for deferred schema classes.
-# According to the operating plan, these schemas are deferred with reasons documented.
-# They are implemented here as minimal placeholders to allow contracts layer development.
-# In a full implementation, these would be replaced with the complete ACS v1.0 schema definitions.
+# Note: ReportOutput and Annotation schemas below have minimal validation.
+# Full validation should be added per ACS v1.0 specifications.
 
 
 @dataclass
@@ -843,10 +859,9 @@ class EvaluationResult:
 @dataclass
 class ReportOutput:
     """
-    Container for generated report output paths (deferred schema placeholder).
+    Container for generated report output paths.
 
     Source: ACS v1.0 Section 13.2 (Report Output)
-    TODO: Implement full ReportOutput schema per ACS v1.0 specification
     """
 
     report_paths: Dict[str, Path] = field(default_factory=dict)
@@ -855,7 +870,19 @@ class ReportOutput:
 
     def __post_init__(self):
         """Validate ReportOutput constraints."""
-        # Placeholder validation - full validation TBD
+        # Validate report_paths keys are non-empty strings
+        for fmt in self.report_paths:
+            if not isinstance(fmt, str) or not fmt.strip():
+                raise ValueError(
+                    f"report_paths key must be a non-empty string, got: {fmt!r}"
+                )
+
+        # Validate checksums are strings
+        for path, checksum in self.checksums.items():
+            if not isinstance(checksum, str):
+                raise ValueError(
+                    f"checksums['{path}'] must be a string, got: {type(checksum).__name__}"
+                )
 
 
 @dataclass
@@ -923,21 +950,48 @@ class GroundTruthInput:
 @dataclass
 class Annotation:
     """
-    Container for individual annotations (deferred schema placeholder).
+    Container for individual annotations.
 
     Source: ACS v1.0 Section 15.2 (Annotation)
-    TODO: Implement full Annotation schema per ACS v1.0 specification
     """
 
     label: str
     confidence: float = 1.0
     metadata: Dict[str, Any] = field(default_factory=dict)
+    annotation_type: str = "manual"  # manual, automatic, hybrid
+    annotator_id: Optional[str] = None
+    timestamp: Optional[str] = None
+
+    # Allowed annotation types
+    ALLOWED_TYPES = {"manual", "automatic", "hybrid"}
 
     def __post_init__(self):
         """Validate Annotation constraints."""
-        # Placeholder validation - full validation TBD
+        # Validate confidence range
         if not (0.0 <= self.confidence <= 1.0):
             raise ValueError(f"confidence must be between 0.0 and 1.0, got {self.confidence}")
+
+        # Validate label is non-empty
+        if not self.label or not self.label.strip():
+            raise ValueError("label must be a non-empty string")
+
+        # Validate annotation_type
+        if self.annotation_type not in self.ALLOWED_TYPES:
+            raise ValueError(
+                f"annotation_type must be one of {sorted(self.ALLOWED_TYPES)}, "
+                f"got {self.annotation_type}"
+            )
+
+        # Validate timestamp format if provided
+        if self.timestamp is not None:
+            from datetime import datetime
+            try:
+                ts = self.timestamp.replace("Z", "+00:00")
+                datetime.fromisoformat(ts)
+            except (ValueError, AttributeError) as e:
+                raise ValueError(
+                    f"timestamp must be ISO 8601 format, got: {self.timestamp}"
+                ) from e
 
 
 # ---------------------------------------------------------------------------
