@@ -447,6 +447,7 @@ Every future implementation must begin by reading the documents in this sequence
 |-------|----------|---------|
 | 16 | `docs/adr/ADR-001-project-foundations.md` | Foundational architectural decisions |
 | 17 | `docs/adr/ADR-002-layered-architecture.md` | Layered architecture definition |
+| 18 | `docs/adr/ADR-003-cli-api-pipeline-bypass.md` | CLI/API pipeline bypass classification |
 | 18 | `docs/architecture.md` | High-level architecture overview |
 | 19 | `docs/architecture/dependency_rules.md` | Formal dependency specifications |
 | 20 | `docs/architecture/import_policy.md` | Import governance |
