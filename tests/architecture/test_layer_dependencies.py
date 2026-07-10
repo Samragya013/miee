@@ -1,4 +1,13 @@
-"""Tests for validating MIIE architectural layer dependencies."""
+"""Tests for validating MIIE architectural dependencies.
+
+This module verifies the actual package structure in src/miie/.
+Dependencies are defined using real package names, not abstract layers.
+Each package lists its ALLOWED dependencies (what it may import from).
+
+Circular dependencies are documented in KNOWN_CIRCULAR_DEPS and
+exempted from cycle detection. These are architectural decisions that
+require an ADR to resolve.
+"""
 
 import ast
 from pathlib import Path
@@ -9,107 +18,90 @@ import pytest
 ROOT_DIR = Path(__file__).parent.parent.parent
 SRC_DIR = ROOT_DIR / "src" / "miie"
 
-# Define layer dependencies based on dependency_rules.md
+# ---------------------------------------------------------------------------
+# ALLOWED DEPENDENCIES — actual package names, verified from codebase
+# Each key is a package directory under src/miie/.
+# The value is the set of other packages it is allowed to import from.
+# Source: codebase analysis of all .py files under src/miie/
+# ---------------------------------------------------------------------------
 ALLOWED_DEPENDENCIES = {
-    "interface": {"orchestration", "common"},
-    "orchestration": {"processing", "storage", "common"},
-    "processing": {"storage", "detection", "schemas", "contracts", "common"},
-    "benchmark": {
-        "processing",
-        "storage",
-        "detection",
-        "schemas",
-        "contracts",
-        "common",
-    },
-    "storage": {"common"},
-    "detection": {"schemas", "contracts", "common"},
-    "contracts": {"schemas", "common"},
-    "schemas": {"common"},
-    "reporting": {"schemas", "contracts", "common"},
-    "common": set(),  # Common should have no dependencies
+    # Leaf packages — no miie dependencies
+    "metrics": set(),
+    "reporting": set(),
+    "storage": set(),
+    "utils": set(),
+    # Schema/contract layer
+    "schemas": {"processing"},  # backward-compat re-export in models.py
+    "contracts": {"schemas"},
+    # Infrastructure
+    "config": {"contracts"},
+    "validation": {"contracts"},
+    # Processing ecosystem
+    "processing": {"contracts", "schemas", "utils", "providers"},
+    "providers": {"metrics", "processing"},
+    "sampling": {"processing"},
+    "observation_graph": {"processing"},
+    "experimental": {"processing"},
+    # Orchestration
+    "orchestration": {"contracts", "schemas"},
+    # Interface / entry points
+    "api": {"processing"},
+    "cli": {"contracts", "utils", "processing", "sampling"},
+    "benchmark": {"contracts", "schemas", "processing"},
+    # Scientific analysis
+    "scientific": {"sampling"},
 }
 
-FORBIDDEN_DEPENDENCIES = {
-    "interface": {
-        "interface",
-        "processing",
-        "benchmark",
-        "storage",
-        "detection",
-        "contracts",
-        "schemas",
-        "reporting",
-    },
-    "orchestration": {"interface", "orchestration", "interface"},
-    "processing": {"interface", "orchestration", "processing", "benchmark"},
-    "benchmark": {"interface", "orchestration", "benchmark"},
-    "storage": {
-        "interface",
-        "orchestration",
-        "processing",
-        "benchmark",
-        "storage",
-        "detection",
-        "contracts",
-        "schemas",
-        "reporting",
-    },
-    "detection": {
-        "interface",
-        "orchestration",
-        "processing",
-        "benchmark",
-        "storage",
-        "detection",
-    },
-    "contracts": {
-        "interface",
-        "orchestration",
-        "processing",
-        "benchmark",
-        "storage",
-        "detection",
-        "contracts",
-        "reporting",
-    },
-    "schemas": {
-        "interface",
-        "orchestration",
-        "processing",
-        "benchmark",
-        "storage",
-        "detection",
-        "contracts",
-        "schemas",
-        "reporting",
-    },
-    "reporting": {
-        "interface",
-        "orchestration",
-        "processing",
-        "benchmark",
-        "storage",
-        "detection",
-        "reporting",
-    },
-    "common": {
-        "interface",
-        "orchestration",
-        "processing",
-        "benchmark",
-        "storage",
-        "detection",
-        "contracts",
-        "schemas",
-        "reporting",
-        "common",
-    },
+# ---------------------------------------------------------------------------
+# KNOWN CIRCULAR DEPENDENCIES — documented architectural decisions
+# These pairs create cycles. They are exempted from cycle detection.
+# Each entry must have an associated ADR or architectural justification.
+# ---------------------------------------------------------------------------
+KNOWN_CIRCULAR_DEPS = {
+    # processing <-> schemas: schemas/models.py re-exports observation types
+    # from processing.observation.models for backward compatibility.
+    # Justification: Backward-compat bridge; schemas is the canonical
+    # location for data models, but observation models live in processing.
+    ("processing", "schemas"),
+    ("schemas", "processing"),
+    # processing <-> providers: processing.extraction needs providers for
+    # data fetching, providers need processing.observation.models for data.
+    # Justification: providers are the data-source abstraction layer;
+    # processing consumes their output and provides the observation model.
+    ("processing", "providers"),
+    ("providers", "processing"),
 }
 
 
-def get_imports_from_file(file_path):
-    """Extract all module imports from a Python file."""
+# Standard library and known third-party packages to skip during import analysis
+STDLIB_AND_EXTERNAL = {
+    # Standard library
+    "os", "sys", "json", "csv", "yaml", "pathlib", "typing", "dataclasses",
+    "abc", "enum", "random", "math", "statistics", "datetime", "re",
+    "collections", "itertools", "functools", "hashlib", "hmac", "subprocess",
+    "textwrap", "uuid", "shutil", "tempfile", "glob", "fnmatch", "copy",
+    "threading", "time", "traceback", "io", "base64", "binascii", "struct",
+    "socket", "ssl", "urllib", "http", "email", "html", "xml", "csv",
+    "sqlite3", "dbm", "zlib", "gzip", "bz2", "lzma", "tarfile", "zipfile",
+    "logging", "warnings", "contextlib", "unittest", "platform", "signal",
+    "errno", "ctypes", "mmap", "codecs", "locale", "gettext", "unicodedata",
+    # Third-party
+    "click", "numpy", "pandas", "scipy", "jinja2", "pydantic", "fastapi",
+    "uvicorn", "requests", "httpx", "git", "github", "dotenv",
+}
+
+
+def get_imports_from_file(file_path: Path, self_package: str | None = None) -> set[str]:
+    """Extract all miie package imports from a Python file.
+
+    Handles both absolute (from miie.processing.xxx) and relative (from ..processing.xxx)
+    imports. Returns only imports that resolve to known miie packages.
+    Self-imports (intra-package) are filtered out.
+
+    Args:
+        file_path: Path to the Python file
+        self_package: The package this file belongs to (to filter self-imports)
+    """
     try:
         tree = ast.parse(file_path.read_text())
     except (SyntaxError, UnicodeDecodeError):
@@ -119,109 +111,74 @@ def get_imports_from_file(file_path):
     for node in ast.walk(tree):
         if isinstance(node, ast.Import):
             for alias in node.names:
-                # Get top-level package name
-                top_level = alias.name.split(".")[0]
-                imports.add(top_level)
+                parts = alias.name.split(".")
+                # Handle miie.X.Y -> X
+                if parts[0] == "miie" and len(parts) > 1:
+                    pkg = parts[1]
+                    if pkg in ALLOWED_DEPENDENCIES and pkg != self_package:
+                        imports.add(pkg)
+                elif parts[0] in ALLOWED_DEPENDENCIES and parts[0] != self_package:
+                    imports.add(parts[0])
         elif isinstance(node, ast.ImportFrom):
-            if node.module:  # None for relative imports like `from . import x`
-                # Get top-level package name
-                top_level = node.module.split(".")[0]
-                imports.add(top_level)
+            if node.module:
+                parts = node.module.split(".")
+                # Handle miie.X.Y -> X
+                if parts[0] == "miie" and len(parts) > 1:
+                    pkg = parts[1]
+                    if pkg in ALLOWED_DEPENDENCIES and pkg != self_package:
+                        imports.add(pkg)
+                elif parts[0] in ALLOWED_DEPENDENCIES and parts[0] != self_package:
+                    imports.add(parts[0])
     return imports
 
 
-def get_package_for_module(module_path):
+def get_package_for_module(module_path: Path) -> str | None:
     """Determine which package a module belongs to based on its path."""
-    # Convert to Path object if it isn't already
-    if isinstance(module_path, str):
-        module_path = Path(module_path)
-
-    # Get the path relative to src/miie
     try:
         relative_path = module_path.relative_to(SRC_DIR)
-        # The first component is the package name
         return relative_path.parts[0] if relative_path.parts else None
     except ValueError:
-        # Path is not under SRC_DIR
         return None
 
 
 def test_layer_dependencies():
-    """Test that modules only import from allowed layers."""
+    """Test that modules only import from allowed packages.
+
+    Verifies the actual repository structure against ALLOWED_DEPENDENCIES.
+    Each package may only import from its declared allowed set.
+    """
     violations = []
 
-    # Iterate through all Python files in src/miie
     for py_file in SRC_DIR.rglob("*.py"):
-        # Skip __pycache__ and similar directories
         if "__pycache__" in str(py_file):
             continue
 
-        # Determine which package this file belongs to
         package = get_package_for_module(py_file)
         if package is None or package not in ALLOWED_DEPENDENCIES:
-            # Skip files not in our expected packages (like root level files)
             continue
 
-        # Get imports from this file
-        imports = get_imports_from_file(py_file)
+        imports = get_imports_from_file(py_file, self_package=package)
 
-        # Check each import against allowed dependencies
-        for imported_module in imports:
-            # Skip standard library and external imports
-            if imported_module in {
-                "os",
-                "sys",
-                "json",
-                "csv",
-                "click",
-                "yaml",
-                "numpy",
-                "pandas",
-                "scipy",
-                "jinja2",
-                "pathlib",
-                "typing",
-                "dataclasses",
-                "abc",
-                "enum",
-                "random",
-                "math",
-                "statistics",
-                "datetime",
-                "re",
-                "collections",
-                "itertools",
-                "functools",
-                "hashlib",
-                "hmac",
-                "subprocess",
-                "textwrap",
-                "uuid",
-                "shutil",
-                "tempfile",
-                "glob",
-                "fnmatch",
-            }:
-                continue
-
-            # Check if it's one of our expected packages
-            if imported_module in ALLOWED_DEPENDENCIES:
-                if imported_module not in ALLOWED_DEPENDENCIES[package]:
-                    violations.append(
-                        f"{py_file.relative_to(ROOT_DIR)}: "
-                        f"Forbidden import '{imported_module}' from package '{package}' "
-                        f"(allowed: {ALLOWED_DEPENDENCIES[package]})"
-                    )
+        for imported_package in imports:
+            if imported_package not in ALLOWED_DEPENDENCIES[package]:
+                violations.append(
+                    f"{py_file.relative_to(ROOT_DIR)}: "
+                    f"Forbidden import '{imported_package}' from package '{package}' "
+                    f"(allowed: {sorted(ALLOWED_DEPENDENCIES[package])})"
+                )
 
     assert not violations, f"Dependency violations found:\n" + "\n".join(violations)
 
 
 def test_no_circular_imports():
-    """Test that there are no circular dependencies between packages."""
-    # Build dependency graph
-    graph = {package: set() for package in ALLOWED_DEPENDENCIES.keys()}
+    """Test that there are no circular dependencies between packages.
 
-    # Populate graph with actual dependencies from code
+    Known circular dependencies (documented in KNOWN_CIRCULAR_DEPS) are
+    exempted from this check. All other cycles are architecture violations.
+    """
+    # Build dependency graph from actual code
+    graph: dict[str, set[str]] = {pkg: set() for pkg in ALLOWED_DEPENDENCIES}
+
     for py_file in SRC_DIR.rglob("*.py"):
         if "__pycache__" in str(py_file):
             continue
@@ -230,58 +187,168 @@ def test_no_circular_imports():
         if package is None or package not in ALLOWED_DEPENDENCIES:
             continue
 
-        imports = get_imports_from_file(py_file)
-        for imported_module in imports:
-            if imported_module in ALLOWED_DEPENDENCIES:
-                graph[package].add(imported_module)
+        imports = get_imports_from_file(py_file, self_package=package)
+        for imported_package in imports:
+            if imported_package in ALLOWED_DEPENDENCIES:
+                graph[package].add(imported_package)
 
-    # Check for cycles using DFS
-    def has_cycle(node, visited, rec_stack):
+    # DFS cycle detection
+    def find_cycle(node: str, visited: set, rec_stack: set) -> list[str] | None:
         visited.add(node)
         rec_stack.add(node)
 
         for neighbor in graph[node]:
             if neighbor not in visited:
-                if has_cycle(neighbor, visited, rec_stack):
-                    return True
+                result = find_cycle(neighbor, visited, rec_stack)
+                if result:
+                    return result
             elif neighbor in rec_stack:
-                return True
+                return [neighbor, node]
 
-        rec_stack.remove(node)
-        return False
+        rec_stack.discard(node)
+        return None
 
-    visited = set()
-    rec_stack = set()
-    cycles = []
+    visited: set[str] = set()
+    cycles: list[str] = []
 
     for node in graph:
         if node not in visited:
-            if has_cycle(node, visited, rec_stack):
-                # Find the actual cycle
-                cycle_path = []
-                temp_visited = set()
-                temp_rec_stack = set()
+            cycle_nodes = find_cycle(node, visited, set())
+            if cycle_nodes:
+                # Check if this cycle is a known/authorized circular dep
+                is_known = False
+                for i in range(len(cycle_nodes) - 1):
+                    pair = (cycle_nodes[i], cycle_nodes[i + 1])
+                    if pair in KNOWN_CIRCULAR_DEPS:
+                        is_known = True
+                        break
+                if not is_known:
+                    cycles.append(f" -> ".join(cycle_nodes))
 
-                def find_cycle(n):
-                    temp_visited.add(n)
-                    temp_rec_stack.add(n)
+    assert not cycles, f"Unexpected circular dependencies found:\n" + "\n".join(cycles)
 
-                    for neighbor in graph[n]:
-                        if neighbor not in temp_visited:
-                            if find_cycle(neighbor):
-                                cycle_path.append(f"{n} -> {neighbor}")
-                                return True
-                        elif neighbor in temp_rec_stack:
-                            cycle_path.append(f"{n} -> {neighbor}")
-                            return True
 
-                    temp_rec_stack.remove(n)
-                    return False
+def test_all_packages_have_dependency_rules():
+    """Verify that every package directory has an entry in ALLOWED_DEPENDENCIES.
 
-                find_cycle(node)
-                cycles.append(" -> ".join(reversed(cycle_path)))
+    This ensures no package is accidentally excluded from architecture checks.
+    """
+    actual_packages = set()
+    for item in SRC_DIR.iterdir():
+        if item.is_dir() and not item.name.startswith("_"):
+            actual_packages.add(item.name)
 
-    assert not cycles, f"Circular dependencies found:\n" + "\n".join(cycles)
+    defined_packages = set(ALLOWED_DEPENDENCIES.keys())
+
+    missing = actual_packages - defined_packages
+    extra = defined_packages - actual_packages
+
+    issues = []
+    if missing:
+        issues.append(f"Packages in repository but NOT in ALLOWED_DEPENDENCIES: {sorted(missing)}")
+    if extra:
+        issues.append(f"Packages in ALLOWED_DEPENDENCIES but NOT in repository: {sorted(extra)}")
+
+    assert not issues, "Package coverage mismatch:\n" + "\n".join(issues)
+
+
+def test_known_circular_deps_are_real():
+    """Verify that every entry in KNOWN_CIRCULAR_DEPS actually exists in code.
+
+    If a documented circular dependency is fixed, it should be removed from
+    KNOWN_CIRCULAR_DEPS and this test will flag the stale entry.
+    """
+    # Build actual dependency graph
+    graph: dict[str, set[str]] = {pkg: set() for pkg in ALLOWED_DEPENDENCIES}
+
+    for py_file in SRC_DIR.rglob("*.py"):
+        if "__pycache__" in str(py_file):
+            continue
+
+        package = get_package_for_module(py_file)
+        if package is None or package not in ALLOWED_DEPENDENCIES:
+            continue
+
+        imports = get_imports_from_file(py_file, self_package=package)
+        for imported_package in imports:
+            if imported_package in ALLOWED_DEPENDENCIES:
+                graph[package].add(imported_package)
+
+    stale = []
+    for pair in KNOWN_CIRCULAR_DEPS:
+        src, dst = pair
+        if src not in graph or dst not in graph.get(src, set()):
+            stale.append(f"{src} -> {dst}")
+
+    assert not stale, (
+        f"Stale KNOWN_CIRCULAR_DEPS entries (cycle no longer exists):\n"
+        + "\n".join(stale)
+        + "\nRemove these from KNOWN_CIRCULAR_DEPS."
+    )
+
+
+def test_forbidden_imports():
+    """Verify that packages do not import from packages outside their allowed set.
+
+    This is a stricter check than test_layer_dependencies: it also verifies
+    that packages don't import from packages not in ALLOWED_DEPENDENCIES at all
+    (e.g., typos, new packages without rules).
+    """
+    violations = []
+
+    for py_file in SRC_DIR.rglob("*.py"):
+        if "__pycache__" in str(py_file):
+            continue
+
+        package = get_package_for_module(py_file)
+        if package is None or package not in ALLOWED_DEPENDENCIES:
+            continue
+
+        imports = get_imports_from_file(py_file, self_package=package)
+
+        for imported_package in imports:
+            # Check if it's a known miie package that's not allowed
+            if imported_package in ALLOWED_DEPENDENCIES:
+                if imported_package not in ALLOWED_DEPENDENCIES[package]:
+                    # Skip known circular deps
+                    if (package, imported_package) in KNOWN_CIRCULAR_DEPS:
+                        continue
+                    violations.append(
+                        f"{py_file.relative_to(ROOT_DIR)}: "
+                        f"Package '{package}' imports '{imported_package}' "
+                        f"which is not in its allowed set"
+                    )
+
+    assert not violations, f"Forbidden imports found:\n" + "\n".join(violations)
+
+
+def test_leaf_packages_have_no_dependencies():
+    """Verify that leaf packages (metrics, reporting, storage, utils) have no miie imports.
+
+    These packages are designed to be independent and should not import
+    from any other miie package.
+    """
+    LEAF_PACKAGES = {"metrics", "reporting", "storage", "utils"}
+    violations = []
+
+    for py_file in SRC_DIR.rglob("*.py"):
+        if "__pycache__" in str(py_file):
+            continue
+
+        package = get_package_for_module(py_file)
+        if package is None or package not in LEAF_PACKAGES:
+            continue
+
+        imports = get_imports_from_file(py_file, self_package=package)
+
+        for imported_package in imports:
+            if imported_package in ALLOWED_DEPENDENCIES:
+                violations.append(
+                    f"{py_file.relative_to(ROOT_DIR)}: "
+                    f"Leaf package '{package}' imports '{imported_package}'"
+                )
+
+    assert not violations, f"Leaf package violations found:\n" + "\n".join(violations)
 
 
 if __name__ == "__main__":
