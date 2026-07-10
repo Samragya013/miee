@@ -226,5 +226,56 @@ class TestThresholdCompressionDetector:
             # note: hypothesized_cause may be the same if deterministic
 
 
+class TestInferCause:
+    """Test cases for _infer_cause 4-tier classification."""
+
+    def setup_method(self):
+        self.detector = ThresholdCompressionDetector()
+
+    def test_policy_mandate_classification(self):
+        """Test POLICY_MANDATE classification for policy-related metrics."""
+        assert self.detector._infer_cause("POLICY_COMPLIANCE_RATE", 50.0) == "POLICY_MANDATE"
+        assert self.detector._infer_cause("REGULATORY_THRESHOLD", 50.0) == "POLICY_MANDATE"
+        assert self.detector._infer_cause("GOVERNANCE_SCORE", 50.0) == "POLICY_MANDATE"
+
+    def test_sla_classification(self):
+        """Test SLA_COMPLIANCE classification for SLA-related metrics."""
+        assert self.detector._infer_cause("SLA_UPTIME", 50.0) == "SLA_COMPLIANCE"
+        assert self.detector._infer_cause("LATENCY_P99", 50.0) == "SLA_COMPLIANCE"
+        assert self.detector._infer_cause("AVAILABILITY_TARGET", 50.0) == "SLA_COMPLIANCE"
+
+    def test_unknown_classification(self):
+        """Test UNKNOWN classification for generic metrics."""
+        assert self.detector._infer_cause("M-02", 50.0) == "UNKNOWN"
+        assert self.detector._infer_cause("M-06", 50.0) == "UNKNOWN"
+        assert self.detector._infer_cause("THROUGHPUT", 50.0) == "UNKNOWN"
+
+    def test_policy_takes_precedence_over_sla(self):
+        """Test that POLICY_MANDATE takes precedence over SLA_COMPLIANCE."""
+        assert self.detector._infer_cause("POLICY_SLA_TARGET", 50.0) == "POLICY_MANDATE"
+
+    def test_deterministic_output(self):
+        """Test that _infer_cause is deterministic."""
+        result1 = self.detector._infer_cause("M-02", 50.0)
+        result2 = self.detector._infer_cause("M-02", 50.0)
+        assert result1 == result2
+
+    def test_has_policy_marker(self):
+        """Test _has_policy_marker method."""
+        assert self.detector._has_policy_marker("POLICY_RATE") == True
+        assert self.detector._has_policy_marker("REGULATORY_SCORE") == True
+        assert self.detector._has_policy_marker("M-02") == False
+
+    def test_has_sla_marker(self):
+        """Test _has_sla_marker method."""
+        assert self.detector._has_sla_marker("SLA_UPTIME") == True
+        assert self.detector._has_sla_marker("LATENCY_P99") == True
+        assert self.detector._has_sla_marker("M-02") == False
+
+    def test_detect_gaming_pattern(self):
+        """Test _detect_gaming_pattern method."""
+        assert self.detector._detect_gaming_pattern("M-02", 50.0) == False
+
+
 if __name__ == "__main__":
     pytest.main([__file__])

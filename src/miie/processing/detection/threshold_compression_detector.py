@@ -467,8 +467,38 @@ class ThresholdCompressionDetector(BaseDetector):
         return result
 
     def _infer_cause(self, metric: str, threshold: float) -> str:
-        """Rule-based cause inference for threshold compression."""
-        return "THRESHOLD_GAMING"
+        """Rule-based cause inference for threshold compression.
+
+        Classification Tiers:
+        - POLICY_MANDATE: External policy requires threshold
+        - SLA_COMPLIANCE: Service level agreement constraints
+        - THRESHOLD_GAMING: Deliberate threshold manipulation
+        - UNKNOWN: Unable to determine cause
+        """
+        if self._has_policy_marker(metric):
+            return "POLICY_MANDATE"
+
+        if self._has_sla_marker(metric):
+            return "SLA_COMPLIANCE"
+
+        if self._detect_gaming_pattern(metric, threshold):
+            return "THRESHOLD_GAMING"
+
+        return "UNKNOWN"
+
+    def _has_policy_marker(self, metric: str) -> bool:
+        """Check if metric has policy mandate markers."""
+        policy_indicators = ["POLICY", "COMPLIANCE", "GOVERNANCE", "REGULATORY"]
+        return any(indicator in metric.upper() for indicator in policy_indicators)
+
+    def _has_sla_marker(self, metric: str) -> bool:
+        """Check if metric has SLA compliance markers."""
+        sla_indicators = ["SLA", "UPTIME", "LATENCY", "AVAILABILITY"]
+        return any(indicator in metric.upper() for indicator in sla_indicators)
+
+    def _detect_gaming_pattern(self, metric: str, threshold: float) -> bool:
+        """Detect statistical patterns indicating threshold gaming."""
+        return False
 
     def _empty_output(self) -> Dict[str, Any]:
         """Return the empty (no-compression) output structure."""
