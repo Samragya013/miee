@@ -306,19 +306,19 @@ class EvidenceEngine:
             elif detector_id == "D-02":
                 # Extract correlation artifacts
                 corr_artifacts: Dict[str, Any] = {}
-                if "correlation_changes" in output:
-                    corr_artifacts["correlation_changes"] = output["correlation_changes"]
-                if "fisher_z_scores" in output:
-                    corr_artifacts["fisher_z_scores"] = output["fisher_z_scores"]
+                if "pearson_trajectories" in output:
+                    corr_artifacts["pearson_trajectories"] = output["pearson_trajectories"]
+                if "confidence_intervals" in output:
+                    corr_artifacts["confidence_intervals"] = output["confidence_intervals"]
                 artifacts["correlation_artifacts"][detector_id] = corr_artifacts
 
             elif detector_id == "D-03":
                 # Extract compression artifacts
                 comp_artifacts: Dict[str, Any] = {}
-                if "dip_statistics" in output:
-                    comp_artifacts["dip_statistics"] = output["dip_statistics"]
-                if "excess_mass_statistics" in output:
-                    comp_artifacts["excess_mass_statistics"] = output["excess_mass_statistics"]
+                if "dip_test_statistics" in output:
+                    comp_artifacts["dip_test_statistics"] = output["dip_test_statistics"]
+                if "excess_mass_z_scores" in output:
+                    comp_artifacts["excess_mass_z_scores"] = output["excess_mass_z_scores"]
                 artifacts["compression_artifacts"][detector_id] = comp_artifacts
 
         return artifacts
@@ -403,11 +403,11 @@ class MockEvidenceEngine:
                 }
             elif detector_id == "D-02":
                 statistical_artifacts["correlation_artifacts"][detector_id] = {
-                    k: v for k, v in output.items() if k in ["correlation_changes", "fisher_z_scores"]
+                    k: v for k, v in output.items() if k in ["pearson_trajectories", "confidence_intervals"]
                 }
             elif detector_id == "D-03":
                 statistical_artifacts["compression_artifacts"][detector_id] = {
-                    k: v for k, v in output.items() if k in ["dip_statistics", "excess_mass_statistics"]
+                    k: v for k, v in output.items() if k in ["dip_test_statistics", "excess_mass_z_scores"]
                 }
 
         # Create configuration snapshot

@@ -70,8 +70,18 @@ class TestEvidenceEngine:
         self.detector_results = DetectorResults(
             detector_outputs={
                 "D-01": {"drift_detected": True, "drift_magnitude": 0.5},
-                "D-02": {"correlation_breakdown": True, "correlation_change": 0.3},
-                "D-03": {"threshold_compressed": False, "compression_ratio": 1.0},
+                "D-02": {
+                    "correlation_breakdown": True,
+                    "correlation_change": 0.3,
+                    "pearson_trajectories": {"M-02_M-06": [0.8, 0.7, 0.6]},
+                    "confidence_intervals": {"M-02_M-06": (0.5, 0.9)},
+                },
+                "D-03": {
+                    "threshold_compressed": False,
+                    "compression_ratio": 1.0,
+                    "dip_test_statistics": {"M-02": 0.15},
+                    "excess_mass_z_scores": {"M-02": 0.8},
+                },
             }
         )
 
