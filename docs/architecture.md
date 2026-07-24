@@ -1,39 +1,88 @@
-# MIIE Architecture
+# MIIE — Flagship Architecture
 
-## Overview
+## System Overview
 
-MIIE (Measurement Integrity Intelligence Engine) is a pipeline-based system for analyzing software repository metrics and detecting integrity anomalies.
+MIIE (Measurement Integrity Intelligence Engine) is a Python research tool that evaluates the validity and integrity of software engineering metrics extracted from Version Control System (VCS) histories.
 
-## Pipeline Stages
+## Architecture Principles
 
-1. **Ingestion** (INT-01): Validates and ingests Git repositories
-2. **Extraction** (INT-02): Extracts metric data (M-01 through M-07)
-3. **Segmentation** (INT-03): Segments data into analysis windows
-4. **Detection** (INT-04): Runs anomaly detectors (D-01, D-02, D-03)
-5. **Scoring** (INT-05): Computes integrity and confidence scores
-6. **Evidence** (INT-06): Generates traceable evidence packages
-7. **Explanation** (INT-07): Produces human-readable explanations
-8. **Reporting** (INT-08): Generates reports in multiple formats
+1. **Frozen Scientific Core** — Detectors, metrics, evidence, scoring, confidence are immutable
+2. **Progressive Disclosure** — Start simple, reveal complexity as needed
+3. **Evidence-First** — Every finding backed by statistical test with p-value or effect size
+4. **Deterministic** — Same inputs produce same outputs always
+
+## Package Structure
+
+```
+src/miie/
+├── api/                    # FastAPI REST endpoints (6 frozen)
+├── application/            # CLI interactive layer, workflow, session
+├── benchmark/              # Benchmark execution engine
+├── cli/                    # Click CLI commands (14 commands)
+├── config/                 # Configuration loader
+├── contracts/              # Interfaces (frozen contracts)
+├── experimental/           # Non-production code
+├── metrics/                # Metric extraction (M-01 through M-07)
+├── observation_graph/      # Observation graph data structures
+├── orchestration/          # Workflow orchestration
+├── processing/             # Core scientific processing
+│   ├── benchmark/          # Benchmark evaluation
+│   ├── detection/          # Detectors (D-01, D-02, D-03)
+│   ├── evaluation/         # Evaluation engine
+│   ├── explanation/        # Explanation engine with recommendations
+│   ├── extraction/         # Data extraction
+│   ├── observation/        # Observation processing
+│   ├── reporting/          # Report generation (14+ types)
+│   └── scoring/            # Integrity + Confidence scoring
+├── providers/              # External data providers
+├── reporting/              # Legacy reporting (templates)
+├── sampling/               # Sampling strategies
+├── schemas/                # Data models (frozen)
+├── scientific/             # Scientific validation
+├── storage/                # Storage interfaces
+├── utils/                  # Utilities (hashing, etc.)
+├── validation/             # Validation framework
+└── workspace/              # Persistent workspace (ECP-03)
+```
+
+## Data Flow
+
+```
+Repository → Ingestion → Extraction → Observation → Detection → Scoring → Reporting
+     ↓           ↓            ↓            ↓            ↓          ↓          ↓
+  Git clone   Context    7 metrics    Windows     D-01/D-02   IS/CS    Dashboard
+              creation   extracted    created     /D-03       scores   + exports
+```
 
 ## Key Components
 
-- `src/miie/orchestration/pipeline.py` — Pipeline orchestrator
-- `src/miie/processing/` — All processing engines
-- `src/miie/schemas/` — Data models and serialization
-- `src/miie/contracts/` — Interface protocols (ACS Section 3)
+### ExtractionEngine (`processing/extraction/engine.py`)
+- Orchestrates GitObservationProvider and GitHubPullRequestProvider
+- Produces ObservationCollection and MetricDataFrame
+- Handles bot filtering, time windows, GitHub PR extraction
 
-## Detectors
+### DetectorRunner (`processing/detection/runner.py`)
+- Runs D-01 (Distribution Drift), D-02 (Correlation Breakdown), D-03 (Threshold Compression)
+- Uses DetectorAdapter to translate observations to detector inputs
+- Produces DetectorResult with per-detector outputs
 
-- **D-01**: Distribution Drift (KS test, PSI)
-- **D-02**: Correlation Breakdown (Pearson delta)
-- **D-03**: Threshold Compression (compression index)
+### ScoringEngine (`processing/scoring/engine.py`)
+- Computes Integrity Score (weighted detector results)
+- Computes Confidence Score (5 factors: sample_size, variance, missing_data, window_balance, detector_success)
 
-## Metrics
+### WorkspaceEngine (`workspace/engine.py`)
+- Manages persistent post-analysis state
+- Provides views: ExecutiveSummary, MetricView, DetectorView, EvidenceView, etc.
+- Supports save/load, comparison, export
 
-- **M-01**: Lines of Code
-- **M-02**: Commit Frequency
-- **M-03**: Issue Count
-- **M-04**: Review Coverage
-- **M-05**: Test Coverage
-- **M-06**: Code Churn
-- **M-07**: Dependency Count
+## Frozen Core (DO NOT MODIFY)
+
+| Component | Location | Reason |
+|-----------|----------|--------|
+| M-01 through M-07 | `metrics/` | Statistical validity |
+| D-01, D-02, D-03 | `processing/detection/` | Scientific methods |
+| EvidencePackage | `processing/evidence.py` | Provenance tracking |
+| ConfidenceScore | `schemas/models.py` | Scoring formula |
+| IntegrityScore | `schemas/models.py` | Scoring formula |
+| Statistical methods | `processing/detection/statistics.py` | Mathematical correctness |
+| All contracts | `contracts/interfaces.py` | API stability |
