@@ -156,7 +156,7 @@ def d02_diagnostics(
         Dict with effect_size, power, sample_adequacy, ci_diagnostic.
     """
     # Effect size
-    es_corr = rank_biserial(np.array([r]), np.array([0.0]))  # Placeholder; use correlation_effect_size for r
+    _es_corr = rank_biserial(np.array([r]), np.array([0.0]))  # Placeholder; use correlation_effect_size for r
     abs_r = abs(r)
 
     # Power analysis

@@ -116,6 +116,7 @@ class RepositoryMetadataProvider(BaseObservationProvider, ProviderMixin):
 
     def initialize(self, context: ProviderContext) -> None:
         """Validate repository accessibility and API health."""
+        self._state: ProviderState
         if self._state == ProviderState.DISPOSED:
             from miie.providers.exceptions import ProviderDisposedError
 

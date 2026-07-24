@@ -7,12 +7,8 @@ suggested remediation, and documentation links.
 from __future__ import annotations
 
 import sys
-import traceback
 from pathlib import Path
-from typing import Any, Optional
 
-from rich.console import Console
-from rich.panel import Panel
 from rich.traceback import Traceback
 
 from .display import console, error_panel, warning_panel
@@ -180,6 +176,7 @@ def save_partial_results(output_dir: str, error: Exception) -> Path | None:
     """Save partial results when pipeline fails mid-execution."""
     try:
         import json
+
         partial_path = Path(output_dir) / "partial_results.json"
         partial_path.parent.mkdir(parents=True, exist_ok=True)
         data = {

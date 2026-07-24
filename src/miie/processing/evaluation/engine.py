@@ -6,7 +6,7 @@ Implements the IEvaluationEngine interface for evaluating benchmark results agai
 from typing import Any, Dict
 
 from miie.contracts.interfaces import IEvaluationEngine
-from miie.schemas.models import EvaluationResult
+from miie.schemas.models import BenchmarkRun, EvaluationResult
 
 
 class EvaluationEngine(IEvaluationEngine):

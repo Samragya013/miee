@@ -11,7 +11,7 @@ from __future__ import annotations
 
 from typing import Any, Dict, List, Optional
 
-from miie.contracts.observation_types import ExtractionPhase, ProviderErrorContext
+from miie.contracts.observation_types import ProviderErrorContext
 
 # ---------------------------------------------------------------------------
 # Base Error Classes

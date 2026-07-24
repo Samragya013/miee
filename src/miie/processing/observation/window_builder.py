@@ -147,23 +147,33 @@ class ObservationWindowBuilder:
           1. min_ts ← min(obs.timestamp)
           2. max_ts ← max(obs.timestamp)
           3. Create fixed-width intervals of window_size days
-          4. Assign observations to intervals
+          4. Assign observations to intervals using O(N) pointer scan
           5. Skip empty windows
         """
         warnings: List[str] = []
-        min_ts = self._parse_ts(observations[0].timestamp)
-        max_ts = self._parse_ts(observations[-1].timestamp)
+
+        # Pre-parse all timestamps once (O(N) instead of O(W*N) parse calls)
+        parsed = [(self._parse_ts(obs.timestamp).date(), obs) for obs in observations]
+
+        min_ts = parsed[0][0]
+        max_ts = parsed[-1][0]
 
         windows: List[ObservationWindow] = []
-        window_start = min_ts.date()
+        window_start = min_ts
         window_idx = 0
+        pointer = 0  # O(N) pointer — never moves backward
 
-        while window_start <= max_ts.date():
+        while window_start <= max_ts:
             window_end = window_start + timedelta(days=config.window_size)
-            # Collect observations in [window_start, window_end)
-            window_obs = [
-                obs for obs in observations if window_start <= self._parse_ts(obs.timestamp).date() < window_end
-            ]
+            # Collect observations in [window_start, window_end) using pointer
+            window_obs: List[Observation] = []
+            while pointer < len(parsed):
+                obs_date = parsed[pointer][0]
+                if obs_date >= window_end:
+                    break
+                if obs_date >= window_start:
+                    window_obs.append(parsed[pointer][1])
+                pointer += 1
             if window_obs:
                 windows.append(
                     self._make_window(
@@ -171,7 +181,7 @@ class ObservationWindowBuilder:
                         strategy="temporal",
                         observations=window_obs,
                         start_boundary=window_start,
-                        end_boundary=min(window_end, max_ts.date()),
+                        end_boundary=min(window_end, max_ts),
                     )
                 )
                 window_idx += 1
@@ -196,7 +206,7 @@ class ObservationWindowBuilder:
         Algorithm (OEAS §18.3):
           1. Get M-02 (commit frequency) observations sorted by timestamp
           2. Every commits_per_window commits → new boundary
-          3. Assign all observations to windows by timestamp
+          3. Assign all observations to windows using O(N) pointer scan
         """
         warnings: List[str] = []
 
@@ -225,14 +235,31 @@ class ObservationWindowBuilder:
         if len(boundaries) < 2:
             boundaries.append(commit_obs[-1].timestamp)
 
+        # Pre-parse all timestamps once for O(N) assignment
+        all_parsed = [(obs.timestamp, obs) for obs in observations]
+
         windows: List[ObservationWindow] = []
+        pointer = 0  # O(N) pointer — never moves backward
+
         for i in range(len(boundaries) - 1):
             t_start = boundaries[i]
             t_end = boundaries[i + 1]
-            window_obs = [obs for obs in observations if t_start <= obs.timestamp < t_end]
-            # Include the last boundary's observations in the final window
-            if i == len(boundaries) - 2:
-                window_obs = [obs for obs in observations if t_start <= obs.timestamp <= t_end]
+            is_last = i == len(boundaries) - 2
+
+            # Collect observations in [t_start, t_end) using pointer
+            window_obs: List[Observation] = []
+            while pointer < len(all_parsed):
+                obs_ts = all_parsed[pointer][0]
+                if is_last:
+                    if obs_ts > t_end:
+                        break
+                else:
+                    if obs_ts >= t_end:
+                        break
+                if obs_ts >= t_start:
+                    window_obs.append(all_parsed[pointer][1])
+                pointer += 1
+
             if window_obs:
                 windows.append(
                     self._make_window(
@@ -316,11 +343,26 @@ class ObservationWindowBuilder:
         warnings: List[str] = []
         assert config.custom_boundaries is not None
 
+        # Pre-parse all timestamps once for O(N) assignment
+        all_parsed = [(self._parse_ts(obs.timestamp).date(), obs) for obs in observations]
+
         windows: List[ObservationWindow] = []
+        pointer = 0  # O(N) pointer — never moves backward
+
         for i, (start_str, end_str) in enumerate(config.custom_boundaries):
             start_date = self._parse_ts(start_str).date()
             end_date = self._parse_ts(end_str).date()
-            window_obs = [obs for obs in observations if start_date <= self._parse_ts(obs.timestamp).date() < end_date]
+
+            # Collect observations in [start_date, end_date) using pointer
+            window_obs: List[Observation] = []
+            while pointer < len(all_parsed):
+                obs_date = all_parsed[pointer][0]
+                if obs_date >= end_date:
+                    break
+                if obs_date >= start_date:
+                    window_obs.append(all_parsed[pointer][1])
+                pointer += 1
+
             if window_obs:
                 windows.append(
                     self._make_window(

@@ -6,7 +6,7 @@
 
 **Generated at:** {{ analysis_result.get('generated_at', 'unknown') }}
 **Detector:** D-03 (Compression Ratio Analyzer)
-**MIEE Version:** {{ analysis_result.get('miie_version', '1.0.0') }}
+**MIIE Version:** {{ analysis_result.get('miie_version', '1.0.0') }}
 
 ## Executive Summary
 Compression analysis completed. Average compression ratio: {{ avg_compression_ratio | default(0.0) }}:{{ avg_compression_ratio | default(0.0) | multiply(1) | round(2) }}.
@@ -97,7 +97,7 @@ Compression analysis completed. Average compression ratio: {{ avg_compression_ra
 
 **Generated at:** {{ generated_at | default('unknown') }}
 **Detector:** D-03 (Compression Ratio Analyzer)
-**MIEE Version:** {{ miie_version | default('1.0.0') }}
+**MIIE Version:** {{ miie_version | default('1.0.0') }}
 
 ## Executive Summary
 Compression analysis completed. No significant compression patterns detected.

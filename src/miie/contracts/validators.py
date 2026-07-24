@@ -51,10 +51,10 @@ def validate_repository_inputs(
     if not repo_path or not isinstance(repo_path, str):
         raise ValidationError("repo_path must be a non-empty string")
 
-    # Check if it's a URL
+    # Check if it's a URL (must have a network location, not just a drive letter)
     try:
         parsed = urlparse(repo_path)
-        is_url = bool(parsed.scheme)  # True if any scheme is present
+        is_url = bool(parsed.scheme) and bool(parsed.netloc)  # True only if scheme + host present
     except Exception:
         is_url = False
 
@@ -422,7 +422,7 @@ def validate_d03_input(
     if not isinstance(config, dict):
         raise ValidationError("config must be a dictionary")
 
-    margin = config.get("margin", 0.02)
+    _margin = config.get("margin", 0.02)
     bootstrap_iterations = config.get("bootstrap_iterations", 1000)
     bootstrap_seed = config.get("bootstrap_seed", 42)
 

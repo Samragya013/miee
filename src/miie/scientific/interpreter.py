@@ -10,7 +10,7 @@ Reference: PR-7C-3, OEAS SS21, DES v2.0
 from __future__ import annotations
 
 import logging
-from typing import List, Optional
+from typing import List, Optional, Tuple
 
 from miie.sampling.models import (
     ReadinessReport,
@@ -110,7 +110,7 @@ class VerdictInterpreter:
         overall_confidence = sum(confidences) / len(confidences) if confidences else 0.0
 
         # Apply penalty for low window count
-        ws = sampling_diagnostics.window_diagnostics if sampling_diagnostics else []
+        _ws = sampling_diagnostics.window_diagnostics if sampling_diagnostics else []
         warnings: List[str] = []
         if sampling_diagnostics and sampling_diagnostics.total_windows < 5:
             warnings.append(f"Only {sampling_diagnostics.total_windows} windows produced")
@@ -132,7 +132,3 @@ class VerdictInterpreter:
             prediction_error=prediction_error,
             warnings=warnings,
         )
-
-
-# Need to import Tuple for type annotation
-from typing import Tuple

@@ -6,14 +6,20 @@ this for filesystem-backed or database-backed storage.
 
 from __future__ import annotations
 
+import logging
+import os
+import re
 import threading
 import time
-import traceback
 import uuid
+from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timezone
+from pathlib import Path
 from typing import Any, Dict, Optional
 
 from .models import AnalyzeRequest, BenchmarkRequest
+
+logger = logging.getLogger(__name__)
 
 
 class JobStore:
@@ -75,7 +81,10 @@ class JobStore:
 
     def get_job(self, job_id: str) -> Optional[Dict[str, Any]]:
         with self._lock:
-            return self._jobs.get(job_id)
+            job = self._jobs.get(job_id)
+            if job is not None:
+                return dict(job)  # Return a copy to prevent external mutation
+            return None
 
     def exists(self, job_id: str) -> bool:
         with self._lock:
@@ -85,7 +94,46 @@ class JobStore:
 def _run_analyze_job(job_id: str, request: AnalyzeRequest) -> None:
     """Background worker for POST /v1/analyze."""
     store = get_job_store()
+    temp_dir = None
     try:
+        # Validate repo path — prevent path traversal
+        raw_repo = request.repo.strip()
+        if ".." in raw_repo or re.search(r"[<>\"|?*]", raw_repo):
+            store.set_error(
+                job_id,
+                {
+                    "type": "https://miie.dev/errors/invalid-repo",
+                    "title": "Invalid Repository Path",
+                    "status": 400,
+                    "detail": "Repository path contains invalid characters or traversal sequences.",
+                },
+            )
+            return
+        repo_path = Path(raw_repo).resolve()
+        if not repo_path.exists() or not repo_path.is_dir():
+            store.set_error(
+                job_id,
+                {
+                    "type": "https://miie.dev/errors/invalid-repo",
+                    "title": "Invalid Repository Path",
+                    "status": 400,
+                    "detail": f"Repository path not found or is not a directory: {raw_repo}",
+                },
+            )
+            return
+        # Block access to sensitive system directories
+        sensitive = {"/etc", "/proc", "/sys", "/dev", str(Path.home() / ".ssh")}
+        if any(str(repo_path).startswith(s) for s in sensitive):
+            store.set_error(
+                job_id,
+                {
+                    "type": "https://miie.dev/errors/invalid-repo",
+                    "title": "Invalid Repository Path",
+                    "status": 400,
+                    "detail": "Repository path points to a restricted system directory.",
+                },
+            )
+            return
         store.update_status(job_id, "running", progress=0.1, stage="ingestion")
 
         from ..processing.detection.dispatcher import DetectorDispatcherEngine
@@ -160,20 +208,31 @@ def _run_analyze_job(job_id: str, request: AnalyzeRequest) -> None:
         store.set_result(job_id, result)
 
     except Exception:
+        logger.exception("Analysis job %s failed", job_id)
         store.set_error(
             job_id,
             {
                 "type": "https://miie.dev/errors/analysis-failed",
                 "title": "Analysis Failed",
                 "status": 500,
-                "detail": traceback.format_exc(),
+                "detail": "Analysis failed. Check server logs for details.",
             },
         )
+    finally:
+        # Cleanup temp directories created during analysis
+        if temp_dir is not None:
+            import shutil
+
+            try:
+                shutil.rmtree(temp_dir, ignore_errors=True)
+            except Exception:
+                logger.debug("Failed to clean up temp dir %s", temp_dir)
 
 
 def _run_benchmark_job(job_id: str, request: BenchmarkRequest) -> None:
     """Background worker for POST /v1/benchmark."""
     store = get_job_store()
+    temp_dir = None
     try:
         store.update_status(job_id, "running", progress=0.2, stage="benchmark")
 
@@ -194,15 +253,24 @@ def _run_benchmark_job(job_id: str, request: BenchmarkRequest) -> None:
         store.set_result(job_id, result)
 
     except Exception:
+        logger.exception("Benchmark job %s failed", job_id)
         store.set_error(
             job_id,
             {
                 "type": "https://miie.dev/errors/benchmark-failed",
                 "title": "Benchmark Failed",
                 "status": 500,
-                "detail": traceback.format_exc(),
+                "detail": "Benchmark failed. Check server logs for details.",
             },
         )
+    finally:
+        if temp_dir is not None:
+            import shutil
+
+            try:
+                shutil.rmtree(temp_dir, ignore_errors=True)
+            except Exception:
+                logger.debug("Failed to clean up temp dir %s", temp_dir)
 
 
 # ---------------------------------------------------------------------------
@@ -211,6 +279,9 @@ def _run_benchmark_job(job_id: str, request: BenchmarkRequest) -> None:
 
 _job_store: Optional[JobStore] = None
 _store_lock = threading.Lock()
+
+# Thread pool for background jobs (M6: prevent unbounded thread creation)
+_job_executor = ThreadPoolExecutor(max_workers=4, thread_name_prefix="miie-job")
 
 
 def get_job_store() -> JobStore:

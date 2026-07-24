@@ -69,7 +69,7 @@ class DetectorAdapter:
         metrics_by_window: Dict[str, Dict[str, List[float]]] = defaultdict(lambda: defaultdict(list))
         for window in windows:
             for obs in window.observations:
-                if obs.metric_id in _VALID_METRIC_IDS:
+                if obs.metric_id in _VALID_METRIC_IDS and obs.value is not None:
                     metrics_by_window[obs.metric_id][window.window_id].append(obs.value)
 
         # Build result: metric_id → [values_for_each_window_in_order]

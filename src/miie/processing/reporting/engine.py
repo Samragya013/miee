@@ -203,15 +203,15 @@ class ReportGenerator(IReportGenerator):
             "analysis_result": analysis_result,
         }
 
-        # Write JSON file
-        with open(file_path, "w") as f:
+        # Write JSON file with UTF-8 encoding (issue 15)
+        with open(file_path, "w", encoding="utf-8") as f:
             serialized = self._serialize_for_json(report_data)
             f.write(json_dumps(serialized, indent=2))
 
     def _generate_markdown_report(self, analysis_result: Dict[str, Any], file_path: Path) -> None:
         """Generate Markdown format report."""
-        with open(file_path, "w") as f:
-            f.write(f"# MIIE Analysis Report\n\n")
+        with open(file_path, "w", encoding="utf-8") as f:
+            f.write("# MIIE Analysis Report\n\n")
             f.write(f"**Generated at:** {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n\n")
 
             # Write analysis result sections
@@ -222,14 +222,14 @@ class ReportGenerator(IReportGenerator):
         """Generate CSV format report (simplified)."""
         import csv
 
-        with open(file_path, "w", newline="") as f:
+        with open(file_path, "w", newline="", encoding="utf-8") as f:
             writer = csv.writer(f)
             writer.writerow(["Metric", "Value"])
             self._flatten_dict_to_csv(writer, analysis_result)
 
     def _generate_text_report(self, analysis_result: Dict[str, Any], file_path: Path) -> None:
         """Generate plain text format report."""
-        with open(file_path, "w") as f:
+        with open(file_path, "w", encoding="utf-8") as f:
             f.write("MIIE Analysis Report\n")
             f.write("=" * 50 + "\n")
             f.write(f"Generated at: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n\n")
@@ -358,6 +358,7 @@ class ReportGenerator(IReportGenerator):
         try:
             with tempfile.NamedTemporaryFile(
                 mode="w",
+                encoding="utf-8",
                 dir=file_path.parent,
                 delete=False,
                 suffix=".tmp",
@@ -388,7 +389,7 @@ class ReportGenerator(IReportGenerator):
             if temp_file and temp_file.exists():
                 try:
                     temp_file.unlink()
-                except:
+                except Exception:
                     pass
             raise e
 
@@ -446,6 +447,7 @@ class ReportGenerator(IReportGenerator):
         manifest_data = {
             "manifest_version": "1.0.0",
             "miie_version": "1.0.0",
+            "schema_version": 2,
             "git_commit": get_git_commit(),
             "python_version": get_python_version(),
             "dependency_hash": compute_dependency_hash(),
@@ -510,7 +512,7 @@ class MockReportGenerator:
             "file_count": len(report_paths),
             "checksums": {fmt: "mock_checksum_" + fmt for fmt in report_paths.keys()},
         }
-        with open(manifest_path, "w") as f:
+        with open(manifest_path, "w", encoding="utf-8") as f:
             f.write(json_dumps(manifest_data, indent=2))
 
         # Calculate mock checksums
@@ -534,14 +536,14 @@ class MockReportGenerator:
             "analysis_result": analysis_result,
         }
 
-        with open(file_path, "w") as f:
+        with open(file_path, "w", encoding="utf-8") as f:
             json.dump(report_data, f, indent=2, default=str)
 
     def _generate_markdown_report(self, analysis_result: Dict[str, Any], file_path: Path) -> None:
         """Generate Markdown format report (mock)."""
-        with open(file_path, "w") as f:
-            f.write(f"# MIIE Analysis Report\n\n")
-            f.write(f"**Generated at:** 2023-06-15 12:00:00\n\n")
+        with open(file_path, "w", encoding="utf-8") as f:
+            f.write("# MIIE Analysis Report\n\n")
+            f.write("**Generated at:** 2023-06-15 12:00:00\n\n")
             f.write("## Analysis Results\n\n")
             f.write("- Mock analysis completed successfully\n")
 
@@ -549,14 +551,14 @@ class MockReportGenerator:
         """Generate CSV format report (mock)."""
         import csv
 
-        with open(file_path, "w", newline="") as f:
+        with open(file_path, "w", newline="", encoding="utf-8") as f:
             writer = csv.writer(f)
             writer.writerow(["Metric", "Value"])
             writer.writerow(["mock_metric", "1.0"])
 
     def _generate_text_report(self, analysis_result: Dict[str, Any], file_path: Path) -> None:
         """Generate plain text format report (mock)."""
-        with open(file_path, "w") as f:
+        with open(file_path, "w", encoding="utf-8") as f:
             f.write("MIIE Analysis Report\n")
             f.write("=" * 50 + "\n")
             f.write("Generated at: 2023-06-15 12:00:00\n\n")

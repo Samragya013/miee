@@ -18,6 +18,9 @@ Reference: IMS-v1.0 Phase 3, PR-11A.2
 from __future__ import annotations
 
 import datetime
+import logging
+from concurrent.futures import ThreadPoolExecutor, as_completed
+from pathlib import Path
 from typing import Any, List, Optional, Tuple
 
 from miie.contracts.errors import ExtractionError
@@ -32,6 +35,8 @@ from miie.processing.observation.models import (
 )
 from miie.processing.observation.store import ObservationStore
 from miie.schemas.models import MetricDataFrame, RepositoryContext
+
+logger = logging.getLogger(__name__)
 
 
 class ExtractionEngine:
@@ -84,10 +89,13 @@ class ExtractionEngine:
         until: Optional[datetime.datetime] = None,
         exclude_bots: bool = False,
         seed: Optional[int] = None,
+        max_commits: int = 0,
+        package_prefixes: Optional[frozenset] = None,
     ) -> Tuple[ObservationCollection, MetricDataFrame]:
         """Extract observations and metrics from a repository.
 
         Phase 1: GitObservationProvider produces observations from git.
+        Phase 1b: GitHub PR extraction for M-05 runs in parallel with Phase 1.
         Phase 2: MetricExtractor translates observations to MetricDataFrame.
 
         Args:
@@ -97,6 +105,8 @@ class ExtractionEngine:
             until: Inclusive end date filter.
             exclude_bots: Whether to exclude bot commits.
             seed: Optional seed for deterministic provenance.
+            max_commits: Maximum commits to process (0 = unlimited).
+            package_prefixes: Monorepo file-path prefixes to filter by.
 
         Returns:
             Tuple of (ObservationCollection, MetricDataFrame).
@@ -107,12 +117,64 @@ class ExtractionEngine:
         # Lazily create the default provider on first call
         provider = self._resolve_provider()
 
-        # --- Phase 1: Extract observations via provider ---
-        try:
-            provider_ctx = self._build_provider_context(context, since=since, until=until, exclude_bots=exclude_bots)
-            result = provider.extract_observations(provider_ctx, metric_list)
-        except Exception as exc:
-            raise ExtractionError(f"GitObservationProvider failed: {exc}") from exc
+        # Split metrics: git-based vs GitHub API (M-05)
+        git_metrics = [m for m in metric_list if m != "M-05"]
+        needs_m05 = "M-05" in metric_list
+
+        # Run git extraction and M-05 in parallel
+        git_result = None
+        gh_observations: List[Observation] = []
+
+        with ThreadPoolExecutor(max_workers=2) as executor:
+            # Submit git extraction (always needed for M-02, M-06, etc.)
+            git_future = executor.submit(
+                self._extract_git,
+                provider, context, git_metrics, since, until, exclude_bots,
+                max_commits, package_prefixes,
+            )
+
+            # Submit M-05 GitHub PR extraction in parallel (if requested)
+            m05_future = None
+            if needs_m05:
+                m05_future = executor.submit(
+                    self._extract_github_pr, context, since=since, until=until,
+                )
+
+            # Wait for git extraction
+            try:
+                git_result = git_future.result()
+            except Exception as exc:
+                raise ExtractionError(f"GitObservationProvider failed: {exc}") from exc
+
+            # Wait for M-05 if submitted
+            if m05_future is not None:
+                try:
+                    gh_observations = m05_future.result() or []
+                except Exception as exc:
+                    # Log at error level so failures are visible in production logs
+                    logger.error("GitHub PR extraction failed (M-05 unavailable): %s", exc, exc_info=True)
+
+        result = git_result
+
+        # Merge GitHub PR observations into the result
+        if gh_observations:
+            merged = list(result.observations) + gh_observations
+            from miie.providers.context import ExtractionResult
+
+            result = ExtractionResult(
+                provider_id=result.provider_id,
+                metric_id=result.metric_id,
+                observations=tuple(merged),
+                quality_state=result.quality_state,
+                confidence=result.confidence,
+                extraction_time_ms=result.extraction_time_ms,
+                is_partial=result.is_partial,
+                warnings=list(result.warnings),
+                metadata={
+                    **result.metadata,
+                    "github_pr_observations": len(gh_observations),
+                },
+            )
 
         # --- Apply seed to observations if provided ---
         if seed is not None and result.observations:
@@ -160,8 +222,10 @@ class ExtractionEngine:
             raise ExtractionError(f"Failed to build ObservationCollection: {exc}") from exc
 
         # --- Phase 2: Translate observations to MetricDataFrame ---
+        # Instantiate a fresh MetricExtractor per call for thread safety (issue 7)
         try:
-            mdf = self._metric_extractor.extract_metrics(
+            extractor = MetricExtractor()
+            mdf = extractor.extract_metrics(
                 collection,
                 metric_list=metric_list,
             )
@@ -197,6 +261,139 @@ class ExtractionEngine:
         self._provider = GitObservationProvider()
         return self._provider
 
+    def _extract_git(
+        self,
+        provider: Any,
+        context: RepositoryContext,
+        metric_list: List[str],
+        since: Optional[datetime.datetime],
+        until: Optional[datetime.datetime],
+        exclude_bots: bool,
+        max_commits: int = 0,
+        package_prefixes: Optional[frozenset] = None,
+    ) -> Any:
+        """Extract git-based observations. Thread-safe."""
+        try:
+            provider_ctx = self._build_provider_context(
+                context, since=since, until=until, exclude_bots=exclude_bots,
+                max_commits=max_commits, package_prefixes=package_prefixes,
+            )
+            return provider.extract_observations(provider_ctx, metric_list)
+        except Exception as exc:
+            raise ExtractionError(f"GitObservationProvider failed: {exc}") from exc
+
+    def _extract_github_pr(
+        self,
+        context: RepositoryContext,
+        since: Optional[datetime.datetime] = None,
+        until: Optional[datetime.datetime] = None,
+    ) -> List[Observation]:
+        """Extract M-05 observations from GitHub PR API.
+
+        Returns a list of Observations for PR merge latency and review latency.
+        Best-effort: returns empty list on any failure.
+        """
+        # Ensure .env is loaded for GitHub token discovery
+        try:
+            from dotenv import load_dotenv
+            # Search for .env from project root (src/miie → up 2 levels)
+            env_path = Path(__file__).resolve().parents[3] / ".env"
+            if env_path.exists():
+                load_dotenv(env_path, override=True)
+            else:
+                load_dotenv(override=True)
+        except ImportError:
+            pass
+
+        from miie.providers.github.authentication import GitHubAuth
+        from miie.providers.github.provider import GitHubPullRequestProvider
+
+        auth = GitHubAuth()
+        if not auth.is_authenticated:
+            return []
+
+        # Determine GitHub owner/repo from context or git remote
+        repo_id = self._resolve_github_repo(context)
+        if not repo_id:
+            return []
+
+        provider = GitHubPullRequestProvider(auth=auth)
+
+        import hashlib
+        import uuid
+
+        from miie.providers.context import ProviderContext
+
+        now_iso = datetime.datetime.now(datetime.timezone.utc).isoformat()
+        analysis_id = hashlib.sha256(
+            f"{context.repo_id}:gh:{uuid.uuid4().hex[:8]}:{now_iso}".encode()
+        ).hexdigest()[:16]
+
+        provider_ctx = ProviderContext(
+            repo_path=str(context.local_path),
+            repository_id=repo_id,
+            analysis_id=analysis_id,
+            since=since,
+            until=until,
+        )
+
+        try:
+            provider.initialize(provider_ctx)
+            result = provider.extract_observations(provider_ctx, ["M-02", "M-05"])
+            provider.dispose()
+            return list(result.observations)
+        except Exception:
+            return []
+
+    @staticmethod
+    def _resolve_github_repo(context: RepositoryContext) -> Optional[str]:
+        """Resolve GitHub owner/repo from context.
+
+        Checks:
+        1. If context.repo_id is already owner/repo format
+        2. If context.remote_url is a GitHub URL
+        3. If git remote points to GitHub
+
+        Returns:
+            owner/repo string or None if not a GitHub repo.
+        """
+        import re
+        import subprocess
+
+        # 1. Check if repo_id looks like owner/repo
+        repo_id = getattr(context, "repo_id", "")
+        if repo_id and "/" in repo_id and len(repo_id.split("/")) == 2:
+            return repo_id
+
+        # 2. Check remote_url
+        remote_url = getattr(context, "remote_url", None)
+        if remote_url:
+            # Parse github.com URLs: https://github.com/owner/repo
+            m = re.match(r"https?://github\.com/([^/]+/[^/.]+)", remote_url)
+            if m:
+                return m.group(1).rstrip("/")
+
+        # 3. Try git remote
+        try:
+            result = subprocess.run(
+                ["git", "remote", "get-url", "origin"],
+                capture_output=True, text=True, encoding="utf-8",
+                timeout=10, cwd=str(context.local_path),
+            )
+            if result.returncode == 0:
+                url = result.stdout.strip()
+                m = re.match(r"https?://github\.com/([^/]+/[^/.]+)", url)
+                if m:
+                    return m.group(1).rstrip("/")
+                # SSH format: git@github.com:owner/repo.git
+                m = re.match(r"git@github\.com:([^/]+/[^/.]+)", url)
+                if m:
+                    return m.group(1).rstrip("/")
+        except Exception:
+            pass
+
+        return None
+
     # ------------------------------------------------------------------
     # Context helpers
     # ------------------------------------------------------------------
@@ -208,6 +405,8 @@ class ExtractionEngine:
         since: Optional[datetime.datetime] = None,
         until: Optional[datetime.datetime] = None,
         exclude_bots: bool = False,
+        max_commits: int = 0,
+        package_prefixes: Optional[frozenset] = None,
     ) -> Any:
         """Build a ProviderContext from a RepositoryContext."""
         import hashlib
@@ -219,6 +418,12 @@ class ExtractionEngine:
         now_iso = datetime.datetime.now(datetime.timezone.utc).isoformat()
         analysis_id = hashlib.sha256(f"{context.repo_id}:{uuid.uuid4().hex[:8]}:{now_iso}".encode()).hexdigest()[:16]
 
+        # Extract workspace info if available
+        if package_prefixes is None:
+            workspace_info = getattr(context, "_workspace_info", None)
+            if workspace_info:
+                package_prefixes = workspace_info.get_package_prefixes()
+
         return ProviderContext(
             repo_path=str(context.local_path),
             repository_id=context.repo_id,
@@ -226,6 +431,8 @@ class ExtractionEngine:
             since=since,
             until=until,
             exclude_bots=exclude_bots,
+            max_commits=max_commits,
+            package_prefixes=package_prefixes or frozenset(),
         )
 
     # ------------------------------------------------------------------
@@ -275,8 +482,16 @@ class ExtractionEngine:
         # Determine time boundaries from observations
         timestamps: List[str] = [o.timestamp for o in observations if o.timestamp]
         if timestamps:
-            start_boundary = min(timestamps)
-            end_boundary = max(timestamps)
+            # Parse to datetime for correct cross-timezone comparison
+            def _parse_ts(ts: str) -> datetime.datetime:
+                try:
+                    return datetime.datetime.fromisoformat(ts)
+                except (ValueError, TypeError):
+                    return datetime.datetime.now(datetime.timezone.utc)
+
+            parsed = [_parse_ts(ts) for ts in timestamps]
+            start_boundary = min(parsed).isoformat()
+            end_boundary = max(parsed).isoformat()
         else:
             now_iso = datetime.datetime.now(datetime.timezone.utc).isoformat()
             start_boundary = now_iso

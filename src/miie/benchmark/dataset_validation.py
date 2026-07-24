@@ -25,7 +25,6 @@ from miie.benchmark.ground_truth import (
     ExpectedScores,
     GroundTruth,
     GroundTruthDataset,
-    GroundTruthEntry,
     Licensing,
     MetricID,
     Provenance,
@@ -105,11 +104,21 @@ class DatasetValidator:
         result = DatasetValidationResult(dataset_id)
 
         required = [
-            "dataset_id", "dataset_name", "dataset_version",
-            "dataset_type", "status", "created_by", "created_at",
-            "description", "repository_classification", "provenance",
-            "ground_truth", "acceptance_criteria", "versioning",
-            "certification", "licensing",
+            "dataset_id",
+            "dataset_name",
+            "dataset_version",
+            "dataset_type",
+            "status",
+            "created_by",
+            "created_at",
+            "description",
+            "repository_classification",
+            "provenance",
+            "ground_truth",
+            "acceptance_criteria",
+            "versioning",
+            "certification",
+            "licensing",
         ]
 
         for field in required:
@@ -125,9 +134,7 @@ class DatasetValidator:
 
         return result
 
-    def _validate_required_fields(
-        self, dataset: GroundTruthDataset, result: DatasetValidationResult
-    ):
+    def _validate_required_fields(self, dataset: GroundTruthDataset, result: DatasetValidationResult):
         if not dataset.dataset_id:
             result.add_error("dataset_id", "dataset_id cannot be empty")
         if not dataset.dataset_name:
@@ -135,10 +142,9 @@ class DatasetValidator:
         if not dataset.description:
             result.add_error("description", "description cannot be empty")
 
-    def _validate_dataset_id(
-        self, dataset: GroundTruthDataset, result: DatasetValidationResult
-    ):
+    def _validate_dataset_id(self, dataset: GroundTruthDataset, result: DatasetValidationResult):
         import re
+
         pattern = r"^GT-(SYN|REAL|ADV)-[A-Z_]+-\d{3}$"
         if not re.match(pattern, dataset.dataset_id):
             result.add_error(
@@ -146,19 +152,16 @@ class DatasetValidator:
                 f"dataset_id '{dataset.dataset_id}' does not match pattern GT-{{SYN|REAL|ADV}}-CATEGORY-NNN",
             )
 
-    def _validate_version(
-        self, dataset: GroundTruthDataset, result: DatasetValidationResult
-    ):
+    def _validate_version(self, dataset: GroundTruthDataset, result: DatasetValidationResult):
         import re
+
         if not re.match(r"^\d+\.\d+\.\d+$", dataset.dataset_version):
             result.add_error(
                 "dataset_version",
                 f"dataset_version '{dataset.dataset_version}' is not valid semantic version",
             )
 
-    def _validate_ground_truth(
-        self, dataset: GroundTruthDataset, result: DatasetValidationResult
-    ):
+    def _validate_ground_truth(self, dataset: GroundTruthDataset, result: DatasetValidationResult):
         gt = dataset.ground_truth
         if not gt.expected_detector_outputs:
             result.add_warning(
@@ -176,9 +179,7 @@ class DatasetValidator:
                 "anomaly_type must be specified when anomaly_present is true",
             )
 
-    def _validate_acceptance_criteria(
-        self, dataset: GroundTruthDataset, result: DatasetValidationResult
-    ):
+    def _validate_acceptance_criteria(self, dataset: GroundTruthDataset, result: DatasetValidationResult):
         ac = dataset.acceptance_criteria
         if ac.d01_sensitivity_min is not None and not (0 <= ac.d01_sensitivity_min <= 1):
             result.add_error(
@@ -191,9 +192,7 @@ class DatasetValidator:
                 "Specificity must be between 0 and 1",
             )
 
-    def _validate_provenance(
-        self, dataset: GroundTruthDataset, result: DatasetValidationResult
-    ):
+    def _validate_provenance(self, dataset: GroundTruthDataset, result: DatasetValidationResult):
         p = dataset.provenance
         if not p.source:
             result.add_error("provenance.source", "source cannot be empty")
@@ -202,9 +201,7 @@ class DatasetValidator:
         if not p.reproducibility:
             result.add_error("provenance.reproducibility", "reproducibility cannot be empty")
 
-    def _validate_certification(
-        self, dataset: GroundTruthDataset, result: DatasetValidationResult
-    ):
+    def _validate_certification(self, dataset: GroundTruthDataset, result: DatasetValidationResult):
         c = dataset.certification
         if not c.certified_by:
             result.add_error("certification.certified_by", "certified_by cannot be empty")
@@ -213,12 +210,14 @@ class DatasetValidator:
 
     def _validate_dataset_id_dict(self, data: Dict, result: DatasetValidationResult):
         import re
+
         pattern = r"^GT-(SYN|REAL|ADV)-[A-Z_]+-\d{3}$"
         if not re.match(pattern, data.get("dataset_id", "")):
             result.add_error("dataset_id", "Does not match expected pattern")
 
     def _validate_version_dict(self, data: Dict, result: DatasetValidationResult):
         import re
+
         if not re.match(r"^\d+\.\d+\.\d+$", data.get("dataset_version", "")):
             result.add_error("dataset_version", "Not valid semantic version")
 
@@ -400,9 +399,11 @@ class DatasetRegistry:
             ),
             certification=Certification(
                 certified_by=cert_data.get("certified_by", ""),
-                certified_at=__import__("datetime").datetime.fromisoformat(
-                    cert_data["certified_at"].replace("Z", "+00:00")
-                ) if cert_data.get("certified_at") else None,
+                certified_at=(
+                    __import__("datetime").datetime.fromisoformat(cert_data["certified_at"].replace("Z", "+00:00"))
+                    if cert_data.get("certified_at")
+                    else None
+                ),
                 criteria=cert_data.get("criteria", ""),
                 certificate_id=cert_data.get("certificate_id"),
             ),

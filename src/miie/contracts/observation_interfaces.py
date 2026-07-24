@@ -12,22 +12,15 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from typing import Any, Dict, FrozenSet, List, Optional, Protocol, runtime_checkable
 
-from miie.contracts.observation_errors import (
-    ExtractionError,
-    ProviderError,
-    ValidationError,
-)
 from miie.contracts.observation_types import (
     ExtractionResult,
     HealthStatus,
-    ObservationMetrics,
     PriorityLevel,
     ProviderCapability,
     ProviderContext,
     ProviderEntry,
     ProviderHealth,
     ProviderState,
-    QualityState,
     ValidationResult,
 )
 

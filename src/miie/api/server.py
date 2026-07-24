@@ -5,14 +5,21 @@ Implements the 6 frozen endpoints per TFS §14.3.
 
 from __future__ import annotations
 
+import hmac
+import logging
+import os
+from typing import Optional
+
 import uvicorn
 from fastapi import FastAPI, HTTPException, Request
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from .. import __version__
 from .dependencies import (
     _run_analyze_job,
     _run_benchmark_job,
+    _job_executor,
     get_job_store,
     get_uptime,
 )
@@ -30,11 +37,68 @@ from .models import (
     ProblemDetail,
 )
 
+logger = logging.getLogger(__name__)
+
 app = FastAPI(
     title="MIIE API",
     version=__version__,
     description="Measurement Integrity Intelligence Engine",
 )
+
+# CORS: restrict to localhost only (Issue 32)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://127.0.0.1", "http://localhost"],
+    allow_credentials=True,
+    allow_methods=["GET", "POST"],
+    allow_headers=["*"],
+)
+
+
+# ---------------------------------------------------------------------------
+# API Key Authentication Middleware
+# ---------------------------------------------------------------------------
+_API_KEY = os.environ.get("MIIE_API_KEY", "")
+
+
+@app.middleware("http")
+async def authenticate_api_key(request: Request, call_next):
+    """Validate X-API-Key header on all endpoints except /v1/health."""
+    # Skip auth for health check and docs
+    if request.url.path in ("/v1/health", "/docs", "/openapi.json", "/redoc"):
+        response = await call_next(request)
+        _add_security_headers(response)
+        return response
+
+    # If no API key configured, allow all (dev mode)
+    if not _API_KEY:
+        response = await call_next(request)
+        _add_security_headers(response)
+        return response
+
+    provided_key: Optional[str] = request.headers.get("X-API-Key")
+    if not provided_key or not hmac.compare_digest(provided_key, _API_KEY):
+        return JSONResponse(
+            status_code=401,
+            content={
+                "type": "https://miie.dev/errors/unauthorized",
+                "title": "Unauthorized",
+                "status": 401,
+                "detail": "Valid X-API-Key header required. Set MIIE_API_KEY environment variable.",
+            },
+        )
+
+    response = await call_next(request)
+    _add_security_headers(response)
+    return response
+
+
+def _add_security_headers(response):
+    """Add security headers to every API response."""
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["X-Frame-Options"] = "DENY"
+    response.headers["X-XSS-Protection"] = "1; mode=block"
+    response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate"
 
 
 # ---------------------------------------------------------------------------
@@ -78,10 +142,7 @@ def analyze(request: AnalyzeRequest):
     store = get_job_store()
     job_id = store.create_job("analyze", request.model_dump())
 
-    import threading
-
-    thread = threading.Thread(target=_run_analyze_job, args=(job_id, request), daemon=True)
-    thread.start()
+    _job_executor.submit(_run_analyze_job, job_id, request)
 
     return JobAccepted(
         job_id=job_id,
@@ -127,15 +188,20 @@ def get_job_status(job_id: str):
 
     if status == "failed":
         error = job.get("error", {})
+        # Sanitize: only return safe fields (type, title, status, detail)
+        safe_error = {
+            k: v for k, v in error.items()
+            if k in ("type", "title", "status", "detail")
+        } if isinstance(error, dict) else {}
         raise HTTPException(
             status_code=500,
             detail=(
-                error
-                if error
+                safe_error
+                if safe_error
                 else {
                     "error_code": "JOB-FAILED",
                     "title": "Job Failed",
-                    "detail": "The job encountered an error.",
+                    "detail": "The job encountered an error. Check server logs for details.",
                 }
             ),
         )
@@ -187,10 +253,7 @@ def benchmark(request: BenchmarkRequest):
     store = get_job_store()
     job_id = store.create_job("benchmark", request.model_dump())
 
-    import threading
-
-    thread = threading.Thread(target=_run_benchmark_job, args=(job_id, request), daemon=True)
-    thread.start()
+    _job_executor.submit(_run_benchmark_job, job_id, request)
 
     return JobAccepted(
         job_id=job_id,

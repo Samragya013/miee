@@ -243,6 +243,22 @@ class EvidenceEngine:
                             "detector_observations": count,
                         }
 
+        # Link observations to originating detectors for traceability (Issue 14)
+        for metric_id in summary["per_metric"]:
+            contributing_detectors = []
+            for det_id, output in detector_results.detector_outputs.items():
+                obs_counts = output.get("observation_counts", {})
+                if metric_id in obs_counts:
+                    contributing_detectors.append(det_id)
+            summary["per_metric"][metric_id]["contributing_detectors"] = contributing_detectors
+
+        # Link detectors to metrics they consumed
+        for detector_id, output in detector_results.detector_outputs.items():
+            consumed_metrics = list((output.get("observation_counts") or {}).keys())
+            if detector_id not in summary:
+                summary[detector_id] = {}
+            summary[detector_id]["consumed_metrics"] = consumed_metrics
+
         return summary
 
     def _extract_detector_execution_metadata(

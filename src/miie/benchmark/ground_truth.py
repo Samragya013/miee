@@ -276,11 +276,7 @@ class GroundTruthDataset:
             },
             "ground_truth": {
                 "anomaly_present": self.ground_truth.anomaly_present,
-                "anomaly_type": (
-                    self.ground_truth.anomaly_type.value
-                    if self.ground_truth.anomaly_type
-                    else None
-                ),
+                "anomaly_type": (self.ground_truth.anomaly_type.value if self.ground_truth.anomaly_type else None),
                 "anomaly_severity": self.ground_truth.anomaly_severity.value,
                 "anomaly_window_start": self.ground_truth.anomaly_window_start,
                 "anomaly_window_end": self.ground_truth.anomaly_window_end,
@@ -294,8 +290,7 @@ class GroundTruthDataset:
                     for det_id, out in self.ground_truth.expected_detector_outputs.items()
                 },
                 "expected_metric_values": {
-                    met_id.value: vals
-                    for met_id, vals in self.ground_truth.expected_metric_values.items()
+                    met_id.value: vals for met_id, vals in self.ground_truth.expected_metric_values.items()
                 },
                 "expected_scores": {
                     "integrity_score_range": (
@@ -328,9 +323,7 @@ class GroundTruthDataset:
             "certification": {
                 "certified_by": self.certification.certified_by,
                 "certified_at": (
-                    self.certification.certified_at.isoformat()
-                    if self.certification.certified_at
-                    else None
+                    self.certification.certified_at.isoformat() if self.certification.certified_at else None
                 ),
                 "criteria": self.certification.criteria,
                 "certificate_id": self.certification.certificate_id,

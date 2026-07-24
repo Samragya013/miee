@@ -149,6 +149,8 @@ class ProviderContext:
     exclude_bots: bool = False
     config: Dict[str, Any] = field(default_factory=dict)
     timeout_seconds: float = 30.0
+    max_commits: int = 0  # 0 = unlimited
+    package_prefixes: FrozenSet[str] = field(default_factory=frozenset)  # monorepo file-path prefixes
 
     def __post_init__(self) -> None:
         if not self.repo_path:

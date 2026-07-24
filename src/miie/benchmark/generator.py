@@ -5,6 +5,7 @@ Implements the IDatasetGenerator interface for generating synthetic benchmark da
 import json
 import random
 import subprocess
+import tempfile
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import List, Optional
@@ -49,28 +50,48 @@ class BenchmarkDatasetGenerator(IDatasetGenerator):
         for i in range(count):
             candidate_index = i + 1
             candidate_dir = output_dir / f"candidate_{candidate_index:03d}"
-            candidate_dir.mkdir(parents=True, exist_ok=True)
+            try:
+                candidate_dir.mkdir(parents=True, exist_ok=True)
+            except OSError:
+                # Handle collision with uuid suffix
+                import uuid
+                candidate_dir = output_dir / f"candidate_{candidate_index:03d}_{uuid.uuid4().hex[:8]}"
+                candidate_dir.mkdir(parents=True, exist_ok=True)
             generated_paths.append(candidate_dir)
 
-            # Initialize Git repository
-            self._init_git_repo(candidate_dir)
+            try:
+                # Initialize Git repository
+                self._init_git_repo(candidate_dir)
 
-            # Generate metadata.json
-            metadata = self._generate_metadata(candidate_index, dataset_type, seed)
-            metadata_path = candidate_dir / "metadata.json"
-            with open(metadata_path, "w") as f:
-                f.write(json_dumps(metadata, indent=2))
+                # Generate metadata.json
+                metadata = self._generate_metadata(candidate_index, dataset_type, seed)
+                metadata_path = candidate_dir / "metadata.json"
+                with open(metadata_path, "w", encoding="utf-8") as f:
+                    f.write(json_dumps(metadata, indent=2))
 
-            # Generate commit history with pathology injection
-            self._generate_commit_history(candidate_dir, metadata, dataset_type, seed, candidate_index)
+                # Generate commit history with pathology injection
+                self._generate_commit_history(candidate_dir, metadata, dataset_type, seed, candidate_index)
+            except Exception:
+                # Clean up on failure
+                import shutil
+                if candidate_dir.exists():
+                    shutil.rmtree(candidate_dir, ignore_errors=True)
+                raise
 
         # Note: Manifest update is handled separately
         return generated_paths
 
-    def _init_git_repo(self, repo_path: Path) -> None:
-        """Initialize a Git repository in the given directory."""
-        # Initialize git repo
-        subprocess.run(["git", "init"], cwd=repo_path, check=True, capture_output=True)
+    def _init_git_repo(self, repo_path: Path, shallow_depth: int = 0) -> None:
+        """Initialize a Git repository in the given directory.
+
+        Args:
+            repo_path: Directory to initialize as git repo.
+            shallow_depth: If >0, create a shallow repo with this depth.
+        """
+        cmd = ["git", "init"]
+        if shallow_depth > 0:
+            cmd.extend(["--shallow-since=2020-01-01"])
+        subprocess.run(cmd, cwd=repo_path, check=True, capture_output=True)
         # Configure git user (required for commits)
         subprocess.run(
             ["git", "config", "user.name", "MIIE Generator"],
@@ -398,7 +419,7 @@ class BenchmarkDatasetGenerator(IDatasetGenerator):
 
         # Load existing manifest if it exists, otherwise create a new one
         if manifest_path.exists():
-            with open(manifest_path, "r") as f:
+            with open(manifest_path, "r", encoding="utf-8") as f:
                 manifest_data = json.load(f)
         else:
             manifest_data = {
@@ -434,7 +455,7 @@ class BenchmarkDatasetGenerator(IDatasetGenerator):
             # Instead, we'll read the metadata.json from the candidate directory
             metadata_path = candidate_path / "metadata.json"
             if metadata_path.exists():
-                with open(metadata_path, "r") as f:
+                with open(metadata_path, "r", encoding="utf-8") as f:
                     metadata = json.load(f)
             else:
                 # Fallback: generate minimal metadata
@@ -519,7 +540,7 @@ class BenchmarkDatasetGenerator(IDatasetGenerator):
             if temp_file and temp_file.exists():
                 try:
                     temp_file.unlink()
-                except:
+                except Exception:
                     pass
             raise e
 

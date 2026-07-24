@@ -59,6 +59,24 @@ class GitHubClient:
         self._timeout = timeout
         self._rate_limit: Optional[RateLimitInfo] = None
 
+    def _open(self, req: urllib.request.Request):
+        """Open a URL with SSRF-safe redirect handling.
+
+        Redirects outside the GitHub API base URL are blocked.
+        Tests can mock this method to avoid network calls.
+        """
+
+        class _SafeRedirectHandler(urllib.request.HTTPRedirectHandler):
+            def redirect_request(self2, req, fp, code, msg, headers, newurl):
+                if not newurl.startswith(_BASE_URL):
+                    raise urllib.error.HTTPError(
+                        newurl, 403, "Redirect outside GitHub API not allowed", headers, None
+                    )
+                return urllib.request.redirect_request(req, fp, code, msg, headers, newurl)
+
+        opener = urllib.request.build_opener(_SafeRedirectHandler)
+        return opener.open(req, timeout=self._timeout)
+
     # ------------------------------------------------------------------
     # Public helpers
     # ------------------------------------------------------------------
@@ -102,6 +120,7 @@ class GitHubClient:
         direction: str = "desc",
         per_page: int = 100,
         since: Optional[datetime] = None,
+        max_prs: int = 0,
     ) -> List[Dict[str, Any]]:
         """List pull requests with automatic pagination.
 
@@ -113,6 +132,7 @@ class GitHubClient:
             direction: ``asc`` or ``desc``.
             per_page: Results per page (max 100).
             since: Only PRs updated after this time.
+            max_prs: Stop after this many PRs (0 = no limit).
 
         Returns:
             Full list of PR dicts from the API.
@@ -126,6 +146,13 @@ class GitHubClient:
         if since is not None:
             params["since"] = since.strftime("%Y-%m-%dT%H:%M:%SZ")
 
+        if max_prs > 0:
+            result: List[Dict[str, Any]] = []
+            for item in self._paginate(f"/repos/{owner}/{repo}/pulls", params):
+                result.append(item)
+                if len(result) >= max_prs:
+                    break
+            return result
         return list(self._paginate(f"/repos/{owner}/{repo}/pulls", params))
 
     def get_pull_request(self, owner: str, repo: str, number: int) -> Dict[str, Any]:
@@ -158,8 +185,22 @@ class GitHubClient:
 
         Handles rate-limit back-off automatically.
         """
-        url = f"{_BASE_URL}{path}" if path.startswith("/") else path
+        if path.startswith("/"):
+            url = f"{_BASE_URL}{path}"
+        else:
+            # Only allow absolute URLs that stay on the GitHub API
+            if not path.startswith(_BASE_URL):
+                raise GitHubAPIError(f"Refused to fetch URL outside GitHub API: {path}")
+            url = path
+
+        # Enforce HTTPS only
+        if not url.startswith("https://"):
+            raise GitHubAPIError(f"Refused non-HTTPS URL: {url}")
+
         headers = self._auth.to_header_dict()
+        # Redact token from logs (issue 25)
+        safe_headers = {k: ("***" if k.lower() == "authorization" else v) for k, v in headers.items()}
+        logger.debug("GitHub API %s %s headers=%s", method, path, safe_headers)
         headers["User-Agent"] = _USER_AGENT
 
         data_bytes = None
@@ -170,7 +211,7 @@ class GitHubClient:
         req = urllib.request.Request(url, data=data_bytes, headers=headers, method=method)
 
         try:
-            with urllib.request.urlopen(req, timeout=self._timeout) as resp:
+            with self._open(req) as resp:
                 raw = resp.read().decode("utf-8")
                 resp_headers = dict(resp.headers)
                 status = resp.status

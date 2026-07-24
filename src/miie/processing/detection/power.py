@@ -271,7 +271,7 @@ def power_proportion_test(
     z_crit = norm.ppf(1 - alpha / 2.0)
 
     # Non-centrality parameter
-    ncp = abs(p - p0) / se_null
+    _ncp = abs(p - p0) / se_null
 
     # Power = P(|Z| > z_crit | H1)
     # Under H1: Z ~ N(ncp, se_alt/se_null ratio)

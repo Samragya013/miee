@@ -8,7 +8,7 @@ internal representation of repository characteristics.
 from __future__ import annotations
 
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any, Dict, FrozenSet, Optional
 
 
@@ -55,8 +55,8 @@ class RepositoryMetadata:
                 return None
             return datetime.fromisoformat(val.replace("Z", "+00:00"))
 
-        created_at = _parse_dt(data.get("created_at")) or datetime.now(datetime.timezone.utc)
-        updated_at = _parse_dt(data.get("updated_at")) or datetime.now(datetime.timezone.utc)
+        created_at = _parse_dt(data.get("created_at")) or datetime.now(timezone.utc)
+        updated_at = _parse_dt(data.get("updated_at")) or datetime.now(timezone.utc)
         pushed_at = _parse_dt(data.get("pushed_at"))
 
         return cls(

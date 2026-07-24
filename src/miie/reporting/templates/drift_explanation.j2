@@ -6,7 +6,7 @@
 
 **Generated at:** {{ analysis_result.get('generated_at', 'unknown') }}
 **Detector:** D-01 (Concept Drift Detector)
-**MIEE Version:** {{ analysis_result.get('miie_version', '1.0.0') }}
+**MIIE Version:** {{ analysis_result.get('miie_version', '1.0.0') }}
 
 ## Executive Summary
 Concept drift analysis completed. {{ drift_detected | yesno("Drift detected","No significant drift detected") }} in the analyzed time window.
@@ -66,7 +66,7 @@ Concept drift analysis completed. {{ drift_detected | yesno("Drift detected","No
 
 **Generated at:** {{ generated_at | default('unknown') }}
 **Detector:** D-01 (Concept Drift Detector)
-**MIEE Version:** {{ miie_version | default('1.0.0') }}
+**MIIE Version:** {{ miie_version | default('1.0.0') }}
 
 ## Executive Summary
 Concept drift analysis completed. No significant drift detected in the analyzed time window.

@@ -211,7 +211,7 @@ class EvaluationEngine(IEvaluationEngine):
             return []
 
         prior_0 = true_labels.count(0) / total
-        prior_1 = true_labels.count(1) / total
+        _prior_1 = true_labels.count(1) / total
 
         # Generate predictions according to class priors
         random.seed(42)

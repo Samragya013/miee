@@ -11,7 +11,7 @@ Reference: PR-7B Phase 4, DES v2.0
 from __future__ import annotations
 
 import logging
-from typing import Dict, List
+from typing import Dict, List, Optional, Tuple
 
 from miie.processing.observation.models import ObservationWindow
 
@@ -117,7 +117,7 @@ class DetectorReadinessAnalyzer:
 
         # Minimum observations across windows
         min_obs = min(obs_per_window.values()) if obs_per_window else 0
-        avg_obs = sum(obs_per_window.values()) / len(obs_per_window) if obs_per_window else 0
+        _avg_obs = sum(obs_per_window.values()) / len(obs_per_window) if obs_per_window else 0
 
         # Check requirements
         obs_ok = min_obs >= reqs["obs_per_window"]
@@ -135,7 +135,7 @@ class DetectorReadinessAnalyzer:
 
         # For D-02, also check metric pairs
         if det_id == "D-02" and actual_metric_pairs < 1:
-            skip_parts.append(f"no metric pairs available " f"(need at least 2 metrics for correlation)")
+            skip_parts.append("no metric pairs available " "(need at least 2 metrics for correlation)")
 
         if not skip_parts:
             # All requirements met

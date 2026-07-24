@@ -123,7 +123,7 @@ def generate_observation_id(source_type: str, source_id: str, metric_id: str) ->
 # ---------------------------------------------------------------------------
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class ObservationProvenance:
     """ODSS §19 — How this observation was produced.
 
@@ -138,7 +138,7 @@ class ObservationProvenance:
     seed: Optional[int] = None
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class ObservationStatistics:
     """ODSS §18 — Aggregated statistics for a window or collection.
 
@@ -165,7 +165,7 @@ class ObservationStatistics:
             raise ValueError(f"std must be finite, got {self.std}")
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class ObservationRelationship:
     """ODSS §20 — Link to a related observation.
 
@@ -183,7 +183,7 @@ class ObservationRelationship:
 # ---------------------------------------------------------------------------
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class Observation:
     """ODSS §9 — The atomic data unit of the MIIE Observation Engine.
 

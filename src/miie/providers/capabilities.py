@@ -55,9 +55,9 @@ class MetricSupport:
 
     def __post_init__(self) -> None:
         if self.min_confidence < 0.0 or self.min_confidence > 1.0:
-            raise ValueError(f"min_confidence must be in [0.0, 1.0]")
+            raise ValueError("min_confidence must be in [0.0, 1.0]")
         if self.max_confidence < 0.0 or self.max_confidence > 1.0:
-            raise ValueError(f"max_confidence must be in [0.0, 1.0]")
+            raise ValueError("max_confidence must be in [0.0, 1.0]")
         if self.min_confidence > self.max_confidence:
             raise ValueError("min_confidence must be <= max_confidence")
 

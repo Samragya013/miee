@@ -9,13 +9,12 @@ from __future__ import annotations
 import json
 import os
 from pathlib import Path
-from typing import Optional
+from typing import Any
 
-from rich.console import Console
 from rich.prompt import Confirm, Prompt
 from rich.table import Table
 
-from .display import console, info_panel, error_panel
+from .display import console, info_panel
 
 # ── Configuration File ─────────────────────────────────────────────────
 CONFIG_DIR = Path.home() / ".miie"
@@ -79,11 +78,11 @@ def add_to_recent(repo_path: str, metadata: dict | None = None) -> None:
 def prompt_repository_source() -> str:
     """Interactive prompt to choose repository source."""
     console.print()
-    console.print("  [bold]Repository Source[/bold]")
-    console.print("  ─" * 20)
-    console.print("  [1] GitHub URL")
-    console.print("  [2] Local path")
-    console.print("  [3] Recent repository")
+    console.print("  [bold cyan]>>[/bold cyan] [bold white]Repository Source[/bold white]")
+    console.print("  [dim]{'-' * 50}[/dim]")
+    console.print("  [dim]1.[/dim] GitHub URL")
+    console.print("  [dim]2.[/dim] Local path")
+    console.print("  [dim]3.[/dim] Recent repository")
 
     choice = Prompt.ask(
         "\n  [bold cyan]Select source[/bold cyan]",
@@ -121,10 +120,7 @@ def prompt_local_path() -> str:
         path = Path(path_str).resolve()
         if (path / ".git").exists():
             return str(path)
-        console.print(
-            f"  [red]Not a git repository: {path}[/red]\n"
-            "  [dim](No .git directory found)[/dim]"
-        )
+        console.print(f"  [red]Not a git repository: {path}[/red]\n" "  [dim](No .git directory found)[/dim]")
         if not Confirm.ask("  [cyan]Try another path?[/cyan]", default=True):
             return str(path)
 
@@ -136,7 +132,7 @@ def prompt_recent_repo() -> str:
         console.print("  [yellow]No recent repositories found.[/yellow]")
         return prompt_local_path()
 
-    table = Table(show_header=True, header_style="bold cyan")
+    table = Table(show_header=True, header_style="bold cyan", padding=(0, 2))
     table.add_column("#", style="dim", width=4)
     table.add_column("Repository", style="bold")
     table.add_column("Last Used", style="dim")
@@ -174,8 +170,8 @@ def run_config_wizard() -> dict:
     info_panel("Configuration Setup", "Configure MIIE settings interactively")
 
     # GitHub Token
-    console.print("\n  [bold]GitHub Authentication[/bold]")
-    console.print("  ─" * 20)
+    console.print("\n  [bold cyan]>>[/bold cyan] [bold white]GitHub Authentication[/bold white]")
+    console.print("  [dim]" + "-" * 50 + "[/dim]")
     current_token = config.get("github_token", os.environ.get("GITHUB_TOKEN", ""))
     if current_token:
         masked = current_token[:4] + "..." + current_token[-4:] if len(current_token) > 8 else "****"
@@ -189,24 +185,26 @@ def run_config_wizard() -> dict:
             config["github_token"] = Prompt.ask("  [bold cyan]GitHub token[/bold cyan]", password=True)
 
     # Default directories
-    console.print("\n  [bold]Directories[/bold]")
-    console.print("  ─" * 20)
+    console.print("\n  [bold cyan]>>[/bold cyan] [bold white]Directories[/bold white]")
+    console.print("  [dim]" + "-" * 50 + "[/dim]")
     config["output_dir"] = Prompt.ask(
         "  [bold cyan]Default output directory[/bold cyan]",
         default=config.get("output_dir", "./output"),
     )
 
     # Parallelism
-    console.print("\n  [bold]Performance[/bold]")
-    console.print("  ─" * 20)
-    config["parallelism"] = int(Prompt.ask(
-        "  [bold cyan]Parallel analysis threads[/bold cyan]",
-        default=str(config.get("parallelism", 1)),
-    ))
+    console.print("\n  [bold cyan]>>[/bold cyan] [bold white]Performance[/bold white]")
+    console.print("  [dim]" + "-" * 50 + "[/dim]")
+    config["parallelism"] = int(
+        Prompt.ask(
+            "  [bold cyan]Parallel analysis threads[/bold cyan]",
+            default=str(config.get("parallelism", 1)),
+        )
+    )
 
     # Theme
-    console.print("\n  [bold]Appearance[/bold]")
-    console.print("  ─" * 20)
+    console.print("\n  [bold cyan]>>[/bold cyan] [bold white]Appearance[/bold white]")
+    console.print("  [dim]" + "-" * 50 + "[/dim]")
     config["theme"] = Prompt.ask(
         "  [bold cyan]Color theme[/bold cyan]",
         choices=["auto", "dark", "light"],
@@ -234,8 +232,8 @@ def confirm_analysis(params: dict) -> bool:
     """Show analysis plan and confirm before execution."""
     from rich.table import Table
 
-    table = Table(show_header=False, border_style="cyan")
-    table.add_column("Parameter", style="bold")
+    table = Table(title="Analysis Plan", show_header=False, border_style="cyan", padding=(0, 2))
+    table.add_column("Parameter", style="bold cyan", width=18)
     table.add_column("Value")
 
     table.add_row("Repository", params.get("repo_path", "?"))

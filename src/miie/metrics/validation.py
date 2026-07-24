@@ -227,7 +227,7 @@ class MetricCollectionValidator:
         # M-03 (churn ratio) should be <= M-02 (commit count) / max_possible
         if "M-03" in results and "M-02" in results:
             m03 = results["M-03"]
-            m02 = results["M-02"]
+            _m02 = results["M-02"]
             if m03.value > 1.0:
                 warnings.append(f"M-03 churn ratio {m03.value:.3f} exceeds 1.0")
 

@@ -1,14 +1,26 @@
 """Git URL parser and cloner for MIIE.
 
 Parses GitHub URLs, validates ownership, and clones repositories with auth support.
+Windows-only: subprocess timeouts, disk cleanup, network retry.
 """
 
+import logging
 import shutil
 import subprocess
 import tempfile
+import time
 from pathlib import Path
 from typing import Optional, Tuple
 from urllib.parse import urlparse
+
+logger = logging.getLogger(__name__)
+
+# Git subprocess timeout (seconds)
+GIT_TIMEOUT = 60
+
+# Network retry configuration
+MAX_RETRIES = 3
+RETRY_BACKOFF = [1, 3, 8]
 
 # GitHub URL patterns
 GITHUB_URL_PATTERNS = [
@@ -85,7 +97,7 @@ class GitURLParser:
 
 
 class GitCloner:
-    """Clone Git repositories with auth support and cleanup."""
+    """Clone Git repositories with auth support, timeout, retry, and cleanup."""
 
     def __init__(self, auth_token: Optional[str] = None, shallow_depth: int = 1):
         """Initialize Git cloner.
@@ -97,27 +109,41 @@ class GitCloner:
         self.auth_token = auth_token
         self.shallow_depth = shallow_depth
 
-    def clone(self, url: str, target_dir: Optional[Path] = None, cleanup_after: bool = False) -> Path:
-        """Clone a GitHub repository.
+    def clone(
+        self,
+        url: str,
+        target_dir: Optional[Path] = None,
+        cleanup_after: bool = False,
+        on_progress=None,
+    ) -> Path:
+        """Clone a GitHub repository with timeout and retry.
 
         Args:
             url: GitHub repository URL
             target_dir: Target directory (creates temp dir if None)
             cleanup_after: Whether to clean up temp dir after analysis
+            on_progress: Optional callback(message: str) for progress updates
 
         Returns:
             Path to cloned repository
 
         Raises:
             ValueError: If URL is invalid
-            RuntimeError: If git clone fails
+            RuntimeError: If git clone fails after all retries
         """
+        def _progress(msg):
+            if on_progress:
+                on_progress(msg)
+            logger.info(msg)
+
         # Validate and parse URL
         owner, repo = GitURLParser.parse(url)
 
         # Determine target directory
+        created_temp = False
         if target_dir is None:
-            target_dir = Path(tempfile.mkdtemp(prefix=f"miiie_{owner}_{repo}_"))
+            target_dir = Path(tempfile.mkdtemp(prefix=f"miie_{owner}_{repo}_"))
+            created_temp = True
         else:
             target_dir = Path(target_dir)
             target_dir.mkdir(parents=True, exist_ok=True)
@@ -137,20 +163,61 @@ class GitCloner:
             cmd.extend(["--depth", str(self.shallow_depth)])
         cmd.extend([clone_url, str(target_dir)])
 
-        # Execute git clone
-        try:
-            result = subprocess.run(
-                cmd,
-                capture_output=True,
-                text=True,
-                encoding="utf-8",
-                errors="replace",
-                check=True,
-            )
-        except subprocess.CalledProcessError as e:
-            error_msg = f"Failed to clone {url}\n"
-            if e.stderr:
-                error_msg += f"Git error: {e.stderr}"
+        _progress(f"Cloning {owner}/{repo} (depth={self.shallow_depth})...")
+
+        # Execute git clone with retry and timeout
+        last_error = None
+        for attempt in range(MAX_RETRIES):
+            try:
+                _result = subprocess.run(
+                    cmd,
+                    capture_output=True,
+                    text=True,
+                    encoding="utf-8",
+                    errors="replace",
+                    check=True,
+                    timeout=GIT_TIMEOUT,
+                )
+                # Clone succeeded
+                if attempt > 0:
+                    logger.info("Clone succeeded on attempt %d/%d", attempt + 1, MAX_RETRIES)
+                _progress(f"Clone complete: {target_dir}")
+                break
+            except subprocess.TimeoutExpired as e:
+                last_error = e
+                _progress(
+                    f"Clone timed out after {GIT_TIMEOUT}s (attempt {attempt+1}/{MAX_RETRIES})"
+                )
+                # Clean up partial clone on timeout
+                if target_dir.exists():
+                    shutil.rmtree(target_dir, ignore_errors=True)
+                if created_temp:
+                    target_dir = Path(tempfile.mkdtemp(prefix=f"miie_{owner}_{repo}_"))
+                    cmd[-1] = str(target_dir)
+                if attempt < MAX_RETRIES - 1:
+                    time.sleep(RETRY_BACKOFF[min(attempt, len(RETRY_BACKOFF) - 1)])
+            except subprocess.CalledProcessError as e:
+                last_error = e
+                error_msg = f"Failed to clone {url}\n"
+                if e.stderr:
+                    error_msg += f"Git error: {e.stderr}"
+                _progress(
+                    f"Clone failed (attempt {attempt+1}/{MAX_RETRIES}): {e}"
+                )
+                if attempt < MAX_RETRIES - 1:
+                    time.sleep(RETRY_BACKOFF[min(attempt, len(RETRY_BACKOFF) - 1)])
+            except Exception as e:
+                last_error = e
+                _progress(
+                    f"Clone error (attempt {attempt+1}/{MAX_RETRIES}): {e}"
+                )
+                if attempt < MAX_RETRIES - 1:
+                    time.sleep(RETRY_BACKOFF[min(attempt, len(RETRY_BACKOFF) - 1)])
+        else:
+            # All retries exhausted
+            error_msg = f"Failed to clone {url} after {MAX_RETRIES} attempts"
+            if last_error:
+                error_msg += f": {last_error}"
             raise RuntimeError(error_msg)
 
         # Setup cleanup if requested
@@ -166,5 +233,6 @@ class GitCloner:
         try:
             if temp_dir.exists():
                 shutil.rmtree(temp_dir)
-        except Exception:
-            pass  # Ignore cleanup errors
+                logger.info("Cleaned up temp dir: %s", temp_dir)
+        except Exception as e:
+            logger.warning("Failed to clean up temp dir %s: %s", temp_dir, e)

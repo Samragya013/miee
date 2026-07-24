@@ -13,6 +13,7 @@ from miie.metrics.contracts import MetricComputer
 from miie.metrics.models import (
     MetricResult,
     ObservationInput,
+    ValidationResult,
 )
 
 

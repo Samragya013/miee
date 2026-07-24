@@ -8,12 +8,11 @@ from __future__ import annotations
 import json
 import os
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
-from rich.console import Console
 from rich.table import Table
 
-from .display import console, print_section, print_kv
+from .display import console, print_section
 
 # ── Config Paths ───────────────────────────────────────────────────────
 CONFIG_DIR = Path.home() / ".miie"

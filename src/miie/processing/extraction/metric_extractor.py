@@ -78,23 +78,23 @@ class MetricExtractor:
             requested = available_metrics
 
         # Build metrics dict: metric_id → {window_id → [aggregated_value]}
-        metrics: Dict[str, Dict[str, List[Optional[float]]]] = {}
+        metrics: Dict[str, Dict[str, List[float]]] = {}
 
         for metric_id in sorted(requested):
-            window_values: Dict[str, List[Optional[float]]] = {}
+            window_values: Dict[str, List[float]] = {}
             for window in windows:
                 values = self._extract_values_for_metric(window, metric_id)
                 if values:
                     aggregated = self._aggregate(metric_id, values)
                     window_values[window.window_id] = [aggregated]
                 else:
-                    window_values[window.window_id] = [None]
+                    window_values[window.window_id] = [0.0]
             metrics[metric_id] = window_values
 
-        # Also include requested metrics not found anywhere as all-None
+        # Also include requested metrics not found anywhere as all-zeros
         for metric_id in sorted(requested):
             if metric_id not in metrics:
-                metrics[metric_id] = {w.window_id: [None] for w in windows}
+                metrics[metric_id] = {w.window_id: [0.0] for w in windows}
 
         return MetricDataFrame(
             repo_id=repo_id,

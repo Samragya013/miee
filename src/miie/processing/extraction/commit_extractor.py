@@ -414,7 +414,7 @@ class CommitExtractor:
         now_iso = datetime.datetime.now(datetime.timezone.utc).isoformat()
         analysis_payload = f"{repo_id}:empty:{now_iso}"
         analysis_id = hashlib.sha256(analysis_payload.encode()).hexdigest()[:16]
-        provenance = ObservationProvenance(
+        _provenance = ObservationProvenance(
             extractor_id=self.EXTRACTOR_ID,
             extraction_timestamp=now_iso,
             seed=seed,

@@ -157,11 +157,11 @@ class AdaptiveWindowBuilder:
             f"Terminal window merge: {last_window.window_id} "
             f"({last_window.observation_count} obs) merged into "
             f"{prev_window.window_id} ({prev_window.observation_count} obs) "
-            f"→ combined {len(merged_observations)} obs"
+            f"combined {len(merged_observations)} obs"
         )
 
         logger.info(
-            "Terminal window merge: %s (%d obs) → %s",
+            "Terminal window merge: %s (%d obs) -> %s",
             last_window.window_id,
             last_window.observation_count,
             prev_window.window_id,

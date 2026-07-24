@@ -45,15 +45,21 @@ def safe_divide(
 def compute_mean(values: Sequence[float]) -> float:
     """Compute the arithmetic mean of a sequence of values.
 
+    Filters out NaN and infinite values before computation.
+
     Args:
         values: Sequence of numeric values
 
     Returns:
-        Arithmetic mean, or 0.0 if the sequence is empty
+        Arithmetic mean, or 0.0 if the sequence is empty or all invalid
     """
     if not values:
         return 0.0
-    return math.fsum(values) / len(values)
+    # Filter out NaN and infinite values to prevent propagation
+    valid = [v for v in values if math.isfinite(v)]
+    if not valid:
+        return 0.0
+    return math.fsum(valid) / len(valid)
 
 
 def compute_std(values: Sequence[float]) -> float:
@@ -79,6 +85,8 @@ def compute_cv(values: Sequence[float]) -> float:
     - If all values are 0 (perfect consistency), CV = 0.0
     - If mean is 0 but values vary, CV = 1.0
 
+    Filters out NaN and infinite values before computation.
+
     Args:
         values: Sequence of numeric values (need at least 2 elements for meaningful CV)
 
@@ -88,18 +96,25 @@ def compute_cv(values: Sequence[float]) -> float:
     if len(values) < 2:
         return 0.0
 
-    mean_val = compute_mean(values)
+    # Filter out non-finite values
+    valid = [v for v in values if math.isfinite(v)]
+    if len(valid) < 2:
+        return 0.0
+
+    mean_val = compute_mean(valid)
     if mean_val != 0:
-        return safe_divide(compute_std(values), abs(mean_val))
+        return safe_divide(compute_std(valid), abs(mean_val))
 
     # Special handling for mean=0
-    if all(v == 0 for v in values):
+    if all(v == 0 for v in valid):
         return 0.0  # Perfect consistency
     return 1.0  # High variance relative to zero mean
 
 
 def compute_clamped(value: float, low: float = 0.0, high: float = 1.0) -> float:
     """Clamp a value to [low, high] range.
+
+    Handles NaN and infinite values by returning the low bound.
 
     Args:
         value: Value to clamp
@@ -109,6 +124,8 @@ def compute_clamped(value: float, low: float = 0.0, high: float = 1.0) -> float:
     Returns:
         Clamped value
     """
+    if not math.isfinite(value):
+        return low
     return max(low, min(high, value))
 
 
@@ -148,11 +165,16 @@ def compute_balance_factor(sizes: Sequence[float]) -> float:
     if len(sizes) == 1:
         return 1.0
 
-    mean_size = compute_mean(sizes)
+    # Filter out non-finite values
+    valid = [s for s in sizes if math.isfinite(s) and s >= 0]
+    if not valid:
+        return 0.0
+
+    mean_size = compute_mean(valid)
     if mean_size <= 0:
         return 0.0
 
-    std_size = compute_std(sizes)
+    std_size = compute_std(valid)
     return compute_clamped(1.0 - min(1.0, std_size / mean_size))
 
 
@@ -213,6 +235,8 @@ def compute_detector_success_factor(successful_runs: int, total_attempts: int) -
     Returns:
         Detector success factor in [0, 1]
     """
+    if total_attempts <= 0:
+        return 0.0
     return safe_divide(float(successful_runs), float(total_attempts))
 
 

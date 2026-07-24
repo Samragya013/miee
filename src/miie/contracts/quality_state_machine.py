@@ -9,9 +9,8 @@ Reference: OVR-v1.0
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
 from datetime import datetime, timezone
-from typing import Callable, Dict, List, Optional, Set, Tuple
+from typing import Dict, List, Optional, Set, Tuple
 
 from miie.contracts.observation_types import (
     VALID_QUALITY_TRANSITIONS,

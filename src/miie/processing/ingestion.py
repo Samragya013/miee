@@ -1,4 +1,5 @@
 import datetime
+import logging
 import subprocess
 from pathlib import Path
 from typing import Optional, Union
@@ -6,7 +7,10 @@ from typing import Optional, Union
 from miie.contracts.errors import IngestionError
 from miie.contracts.interfaces import IIngestionEngine
 from miie.schemas.models import RepositoryContext
-from miie.utils.git import GitCloner, GitURLParser
+from miie.utils.git import GIT_TIMEOUT, GitCloner, GitURLParser
+from miie.utils.workspace import detect_workspace
+
+logger = logging.getLogger(__name__)
 
 
 def validate_repository(repo_path: Union[str, Path]) -> None:
@@ -99,6 +103,7 @@ class RepositoryIngestionEngine(IIngestionEngine):
         cache_dir: Optional[Path] = None,
         keep_cache: bool = False,
         shallow_depth: Optional[int] = None,
+        on_progress=None,
     ) -> RepositoryContext:
         """
         Ingest repository metadata and return a RepositoryContext object.
@@ -109,6 +114,7 @@ class RepositoryIngestionEngine(IIngestionEngine):
             cache_dir: Optional directory for caching (not used in this implementation).
             keep_cache: Whether to keep cache (not used).
             shallow_depth: Optional depth for shallow clone (not used).
+            on_progress: Optional callback(message: str) for progress updates.
 
         Returns:
             RepositoryContext: Populated with repository metadata.
@@ -119,10 +125,10 @@ class RepositoryIngestionEngine(IIngestionEngine):
         # Handle GitHub URLs
         if GitURLParser.is_github_url(repo_path):
             # Clone the repository
-            cloned_path = self._clone_from_url(repo_path, shallow_depth)
+            cloned_path = self._clone_from_url(repo_path, shallow_depth, on_progress=on_progress)
             # Extract metadata from cloned repo
             repo_id = self._get_repo_id(cloned_path)
-            repository_name = self._get_repository_name(cloned_path)
+            _repository_name = self._get_repository_name(cloned_path)
             total_commits = self._get_commit_count(cloned_path)
             first_commit_date = self._get_first_commit_date(cloned_path)
             last_commit_date = self._get_last_commit_date(cloned_path)
@@ -138,22 +144,38 @@ class RepositoryIngestionEngine(IIngestionEngine):
             validate_repository(repo_path)
             path_obj = Path(repo_path) if isinstance(repo_path, str) else repo_path
 
-            # Extract metadata
-            repo_id = self._get_repo_id(path_obj)
-            repository_name = self._get_repository_name(path_obj)
-            total_commits = self._get_commit_count(path_obj)
-            first_commit_date = self._get_first_commit_date(path_obj)
-            last_commit_date = self._get_last_commit_date(path_obj)
-            contributor_count = self._get_contributor_count(path_obj)
-            is_shallow = self._is_shallow_clone(path_obj)
-            is_fork = self._is_fork_repository(path_obj)
-            language_distribution = self._get_language_distribution(path_obj)
-            is_remote = False
-            remote_url = None
+        # Extract metadata
+        repo_id = self._get_repo_id(path_obj)
+        _repository_name = self._get_repository_name(path_obj)
+        total_commits = self._get_commit_count(path_obj)
+        first_commit_date = self._get_first_commit_date(path_obj)
+        last_commit_date = self._get_last_commit_date(path_obj)
+        contributor_count = self._get_contributor_count(path_obj)
+        is_shallow = self._is_shallow_clone(path_obj)
+        is_fork = self._is_fork_repository(path_obj)
+        language_distribution = self._get_language_distribution(path_obj)
+        is_remote = False
+        remote_url = None
+
+        # Empty repo guard
+        if total_commits == 0:
+            raise IngestionError(
+                f"Repository has 0 commits: {path_obj}. "
+                "MIIE requires at least one commit to extract metrics."
+            )
+
+        # Workspace detection (monorepo, pnpm, yarn, etc.)
+        workspace_info = detect_workspace(path_obj)
+        if workspace_info:
+            logger.info(
+                "Detected workspace: %s (%d packages)",
+                workspace_info.tool,
+                len(workspace_info.packages),
+            )
 
         # Construct and return RepositoryContext
         try:
-            return RepositoryContext(
+            ctx = RepositoryContext(
                 repo_id=repo_id,
                 local_path=path_obj.resolve(),
                 is_remote=is_remote,
@@ -166,16 +188,21 @@ class RepositoryIngestionEngine(IIngestionEngine):
                 is_fork=is_fork,
                 language_distribution=language_distribution,
             )
+            # Attach workspace info as extra attribute (not in frozen dataclass)
+            if workspace_info:
+                ctx._workspace_info = workspace_info  # type: ignore[attr-defined]
+            return ctx
         except ValueError as e:
             raise IngestionError(f"Invalid repository context: {e}")
 
-    def _clone_from_url(self, url: str, shallow_depth: Optional[int] = None) -> Path:
+    def _clone_from_url(self, url: str, shallow_depth: Optional[int] = None, on_progress=None) -> Path:
         """
         Clone a GitHub repository from a URL.
 
         Args:
             url: GitHub repository URL.
             shallow_depth: Optional depth for shallow clone.
+            on_progress: Optional callback(message: str) for progress updates.
 
         Returns:
             Path to cloned repository.
@@ -191,7 +218,7 @@ class RepositoryIngestionEngine(IIngestionEngine):
         # Clone the repository
         try:
             cloner = GitCloner(auth_token=self.auth_token, shallow_depth=shallow_depth)
-            cloned_path = cloner.clone(url, temp_dir, cleanup_after=True)
+            cloned_path = cloner.clone(url, temp_dir, cleanup_after=True, on_progress=on_progress)
             return cloned_path
         except Exception as e:
             # Clean up temp dir if it exists
@@ -271,6 +298,7 @@ class RepositoryIngestionEngine(IIngestionEngine):
                 encoding="utf-8",
                 errors="replace",
                 check=True,
+                timeout=GIT_TIMEOUT,
             )
             count_str = result.stdout.strip()
             return int(count_str)
@@ -300,13 +328,14 @@ class RepositoryIngestionEngine(IIngestionEngine):
                 encoding="utf-8",
                 errors="replace",
                 check=True,
+                timeout=GIT_TIMEOUT,
             )
             timestamp_str = result.stdout.strip().split("\n")[0] if result.stdout.strip() else None
             if timestamp_str is None:
                 return None
             timestamp = int(timestamp_str)
             return datetime.datetime.fromtimestamp(timestamp, tz=datetime.timezone.utc)
-        except (subprocess.CalledProcessError, ValueError, IndexError) as e:
+        except (subprocess.CalledProcessError, ValueError, IndexError):
             # If we fail, we return None (optional field)
             return None
 
@@ -330,13 +359,14 @@ class RepositoryIngestionEngine(IIngestionEngine):
                 encoding="utf-8",
                 errors="replace",
                 check=True,
+                timeout=GIT_TIMEOUT,
             )
             timestamp_str = result.stdout.strip()
             if not timestamp_str:
                 return None
             timestamp = int(timestamp_str)
             return datetime.datetime.fromtimestamp(timestamp, tz=datetime.timezone.utc)
-        except (subprocess.CalledProcessError, ValueError) as e:
+        except (subprocess.CalledProcessError, ValueError):
             return None
 
     @staticmethod
@@ -363,6 +393,7 @@ class RepositoryIngestionEngine(IIngestionEngine):
                 encoding="utf-8",
                 errors="replace",
                 check=True,
+                timeout=GIT_TIMEOUT,
             )
             # Each line is a contributor, empty output means 0
             lines = [line for line in result.stdout.strip().split("\n") if line]

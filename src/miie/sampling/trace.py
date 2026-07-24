@@ -10,7 +10,7 @@ Reference: PR-7B Phase 5, DES v2.0
 from __future__ import annotations
 
 import logging
-from typing import Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple
 
 from miie.processing.observation.models import ObservationWindow
 

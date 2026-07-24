@@ -184,7 +184,7 @@ class MetricEngine:
                 # Compute with timing
                 self._diagnostics.start_timer(metric_id)
                 result = computer.compute(obs_list)
-                elapsed = self._diagnostics.stop_timer(metric_id)
+                _elapsed = self._diagnostics.stop_timer(metric_id)
 
                 # Validate result
                 result_validation = self._obs_validator.validate_metric_result(result, computer.metric_definition)

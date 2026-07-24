@@ -80,9 +80,7 @@ COMMIT_CATEGORY_PATTERNS: Tuple[Tuple[str, re.Pattern[str]], ...] = (
 )
 
 # All possible categories (for documentation and H_max computation)
-ALL_CATEGORIES: Tuple[str, ...] = tuple(
-    cat for cat, _ in COMMIT_CATEGORY_PATTERNS
-) + ("other",)
+ALL_CATEGORIES: Tuple[str, ...] = tuple(cat for cat, _ in COMMIT_CATEGORY_PATTERNS) + ("other",)
 
 # Number of possible categories
 VOCABULARY_SIZE: int = len(ALL_CATEGORIES)  # 8

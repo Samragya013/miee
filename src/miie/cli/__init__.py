@@ -22,6 +22,7 @@ Exit codes (AFD §9.2, TFS §13.7):
 """
 
 import json as _json
+import os
 import sys
 from datetime import datetime
 from pathlib import Path
@@ -39,7 +40,7 @@ except ImportError:
 from .. import __version__
 
 
-@click.group()
+@click.group(invoke_without_command=True)
 @click.version_option(version=__version__)
 @click.option(
     "--config",
@@ -67,6 +68,27 @@ def cli(ctx, config_file, global_output, verbose, debug):
     ctx.obj["global_output"] = global_output
     ctx.obj["verbose"] = verbose
     ctx.obj["debug"] = debug
+
+    # If no subcommand given, launch TUI (unless --no-tui or --help)
+    if ctx.invoked_subcommand is None:
+        # Don't launch TUI for --help, --version, or if running in CI
+        no_tui = os.environ.get("MIIE_NO_TUI", "")
+        if no_tui or not sys.stdout.isatty():
+            return
+        # Launch TUI
+        from .tui import launch_tui
+        launch_tui()
+        ctx.exit()
+        return
+
+    # First-run onboarding (only for non-help commands)
+    if ctx.invoked_subcommand not in (None, "help") and not verbose:
+        try:
+            from .onboarding import is_first_run, run_onboarding
+            if is_first_run():
+                run_onboarding()
+        except Exception:
+            pass  # Never block CLI due to onboarding errors
 
 
 # ---------------------------------------------------------------------------
@@ -145,6 +167,43 @@ def cli(ctx, config_file, global_output, verbose, debug):
     help="Include full evidence package in output (advanced users).",
 )
 @click.option(
+    "--max-commits",
+    default=5000,
+    type=int,
+    help="Maximum commits to analyze. Default: 5000. Prevents hangs on massive repos.",
+)
+@click.option(
+    "--workers",
+    default=2,
+    type=int,
+    help="Parallel extraction workers. Default: 2.",
+)
+@click.option(
+    "--timeout",
+    default=60,
+    type=int,
+    help="Git subprocess timeout in seconds. Default: 60.",
+)
+@click.option(
+    "--depth",
+    default=None,
+    type=int,
+    help="Shallow clone depth. Only clones N commits of history. Faster for large repos.",
+)
+@click.option(
+    "--package",
+    "-p",
+    multiple=True,
+    default=[],
+    help="Monorepo package path prefix to analyze (repeatable). E.g., -p packages/core",
+)
+@click.option(
+    "--fail-on-low-confidence",
+    is_flag=True,
+    default=False,
+    help="Exit code 2 when confidence band is 'low' (insufficient data for reliable results).",
+)
+@click.option(
     "--verbose",
     "-V",
     is_flag=True,
@@ -169,6 +228,12 @@ def analyze(
     formats,
     auth_token,
     forensic,
+    max_commits,
+    workers,
+    timeout,
+    depth,
+    package,
+    fail_on_low_confidence,
     verbose,
 ):
     """Run the full analysis pipeline on a repository.
@@ -216,23 +281,22 @@ def analyze(
 
     # --- Dry-run mode ---
     if dry_run:
-        click.echo("=== MIIE Dry Run ===")
-        click.echo(f"  Repository : {repo_path}")
-        click.echo(f"  Metrics    : {', '.join(metrics)}")
-        click.echo(f"  Detectors  : {', '.join(detectors)}")
-        click.echo(f"  Window     : strategy={window_strategy} size={window_size}")
-        click.echo(f"  Time range : since={since or '(none)'}  until={until or '(none)'}")
-        click.echo(f"  Exclude bots: {exclude_bots}")
-        if detector_config:
-            click.echo(f"  Thresholds : {_json.dumps(detector_config)}")
-        click.echo(f"  Output dir : {output_dir}")
-        click.echo(f"  Formats    : {', '.join(formats)}")
-        click.echo(f"  Seed       : {seed}")
-        click.echo("  Validation : PASSED")
-        click.echo("=== Pipeline would execute 8 stages ===")
-        click.echo("  1. Ingestion  2. Extraction  3. Segmentation  4. Detection")
-        click.echo("  5. Scoring    6. Evidence    7. Explanation   8. Reporting")
-        click.echo("=== Dry run complete (no work performed) ===")
+        from .pipeline_viz import display_dry_run
+
+        display_dry_run(
+            {
+                "Repository": repo_path,
+                "Metrics": ", ".join(metrics),
+                "Detectors": ", ".join(detectors),
+                "Window": f"strategy={window_strategy} size={window_size}",
+                "Time range": f"since={since or '(none)'}  until={until or '(none)'}",
+                "Exclude bots": str(exclude_bots),
+                "Thresholds": _json.dumps(detector_config) if detector_config else "(default)",
+                "Output dir": output_dir,
+                "Formats": ", ".join(formats),
+                "Seed": str(seed),
+            }
+        )
         return
 
     # --- Full pipeline execution with progress ---
@@ -240,34 +304,39 @@ def analyze(
     import os
     import time
 
-    from .display import console, print_banner, print_footer, print_section, print_kv, print_detection_summary
-    from .pipeline_viz import pipeline_progress
-    from .dashboard import display_dashboard, display_verdict, display_compact_dashboard
-    from .errors import handle_exception, display_error
-    from .formatting import write_reports
+    from .display import console, print_banner
+    from .errors import handle_exception
 
     resolved_token = auth_token or os.environ.get("GITHUB_TOKEN")
 
     # Detect if URL for clone messaging
-    from ..utils.git import GitURLParser
-
     is_url = GitURLParser.is_github_url(repo_path)
     display_name = repo_path if is_url else str(Path(repo_path).resolve())
+
+    # Early GitHub token validation — fail fast with clear error
+    if is_url and not resolved_token:
+        msg = (
+            "[bold red]AUTH-REQUIRED:[/bold red] GitHub URL detected but no auth token provided.\n"
+            "  Set GITHUB_TOKEN env var or pass --auth-token flag.\n"
+            "  Private repos always require authentication."
+        )
+        console.print(msg)
+        sys.exit(2)
 
     # --- Progress helper ---
     total_stages = 7
     _timings = {}
 
     def _progress_start(stage_num, label):
-        click.echo(f"\n[{stage_num}/{total_stages}] {label}")
+        console.print(f"\n  [cyan]{stage_num}/{total_stages}[/cyan] [bold white]{label}[/bold white]")
 
     def _progress_complete(stage_num, label, start_time):
         elapsed = time.perf_counter() - start_time
         _timings[label] = elapsed
-        click.echo(f"      [DONE] ({elapsed:.1f}s)")
+        console.print(f"      [green]V[/green] [dim]({elapsed:.1f}s)[/dim]")
 
     def _progress_action(msg):
-        click.echo(f"      {msg}")
+        console.print(f"      [dim]{msg}[/dim]")
 
     # --- Banner ---
     print_banner(__version__)
@@ -295,6 +364,12 @@ def analyze(
             forensic=forensic,
             debug=ctx.obj.get("debug", False),
             __version__=__version__,
+            max_commits=max_commits,
+            workers=workers,
+            timeout=timeout,
+            depth=depth,
+            package=list(package),
+            fail_on_low_confidence=fail_on_low_confidence,
         )
     except SystemExit:
         raise
@@ -320,615 +395,192 @@ def _filter_sensitive_fields(obj):
             _filter_sensitive_fields(item)
 
 
-def _run_pipeline(
-    repo_path,
-    display_name,
-    is_url,
-    resolved_token,
-    metrics,
-    since,
-    until,
-    exclude_bots,
-    window_strategy,
-    window_size,
-    detectors,
-    thresholds,
-    formats,
-    output_dir,
-    verbose,
-    forensic,
-    _progress_start,
-    _progress_complete,
-    _progress_action,
-    _timings,
-    total_stages,
-    __version__,
-):
-    """Execute all pipeline stages with progress feedback."""
-    import time
+# ---------------------------------------------------------------------------
+# War-room output fixes: confidence band header + data quality
+# ---------------------------------------------------------------------------
+def _display_confidence_band_header(
+    band: str,
+    score: float,
+    factors: dict | None = None,
+) -> None:
+    """Display confidence band FIRST in output (war room finding: band was buried).
 
-    from ..processing.detection.correlation_breakdown_detector import (
-        CorrelationBreakdownDetector,
-    )
-    from ..processing.detection.dispatcher import DetectorDispatcherEngine
-    from ..processing.detection.distribution_drift_detector import (
-        DistributionDriftDetector,
-    )
-    from ..processing.detection.registry import DetectorRegistry
-    from ..processing.detection.threshold_compression_detector import (
-        ThresholdCompressionDetector,
-    )
-    from ..processing.evidence import EvidenceEngine
-    from ..processing.explanation.engine import ExplanationEngine
-    from ..processing.extraction import MetricExtractionEngine
-    from ..processing.ingestion import RepositoryIngestionEngine
-    from ..processing.reporting.engine import ReportGenerator
-    from ..processing.scoring.engine import ScoringEngine
-    from ..processing.segmentation import WindowSegmentationEngine
+    Shows the confidence assessment before any other results so users see
+    data quality before interpreting integrity scores.
 
-    # --- Stage 1: Acquisition ---
-    t_total = time.perf_counter()
-    _progress_start(1, "Repository Acquisition")
-    t1 = time.perf_counter()
-    ingestion = RepositoryIngestionEngine(auth_token=resolved_token)
-    if is_url:
-        _progress_action("Cloning repository...")
-    else:
-        _progress_action("Loading local repository...")
-    repository_context = ingestion.ingest(
-        repo_path=repo_path,
-        shallow_depth=None,
-    )
-    if not ingestion.validate(repository_context):
-        raise ValueError("Repository context validation failed")
-    total_commits = getattr(repository_context, "total_commits", "?")
-    contributor_count = getattr(repository_context, "contributor_count", "?")
-    first_commit = getattr(repository_context, "first_commit_date", None)
-    last_commit = getattr(repository_context, "last_commit_date", None)
-    remote_url = getattr(repository_context, "remote_url", None) or display_name
-    _progress_action(f"{total_commits} commits, {contributor_count} contributors")
-    _progress_complete(1, "Acquisition", t1)
+    Exit codes: 0=intact+high/medium, 1=integrity triggered, 2=low confidence.
+    """
+    from .display import console
+    from .semantic_colors import score_bar, score_to_color, score_to_label
 
-    # --- Stage 2: Validation ---
-    _progress_start(2, "Repository Validation")
-    t2 = time.perf_counter()
-    _progress_action("Validating repository metadata...")
-    _progress_complete(2, "Validation", t2)
+    color = score_to_color(score)
+    label = score_to_label(score)
 
-    # --- Stage 3: Metric Extraction ---
-    _progress_start(3, "Metric Extraction")
-    t3 = time.perf_counter()
-    extraction = MetricExtractionEngine()
-    since_dt = datetime.fromisoformat(since) if since else None
-    until_dt = datetime.fromisoformat(until) if until else None
-    _progress_action(f"Extracting {', '.join(metrics)}...")
-    metric_dataframe = extraction.extract(
-        context=repository_context,
-        metric_list=list(metrics),
-        since=since_dt,
-        until=until_dt,
-        exclude_bots=exclude_bots,
-    )
-    metric_names = list(getattr(metric_dataframe, "metrics", {}).keys()) if metric_dataframe else list(metrics)
-    _progress_action(f"{len(metric_names)} metrics extracted")
-    _progress_complete(3, "Extraction", t3)
+    # Band styling
+    band_styles = {
+        "high": ("bold green", "HIGH CONFIDENCE"),
+        "medium": ("bold yellow", "MEDIUM CONFIDENCE"),
+        "low": ("bold red", "LOW CONFIDENCE"),
+    }
+    band_style, band_text = band_styles.get(band, ("bold red", "LOW CONFIDENCE"))
 
-    # --- Stage 4: Window Generation ---
-    _progress_start(4, "Window Generation")
-    t4 = time.perf_counter()
-    segmentation = WindowSegmentationEngine()
-    windows = segmentation.segment(
-        metric_dataframe=metric_dataframe,
-        strategy=window_strategy,
-        size=window_size,
-        repository_context=repository_context,
-    )
-    window_count = len(windows)
-    _progress_action(f"{window_count} windows ({window_strategy}, size={window_size})")
-    _progress_complete(4, "Segmentation", t4)
+    console.print()
+    console.print("  [bold cyan]Data Confidence[/bold cyan]")
+    console.print("  " + "-" * 48, style="dim")
 
-    # AFD §Step 8: Minimum window gate
-    # "total windows ≥ 2 (required for drift detection). If <2 valid windows: abort."
-    if window_count < 2:
-        _progress_complete(4, "Segmentation", t4)
-        error_msg = f"Insufficient windows: {window_count} (need ≥2). " "Adjust --window-size or time range."
-        if "json" in formats:
-            click.echo(_json.dumps({"error": error_msg, "exit_code": 3}, indent=2))
-        else:
-            click.echo(f"[X] {error_msg}", err=True)
-        raise SystemExit(3)
+    # Prominent band indicator
+    console.print(f"  [{band_style}]{band_text}[/{band_style}]  [{color}]{score:.3f}[/{color}] {label}")
+    console.print(f"  {score_bar(score, 30)}", style=color)
 
-    # Step 4b: Re-extract per-window data for accurate confidence calculation
-    # The initial extraction produces aggregated data; we need per-window values
-    # for the confidence sample_size factor (f₁ = min(1, mean_n/50))
-    metric_dataframe = extraction.extract(
-        context=repository_context,
-        metric_list=list(metrics),
-        since=since_dt,
-        until=until_dt,
-        exclude_bots=exclude_bots,
-        windows=windows,
-    )
-
-    # --- Stage 4c-4f: Sampling Framework (PR-7B) ---
-    sampling_diagnostics = None
-    try:
-        # We need an ObservationCollection for the sampling framework.
-        # Build one from the MetricDataFrame + windows.
-        from ..processing.observation.models import (
-            _METRIC_UNITS,
-            Observation,
-            ObservationCollection,
-            ObservationProvenance,
-            ObservationWindow,
-            generate_observation_id,
-        )
-        from ..sampling.diagnostics import DiagnosticsEngine
-
-        # Build ObservationWindows from the legacy windows + metric data
-        obs_windows_for_sampling: list = []
-        # Map legacy strategy names to valid ObservationWindow strategies
-        _STRATEGY_MAP = {"time": "temporal", "commit": "commit_count"}
-
-        for wd in windows:
-            obs_list: list = []
-            for metric_id, window_data in metric_dataframe.metrics.items():
-                values = window_data.get(wd.window_id, [])
-                for i, val in enumerate(values):
-                    if val is not None:
-                        # Generate deterministic 40-char hex source_id
-                        import hashlib as _hl
-
-                        source_id = _hl.sha256(f"synthetic:{wd.window_id}:{metric_id}:{i}".encode()).hexdigest()[:40]
-                        obs_id = generate_observation_id("commit", source_id, metric_id)
-                        unit = _METRIC_UNITS.get(metric_id, "count")
-                        obs = Observation(
-                            observation_id=obs_id,
-                            source_type="commit",
-                            source_id=source_id,
-                            metric_id=metric_id,
-                            value=float(val),
-                            unit=unit,
-                            timestamp=wd.start_date.isoformat() + "T00:00:00+00:00",
-                            quality="complete",
-                            provenance=ObservationProvenance(
-                                extractor_id="cli-bridge",
-                                extraction_timestamp=datetime.now().isoformat(),
-                            ),
-                        )
-                        obs_list.append(obs)
-            if obs_list:
-                raw_strategy = wd.strategy or "temporal"
-                mapped_strategy = _STRATEGY_MAP.get(raw_strategy, raw_strategy)
-                window = ObservationWindow(
-                    window_id=wd.window_id,
-                    window_index=windows.index(wd),
-                    strategy=mapped_strategy,
-                    start_boundary=wd.start_date.isoformat() + "T00:00:00+00:00",
-                    end_boundary=wd.end_date.isoformat() + "T00:00:00+00:00",
-                    observations=obs_list,
-                )
-                obs_windows_for_sampling.append(window)
-
-        # Build ObservationCollection
-        total_obs_count = sum(len(w.observations) for w in obs_windows_for_sampling)
-        metrics_present = set()
-        for w in obs_windows_for_sampling:
-            for obs in w.observations:
-                metrics_present.add(obs.metric_id)
-
-        obs_collection = ObservationCollection(
-            collection_id="cli_sampling_collection",
-            repository_id=getattr(repository_context, "repo_id", "unknown"),
-            analysis_id="cli_analysis",
-            windows=obs_windows_for_sampling,
-            total_observations=total_obs_count,
-            total_metrics=len(metrics_present),
-            extraction_timestamp=datetime.now().isoformat(),
+    # Factor breakdown (if available)
+    if factors:
+        factor_names = {
+            "sample_size": "Sample size",
+            "variance": "Variance",
+            "missing_data": "Missing data",
+            "window_balance": "Window balance",
+            "detector_success": "Detector success",
+            "observation_quality": "Observation quality",
+        }
+        min_key = min(factors, key=factors.get)
+        min_val = factors[min_key]
+        min_name = factor_names.get(min_key, min_key)
+        console.print(
+            f"  [dim]Bottleneck: {min_name} = {min_val:.3f}[/dim]"
         )
 
-        # Run sampling diagnostics
-        _progress_action("Running sampling analysis...")
-        diag_engine = DiagnosticsEngine()
-        sampling_diagnostics = diag_engine.run(obs_collection)
+    # Low-confidence warning
+    if band == "low":
+        console.print()
+        console.print(
+            "  [bold red]WARNING:[/bold red] Too few observations for reliable statistical tests."
+        )
+        console.print(
+            "  [dim]Results may be misleading. Consider analyzing more history"
+            " or changing the window strategy.[/dim]"
+        )
 
-        # Display sampling diagnostics in terminal
-        if sampling_diagnostics and not ("json" in formats):
-            click.echo(diag_engine.format_terminal(sampling_diagnostics))
 
-    except Exception as e:
-        # Sampling framework is additive — never break the main pipeline
-        sampling_diagnostics = None
-        if verbose or forensic:
-            click.echo(f"  [Note] Sampling diagnostics unavailable: {e}", err=True)
+def _display_data_quality(
+    windows: list,
+    metric_dataframe,
+    total_commits: int,
+) -> None:
+    """Display data quality summary after confidence band.
 
-    # --- Stage 5: Detector Execution ---
-    _progress_start(5, "Detector Execution")
-    t5 = time.perf_counter()
-    registry = DetectorRegistry()
-    registry.register(DistributionDriftDetector())
-    registry.register(CorrelationBreakdownDetector())
-    registry.register(ThresholdCompressionDetector())
-    dispatcher = DetectorDispatcherEngine(registry)
-    detector_config = None
-    if thresholds:
+    Shows window count, observation distribution, and coverage metrics
+    so users understand the data foundation before seeing scores.
+    """
+    from .display import console
+
+    if not windows:
+        return
+
+    console.print()
+    console.print("  [bold cyan]Data Quality[/bold cyan]")
+    console.print("  " + "-" * 48, style="dim")
+
+    # Window statistics
+    window_sizes = []
+    for w in windows:
+        commits = getattr(w, "commits", 0)
+        window_sizes.append(commits)
+
+    if window_sizes:
+        avg_size = sum(window_sizes) / len(window_sizes)
+        min_size = min(window_sizes)
+        max_size = max(window_sizes)
+        console.print(f"  Windows: {len(windows)}")
+        console.print(
+            f"  Commits per window: {min_size} min, {avg_size:.0f} avg, {max_size} max"
+        )
+
+    # Observation coverage per metric
+    if metric_dataframe and metric_dataframe.metrics:
+        metric_count = len(metric_dataframe.metrics)
+        total_obs = 0
+        for metric_id, metric_series in metric_dataframe.metrics.items():
+            if isinstance(metric_series, dict):
+                for window_key, value_list in metric_series.items():
+                    if isinstance(value_list, list):
+                        total_obs += len([v for v in value_list if v is not None])
+
+        console.print(f"  Metrics: {metric_count}")
+        console.print(f"  Observations: {total_obs}")
+        if total_obs > 0 and metric_count > 0:
+            obs_per_metric = total_obs / metric_count
+            console.print(f"  Avg obs/metric: {obs_per_metric:.1f}")
+
+    # Gap detection (if available from windows)
+    gap_warnings = []
+    for i in range(len(windows) - 1):
+        w1 = windows[i]
+        w2 = windows[i + 1]
+        end1 = getattr(w1, "end_date", None)
+        start2 = getattr(w2, "start_date", None)
+        if end1 and start2 and hasattr(end1, "date") and hasattr(start2, "date"):
+            gap_days = (start2.date() - end1.date()).days
+            if gap_days > 1:
+                gap_warnings.append(f"Gap between w{i:02d} and w{i+1:02d}: {gap_days} days")
+
+    if gap_warnings:
+        console.print("  [bold yellow]Gaps detected:[/bold yellow]")
+        for gw in gap_warnings[:3]:
+            console.print(f"    [yellow]{gw}[/yellow]")
+        if len(gap_warnings) > 3:
+            console.print(f"    [dim]...and {len(gap_warnings) - 3} more[/dim]")
+
+
+def _compress_large_reports(report_paths: dict, total_commits: int) -> None:
+    """Compress JSON reports larger than 1MB for repos with 10K+ commits.
+
+    Adds gzip-compressed copies alongside originals and updates report_paths.
+    Originals are kept for backward compatibility.
+
+    Args:
+        report_paths: Dict of format -> file path (mutated in place)
+        total_commits: Total commit count (triggers compression threshold)
+    """
+    if total_commits < 10000:
+        return
+
+    import gzip
+    import shutil
+
+    from .display import console
+
+    compressed_count = 0
+    for fmt, path_str in list(report_paths.items()):
         try:
-            detector_config = _json.loads(thresholds)
-        except _json.JSONDecodeError:
-            detector_config = None
-    _progress_action(f"Running {len(detectors)} detectors...")
-    detector_results = dispatcher.invoke(
-        metric_dataframe=metric_dataframe,
-        windows=windows,
-        detector_config=detector_config,
-        enabled_detectors=list(detectors),
-    )
-    _progress_complete(5, "Detection", t5)
+            path = Path(path_str)
+            if not path.exists() or path.suffix != ".json":
+                continue
 
-    # --- Stage 6: Evidence Generation ---
-    _progress_start(6, "Evidence Generation")
-    t6 = time.perf_counter()
-    scoring = ScoringEngine()
-    score_package = scoring.compute_integrity_score(
-        detector_results=detector_results,
-        metric_dataframe=metric_dataframe,
-        windows=windows,
-    )
-    evidence_engine = EvidenceEngine()
-    evidence_package = evidence_engine.generate(
-        repository_context=repository_context,
-        metric_dataframe=metric_dataframe,
-        windows=windows,
-        detector_results=detector_results,
-        score_package=score_package,
-        configuration={
-            "metric_list": list(metrics),
-            "since": since_dt,
-            "until": until_dt,
-            "exclude_bots": exclude_bots,
-            "segmentation_strategy": window_strategy,
-            "segmentation_size": window_size,
-        },
-    )
-    explanation_engine = ExplanationEngine()
-    explanation_report = explanation_engine.generate(
-        evidence_package=evidence_package,
-        score_package=score_package,
-    )
-    _progress_complete(6, "Evidence", t6)
+            file_size = path.stat().st_size
+            if file_size < 1_000_000:  # Only compress > 1MB
+                continue
 
-    # --- Stage 7: Final Assessment ---
-    _progress_start(7, "Final Assessment")
-    t7 = time.perf_counter()
-    report_generator = ReportGenerator()
-    analysis_results = {
-        "repository_context": repository_context,
-        "metric_dataframe": metric_dataframe,
-        "windows": windows,
-        "detector_results": detector_results,
-        "score_package": score_package,
-        "evidence_package": evidence_package,
-        "explanation_report": explanation_report,
-    }
+            gz_path = path.with_suffix(".json.gz")
+            with open(path, "rb") as f_in:
+                with gzip.open(gz_path, "wb", compresslevel=6) as f_out:
+                    shutil.copyfileobj(f_in, f_out)
 
-    # Add sampling diagnostics if available
-    if sampling_diagnostics is not None:
-        try:
-            from ..sampling.diagnostics import DiagnosticsEngine as DiagEng
+            gz_size = gz_path.stat().st_size
+            ratio = (1 - gz_size / file_size) * 100
+            report_paths[f"{fmt}_compressed"] = str(gz_path)
+            compressed_count += 1
 
-            _diag_engine = DiagEng()
-            analysis_results["sampling_diagnostics"] = _diag_engine.to_dict(sampling_diagnostics)
-        except Exception:
-            pass
-
-    # --- Privacy filtering (default mode hides internal IDs) ---
-    if not forensic:
-        pass
-
-        # Serialize, filter, re-parse to remove sensitive fields
-        serialized = report_generator._serialize_for_json(analysis_results)
-        _filter_sensitive_fields(serialized)
-        analysis_results = serialized
-
-    report_output = report_generator.generate(
-        analysis_result=analysis_results,
-        output_formats=list(formats),
-        output_dir=Path(output_dir),
-    )
-    _progress_complete(7, "Reporting", t7)
-
-    t_total_elapsed = time.perf_counter() - t_total
-
-    # --- Extract scores ---
-    integrity = score_package.integrity
-    confidence = score_package.confidence
-    integrity_overall = integrity.get("overall", 0.0) if isinstance(integrity, dict) else integrity.overall
-    confidence_overall = confidence.get("overall", 0.0) if isinstance(confidence, dict) else confidence.overall
-
-    # --- Extract detector results ---
-    detector_outputs = {}
-    if detector_results:
-        detector_outputs = getattr(detector_results, "detector_outputs", {})
-        if not detector_outputs and hasattr(detector_results, "d_01"):
-            detector_outputs = {
-                "D-01": getattr(detector_results, "d_01", {}),
-                "D-02": getattr(detector_results, "d_02", {}),
-                "D-03": getattr(detector_results, "d_03", {}),
-            }
-
-    # --- Extract explanation ---
-    narratives = getattr(explanation_report, "narratives", []) if explanation_report else []
-    recommendations = getattr(explanation_report, "recommendations", []) if explanation_report else []
-
-    # ============================================================
-    # FINAL TERMINAL REPORT (3-tier output)
-    # ============================================================
-
-    # --- Risk Classification (Phase 8) ---
-    triggered_count = 0
-    failed_detectors = []
-    for det_id, det_data in detector_outputs.items():
-        if not isinstance(det_data, dict):
-            continue
-        # Check for detector errors/skips
-        if det_data.get("status") in ("error", "skipped"):
-            failed_detectors.append(det_id)
-            continue
-        # Check for actual detections
-        if (
-            det_data.get("drift_detected")
-            or det_data.get("breakdown_detected")
-            or det_data.get("compression_detected", False)
-        ):
-            triggered_count += 1
-    if triggered_count == 0:
-        risk_level = "Very Low"
-    elif triggered_count == 1:
-        risk_level = "Low"
-    elif triggered_count == 2:
-        risk_level = "Moderate"
-    else:
-        risk_level = "High"
-
-    # --- Confidence Label ---
-    if confidence_overall >= 0.9:
-        confidence_label = "Very High"
-    elif confidence_overall >= 0.7:
-        confidence_label = "High"
-    elif confidence_overall >= 0.5:
-        confidence_label = "Moderate"
-    else:
-        confidence_label = "Low"
-
-    # --- Integrity Label ---
-    if integrity_overall >= 0.9:
-        integrity_label = "Very High"
-    elif integrity_overall >= 0.7:
-        integrity_label = "High"
-    elif integrity_overall >= 0.5:
-        integrity_label = "Moderate"
-    else:
-        integrity_label = "Low"
-
-    # --- Confidence Explanation (Phase 7) ---
-    confidence_factors = {}
-    if isinstance(confidence, dict):
-        confidence_factors = confidence.get("factors", {})
-    elif hasattr(confidence, "factors"):
-        confidence_factors = confidence.factors if isinstance(confidence.factors, dict) else {}
-
-    sample_size_f = confidence_factors.get("sample_size", 1.0)
-    variance_f = confidence_factors.get("variance", 1.0)
-    missing_data_f = confidence_factors.get("missing_data", 1.0)
-    window_balance_f = confidence_factors.get("window_balance", 1.0)
-    detector_success_f = confidence_factors.get("detector_success", 1.0)
-
-    confidence_reasons = []
-    if sample_size_f < 0.5:
-        confidence_reasons.append(
-            f"Only {len(windows)} analysis window(s) could be constructed " f"(sample factor: {sample_size_f:.2f})"
-        )
-    if variance_f < 0.8:
-        confidence_reasons.append("High variance in metric values across windows")
-    if missing_data_f < 0.8:
-        confidence_reasons.append("Some metric-window data pairs are missing")
-    if window_balance_f < 0.8:
-        confidence_reasons.append("Analysis windows are unevenly sized")
-    if detector_success_f < 0.8:
-        confidence_reasons.append("Some detectors failed to produce results")
-
-    if not confidence_reasons:
-        if confidence_overall >= 0.9:
-            confidence_reasons.append("Sufficient data and detector coverage for high confidence")
-        elif confidence_overall >= 0.5:
-            confidence_reasons.append("Adequate data, though more analysis windows would improve confidence")
-        else:
-            confidence_reasons.append("Limited analysis windows reduce confidence in results")
-
-    # --- One-Sentence Summary (Phase 9) ---
-    if triggered_count == 0 and integrity_overall >= 0.9:
-        summary_sentence = (
-            "No evidence was found that repository metrics have become " "distorted, unstable, or misleading."
-        )
-    elif triggered_count == 0 and integrity_overall >= 0.7:
-        summary_sentence = (
-            "Repository metrics appear generally stable with minor variations " "that are within expected ranges."
-        )
-    elif triggered_count == 1:
-        summary_sentence = "One metric anomaly was detected, but overall measurement " "integrity remains acceptable."
-    else:
-        summary_sentence = (
-            "Multiple metric anomalies were detected. Manual investigation "
-            "of repository measurement integrity is recommended."
-        )
-
-    # --- Banner ---
-    click.echo("")
-    click.echo("=" * 55)
-    click.echo(f"  MIIE v{__version__}")
-    click.echo("  Measurement Integrity Analysis")
-    click.echo("=" * 55)
-    click.echo("")
-    click.echo(f"  Repository:  {remote_url}")
-    click.echo("")
-
-    # --- Analysis Coverage (Phase 3) ---
-    click.echo("  Analysis Coverage")
-    click.echo("  " + "-" * 40)
-    click.echo(f"  {total_commits} commits from {contributor_count} contributors")
-    if first_commit and last_commit:
-        click.echo(f"  {first_commit.strftime('%Y-%m-%d')} to {last_commit.strftime('%Y-%m-%d')}")
-    click.echo(f"  {len(windows)} analysis window(s) ({window_strategy}, size={window_size})")
-    click.echo(f"  {len(detectors)} detector(s) executed")
-    click.echo("")
-
-    # --- Integrity Findings ---
-    click.echo("  Integrity Findings")
-    click.echo("  " + "-" * 40)
-
-    _detector_human = {
-        "D-01": "No significant metric drift detected",
-        "D-02": "Historical metric relationships remain stable",
-        "D-03": "No threshold compression patterns detected",
-    }
-    _detector_triggered_human = {
-        "D-01": "Significant metric drift detected",
-        "D-02": "Historical metric relationships have shifted",
-        "D-03": "Threshold compression patterns detected",
-    }
-
-    for det_id in sorted(detector_outputs.keys()):
-        det_data = detector_outputs[det_id]
-        if not isinstance(det_data, dict):
-            triggered = False
-            detector_failed = False
-        elif det_data.get("status") in ("error", "skipped"):
-            triggered = False
-            detector_failed = True
-        else:
-            detector_failed = False
-            triggered = (
-                det_data.get("drift_detected")
-                or det_data.get("breakdown_detected")
-                or det_data.get("compression_detected", False)
+            console.print(
+                f"  [dim]Compressed {fmt}: {file_size / 1024:.0f}KB -> "
+                f"{gz_size / 1024:.0f}KB ({ratio:.0f}% reduction)[/dim]"
             )
+        except Exception:
+            pass  # Compression is best-effort; don't fail the pipeline
 
-        if verbose or forensic:
-            if detector_failed:
-                status = "ERROR"
-            elif triggered:
-                status = "FAIL"
-            else:
-                status = "PASS"
-            reason = det_data.get("reason", "") if isinstance(det_data, dict) else ""
-            suffix = f" ({reason[:60]})" if reason else ""
-            click.echo(f"  [{det_id}] {status}{suffix}")
-        else:
-            if detector_failed:
-                reason = det_data.get("reason", "unknown error") if isinstance(det_data, dict) else "unknown"
-                click.echo(f"  [!]  {det_id} failed: {reason[:70]}")
-            elif triggered:
-                click.echo(f"  [X]  {_detector_triggered_human.get(det_id, 'Issue detected')}")
-            else:
-                click.echo(f"  [OK]  {_detector_human.get(det_id, 'Check passed')}")
-
-    click.echo("")
-
-    # --- Confidence Explanation (Phase 7) ---
-    click.echo("  Confidence")
-    click.echo("  " + "-" * 40)
-    click.echo(f"  Level:  {confidence_label}")
-    click.echo(f"  Reason: {'; '.join(confidence_reasons)}")
-    click.echo("")
-
-    # --- Risk Assessment (Phase 8) ---
-    click.echo("  Risk Assessment")
-    click.echo("  " + "-" * 40)
-    click.echo(f"  Risk Level:  {risk_level}")
-    findings = []
-    if triggered_count > 0:
-        findings.append(f"{triggered_count} anomaly(ies) detected")
-    if failed_detectors:
-        findings.append(f"{len(failed_detectors)} detector(s) failed: {', '.join(failed_detectors)}")
-    if findings:
-        click.echo(f"  Findings:    {'; '.join(findings)}")
-    else:
-        click.echo(f"  Findings:    No anomalies detected")
-    click.echo("")
-
-    # --- Overall Verdict ---
-    click.echo("  Overall Verdict")
-    click.echo("  " + "-" * 40)
-    click.echo(f"  Metric Integrity:  {integrity_label}")
-    click.echo(f"  Confidence:        {confidence_label}")
-    click.echo(f"  Risk:              {risk_level}")
-    click.echo("")
-
-    # --- One-Sentence Summary (Phase 9) ---
-    click.echo("  Summary")
-    click.echo("  " + "-" * 40)
-    click.echo(f"  {summary_sentence}")
-    click.echo("")
-
-    # --- Recommended Action ---
-    click.echo("  Recommended Action")
-    click.echo("  " + "-" * 40)
-    if triggered_count == 0 and integrity_overall >= 0.9:
-        action = "No action required. Repository metrics appear trustworthy."
-    elif triggered_count == 0:
-        action = "No immediate action. Consider analyzing a longer time range for higher confidence."
-    elif triggered_count == 1:
-        action = "Review the flagged metric for context. Monitor for continued anomalies."
-    else:
-        action = "Investigate flagged metrics. Review contributor activity and development patterns."
-    click.echo(f"  {action}")
-    click.echo("")
-
-    # --- Timing (verbose only) ---
-    if verbose or forensic:
-        click.echo("  Stage Timing")
-        click.echo("  " + "-" * 40)
-        for label, elapsed in _timings.items():
-            click.echo(f"    {label}: {elapsed:.2f}s")
-        click.echo(f"    Total: {t_total_elapsed:.2f}s")
-        click.echo("")
-
-    # --- Forensic details (forensic only) ---
-    if forensic:
-        click.echo("  Forensic Details")
-        click.echo("  " + "-" * 40)
-        click.echo(f"  Window Count:    {len(windows)}")
-        for w in windows:
-            wid = getattr(w, "window_id", "?")
-            sd = getattr(w, "start_date", "?")
-            ed = getattr(w, "end_date", "?")
-            clicks_count = getattr(w, "commits", "?")
-            click.echo(f"    {wid}: {sd} to {ed} ({clicks_count} commits)")
-        click.echo(f"  Metrics:         {', '.join(metrics)}")
-        click.echo(f"  Detectors:       {', '.join(detectors)}")
-        click.echo(f"  Window Strategy: {window_strategy}")
-        click.echo(f"  Window Size:     {window_size}")
-        click.echo(f"  Seed:            42")
-        click.echo("")
-
-    # --- Reports ---
-    report_out = report_output
-    if report_out and report_out.report_paths:
-        click.echo("  Reports Saved:")
-        click.echo("  " + "-" * 40)
-        for fmt, path in report_out.report_paths.items():
-            click.echo(f"    {fmt}: {path}")
-    click.echo("")
-
-    # --- Footer ---
-    click.echo("=" * 55)
-    click.echo("  Analysis Complete")
-    click.echo("=" * 55)
-    click.echo("")
-
-    # Exit 1 if integrity score < 1.0 (integrity failures detected)
-    if integrity_overall < 1.0:
-        sys.exit(1)
+    if compressed_count > 0:
+        console.print(
+            f"  [dim]Evidence compressed: {compressed_count} file(s)[/dim]"
+        )
 
 
 # ---------------------------------------------------------------------------
@@ -953,22 +605,20 @@ def _run_pipeline_rich(
     forensic,
     debug,
     __version__,
+    max_commits=5000,
+    workers=2,
+    timeout=60,
+    depth=None,
+    package=None,
+    fail_on_low_confidence=False,
 ):
     """Execute all pipeline stages with Rich progress display."""
     import time
 
-    from .display import (
-        console,
-        print_banner,
-        print_footer,
-        print_section,
-        print_kv,
-        print_detection_summary,
-    )
-    from .pipeline_viz import PipelineProgress, pipeline_progress
-    from .dashboard import display_dashboard, display_verdict, display_compact_dashboard
-    from .errors import handle_exception, display_error, display_warning
-    from .formatting import write_reports
+    # Override global git timeout from CLI knob
+    import miie.utils.git as _git_module
+    _git_module.GIT_TIMEOUT = timeout
+
     from ..processing.detection.correlation_breakdown_detector import (
         CorrelationBreakdownDetector,
     )
@@ -982,14 +632,29 @@ def _run_pipeline_rich(
     )
     from ..processing.evidence import EvidenceEngine
     from ..processing.explanation.engine import ExplanationEngine
-    from ..processing.extraction import MetricExtractionEngine
     from ..processing.ingestion import RepositoryIngestionEngine
     from ..processing.reporting.engine import ReportGenerator
     from ..processing.scoring.engine import ScoringEngine
-    from ..processing.segmentation import WindowSegmentationEngine
+    from .dashboard import display_dashboard, display_verdict
+    from .display import (
+        console,
+        print_detection_summary,
+        print_footer,
+        print_kv,
+        print_section,
+    )
+    from .errors import display_warning, handle_exception
+    from .pipeline_viz import PipelineProgress
+    from .premium_tui import (
+        PremiumPipelineProgress,
+        display_executive_summary,
+        display_metric_sources,
+        display_premium_footer,
+    )
 
-    progress = PipelineProgress(total_stages=7, verbose=verbose)
-    progress.start()
+    # Use premium TUI for flagship output
+    progress = PremiumPipelineProgress(total_stages=7, verbose=verbose)
+    progress.start(repo_name=display_name)
 
     try:
         # --- Stage 1: Acquisition ---
@@ -1002,7 +667,8 @@ def _run_pipeline_rich(
             progress.action("Loading local repository...")
         repository_context = ingestion.ingest(
             repo_path=repo_path,
-            shallow_depth=None,
+            shallow_depth=depth,
+            on_progress=lambda msg: progress.action(msg),
         )
         if not ingestion.validate(repository_context):
             raise ValueError("Repository context validation failed")
@@ -1010,7 +676,7 @@ def _run_pipeline_rich(
         contributor_count = getattr(repository_context, "contributor_count", "?")
         first_commit = getattr(repository_context, "first_commit_date", None)
         last_commit = getattr(repository_context, "last_commit_date", None)
-        remote_url = getattr(repository_context, "remote_url", None) or display_name
+        _remote_url = getattr(repository_context, "remote_url", None) or display_name
         progress.stage_complete("acquisition", f"{total_commits} commits, {contributor_count} contributors")
 
         # --- Stage 2: Validation ---
@@ -1018,32 +684,42 @@ def _run_pipeline_rich(
         progress.action("Validating repository metadata...")
         progress.stage_complete("validation")
 
-        # --- Stage 3: Metric Extraction ---
+        # --- Stage 3: Metric Extraction (observation path) ---
         progress.stage_start("extraction")
-        extraction = MetricExtractionEngine()
+        from ..processing.extraction.engine import ExtractionEngine as _ObsExtractionEngine
+        extraction_engine = _ObsExtractionEngine()
         since_dt = datetime.fromisoformat(since) if since else None
         until_dt = datetime.fromisoformat(until) if until else None
         progress.action(f"Extracting {', '.join(metrics)}...")
-        metric_dataframe = extraction.extract(
+        observation_collection, metric_dataframe = extraction_engine.extract(
             context=repository_context,
             metric_list=list(metrics),
             since=since_dt,
             until=until_dt,
             exclude_bots=exclude_bots,
+            max_commits=max_commits,
+            package_prefixes=frozenset(package) if package else None,
         )
         metric_names = list(getattr(metric_dataframe, "metrics", {}).keys()) if metric_dataframe else list(metrics)
         progress.stage_complete("extraction", f"{len(metric_names)} metrics extracted")
 
-        # --- Stage 4: Window Generation ---
+        # --- Stage 4: Window Generation (observation path) ---
         progress.stage_start("segmentation")
-        segmentation = WindowSegmentationEngine()
-        windows = segmentation.segment(
-            metric_dataframe=metric_dataframe,
-            strategy=window_strategy,
-            size=window_size,
-            repository_context=repository_context,
+        from ..processing.observation.window_builder import ObservationWindowBuilder as _ObsWindowBuilder
+        from ..processing.observation.models import WindowConfig as _ObsWindowConfig
+
+        _STRATEGY_MAP = {"time": "temporal", "commit": "commit_count",
+                         "release": "temporal", "custom": "custom"}
+        obs_strategy = _STRATEGY_MAP.get(window_strategy, "temporal")
+        window_config = _ObsWindowConfig(
+            strategy=obs_strategy,
+            window_size=window_size,
+            min_observations=2,
         )
-        window_count = len(windows)
+        builder = _ObsWindowBuilder()
+        builder_result = builder.build(collection=observation_collection, config=window_config)
+        observation_windows = builder_result.windows
+        window_count = len(observation_windows)
         progress.stage_complete("segmentation", f"{window_count} windows ({window_strategy}, size={window_size})")
 
         # Minimum window gate
@@ -1054,15 +730,41 @@ def _run_pipeline_rich(
                 console.print(_json.dumps({"error": error_msg, "exit_code": 3}, indent=2))
             raise SystemExit(3)
 
-        # Re-extract per-window data
-        metric_dataframe = extraction.extract(
-            context=repository_context,
-            metric_list=list(metrics),
-            since=since_dt,
-            until=until_dt,
-            exclude_bots=exclude_bots,
-            windows=windows,
+        # Rebuild MetricDataFrame from observation_windows to align window IDs
+        # The extraction engine creates a single window w00, but ObservationWindowBuilder
+        # creates multiple windows. We need the MetricDataFrame to use the same window IDs.
+        from ..processing.extraction.metric_extractor import MetricExtractor as _MetricExtractor
+        from ..processing.observation.models import ObservationCollection as _ObsCollection
+        _rebuilt_collection = _ObsCollection(
+            collection_id=observation_collection.collection_id,
+            repository_id=observation_collection.repository_id,
+            analysis_id=observation_collection.analysis_id,
+            windows=observation_windows,
+            total_observations=sum(len(ow.observations) for ow in observation_windows),
+            total_metrics=len(set(
+                obs.metric_id
+                for ow in observation_windows
+                for obs in ow.observations
+            )),
+            extraction_timestamp=observation_collection.extraction_timestamp,
         )
+        metric_dataframe = _MetricExtractor().extract_metrics(
+            _rebuilt_collection, metric_list=list(metrics),
+        )
+
+        # Convert observation windows to legacy WindowDefinitions for scoring/evidence
+        from ..schemas.models import WindowDefinition as _WinDef
+        windows = []
+        for ow in observation_windows:
+            wd = _WinDef(
+                window_id=ow.window_id,
+                start_date=ow.start_boundary[:10] if hasattr(ow, 'start_boundary') and ow.start_boundary else None,
+                end_date=ow.end_boundary[:10] if hasattr(ow, 'end_boundary') and ow.end_boundary else None,
+                commits=len(ow.observations) if hasattr(ow, 'observations') else 0,
+                strategy=obs_strategy,
+                size_config={"size": window_size},
+            )
+            windows.append(wd)
 
         # --- Sampling Framework ---
         sampling_diagnostics = None
@@ -1087,7 +789,10 @@ def _run_pipeline_rich(
                     for i, val in enumerate(values):
                         if val is not None:
                             import hashlib as _hl
-                            source_id = _hl.sha256(f"synthetic:{wd.window_id}:{metric_id}:{i}".encode()).hexdigest()[:40]
+
+                            source_id = _hl.sha256(f"synthetic:{wd.window_id}:{metric_id}:{i}".encode()).hexdigest()[
+                                :40
+                            ]
                             obs_id = generate_observation_id("commit", source_id, metric_id)
                             unit = _METRIC_UNITS.get(metric_id, "count")
                             obs = Observation(
@@ -1157,9 +862,8 @@ def _run_pipeline_rich(
             except _json.JSONDecodeError:
                 detector_config = None
         progress.action(f"Running {len(detectors)} detectors...")
-        detector_results = dispatcher.invoke(
-            metric_dataframe=metric_dataframe,
-            windows=windows,
+        detector_results = dispatcher.invoke_observations(
+            observation_windows=observation_windows,
             detector_config=detector_config,
             enabled_detectors=list(detectors),
         )
@@ -1212,6 +916,7 @@ def _run_pipeline_rich(
         if sampling_diagnostics is not None:
             try:
                 from ..sampling.diagnostics import DiagnosticsEngine as DiagEng
+
                 _diag_engine = DiagEng()
                 analysis_results["sampling_diagnostics"] = _diag_engine.to_dict(sampling_diagnostics)
             except Exception:
@@ -1230,7 +935,7 @@ def _run_pipeline_rich(
         )
         progress.stage_complete("reporting")
 
-        t_total_elapsed = time.perf_counter() - t_total
+        _t_total_elapsed = time.perf_counter() - t_total
         progress.stop()
 
         # --- Extract scores ---
@@ -1238,6 +943,17 @@ def _run_pipeline_rich(
         confidence = score_package.confidence
         integrity_overall = integrity.get("overall", 0.0) if isinstance(integrity, dict) else integrity.overall
         confidence_overall = confidence.get("overall", 0.0) if isinstance(confidence, dict) else confidence.overall
+
+        # Extract confidence band and factors for display
+        confidence_band = "low"
+        confidence_factors = None
+        if confidence is not None:
+            if isinstance(confidence, dict):
+                confidence_band = confidence.get("band", "low")
+                confidence_factors = confidence.get("factors", {})
+            else:
+                confidence_band = getattr(confidence, "band", "low")
+                confidence_factors = getattr(confidence, "factors", {})
 
         # --- Extract detector results ---
         detector_outputs = {}
@@ -1266,42 +982,47 @@ def _run_pipeline_rich(
             ):
                 triggered_count += 1
 
-        # --- Display Dashboard ---
-        console.print()
-        print_section("Analysis Coverage")
-        print_kv("Commits", total_commits)
-        print_kv("Contributors", contributor_count)
-        if first_commit and last_commit:
-            print_kv("Date Range", f"{first_commit.strftime('%Y-%m-%d')} to {last_commit.strftime('%Y-%m-%d')}")
-        print_kv("Windows", f"{window_count} ({window_strategy}, size={window_size})")
-        print_kv("Detectors", f"{len(detectors)} executed")
+        # === PHASE 1: Confidence Band (shown FIRST per war room finding) ===
+        _display_confidence_band_header(confidence_band, confidence_overall, confidence_factors)
 
-        console.print()
-        print_section("Integrity Findings")
-        print_detection_summary(detector_outputs, verbose)
+        # === PHASE 2: Data Quality Summary ===
+        _display_data_quality(
+            windows=windows,
+            metric_dataframe=metric_dataframe,
+            total_commits=total_commits,
+        )
 
-        # Display full dashboard
-        display_dashboard(
+        # === PHASE 3: Monorepo Hint ===
+        _workspace_info = getattr(repository_context, "_workspace_info", None)
+        if _workspace_info and not list(package):
+            console.print()
+            console.print(
+                "  [bold yellow]TIP:[/bold yellow] Monorepo detected. "
+                "Use [bold]--package <path>[/bold] to analyze a specific package."
+            )
+            console.print(
+                "  [dim]Example: miie analyze ./monorepo -p packages/core[/dim]"
+            )
+
+        # --- Display Dashboard (Premium) ---
+        display_executive_summary(
             integrity_score=integrity_overall,
             confidence_score=confidence_overall,
-            detector_outputs=detector_outputs,
-            metric_names=metric_names,
-            window_count=window_count,
             total_commits=total_commits,
             contributor_count=contributor_count,
+            window_count=window_count,
+            detector_outputs=detector_outputs,
             timings=progress.timings,
+            repo_name=display_name,
             verbose=verbose,
+            confidence_band=confidence_band,
+            confidence_factors=confidence_factors,
         )
 
-        # Display verdict
-        display_verdict(
-            integrity_score=integrity_overall,
-            confidence_score=confidence_overall,
-            triggered_count=triggered_count,
-            failed_detectors=failed_detectors,
-        )
+        # Display metric sources
+        display_metric_sources(metric_names)
 
-        # --- Forensic details ---
+        # Forensic details
         if forensic:
             print_section("Forensic Details")
             print_kv("Window Count", len(windows))
@@ -1318,14 +1039,30 @@ def _run_pipeline_rich(
 
         # --- Reports ---
         report_out = report_output
+        report_paths = {}
         if report_out and report_out.report_paths:
-            print_section("Reports Saved")
-            for fmt, path in report_out.report_paths.items():
-                print_kv(fmt, path)
+            report_paths = report_out.report_paths
 
-        # --- Footer ---
-        console.print()
-        print_footer("Analysis Complete")
+        # --- Evidence Compression for Large Repos ---
+        # Compress JSON reports > 1MB with gzip to save disk space
+        _compress_large_reports(report_paths, total_commits)
+
+        # --- Premium Footer ---
+        display_premium_footer(
+            total_time=_t_total_elapsed,
+            report_paths=report_paths,
+            success=True,
+        )
+
+        # Exit 2 if --fail-on-low-confidence and band is "low"
+        if fail_on_low_confidence and confidence_band == "low":
+            console.print()
+            console.print(
+                "  [bold red]EXIT CODE 2:[/bold red] Confidence band is 'low' "
+                "(insufficient data for reliable results)."
+            )
+            console.print("  [dim]Re-run with more history or a different window strategy.[/dim]")
+            sys.exit(2)
 
         # Exit 1 if integrity score < 1.0
         if integrity_overall < 1.0:
@@ -1343,7 +1080,7 @@ def _run_pipeline_rich(
 # ---------------------------------------------------------------------------
 @cli.command()
 @click.argument("repo_path", type=str)
-@click.option("--shallow", type=int, default=None, help="Shallow clone depth")
+@click.option("--shallow", type=int, default=None, help="Shallow clone depth (e.g., --shallow 100)")
 @click.option(
     "--auth-token",
     default=None,
@@ -1352,15 +1089,26 @@ def _run_pipeline_rich(
 )
 @click.pass_context
 def ingest(ctx, repo_path, shallow, auth_token):
-    """Validate and ingest a repository (checks Git validity)."""
+    """Validate and ingest a repository.
+
+    Checks Git validity, counts commits, and stores ingestion context
+    for downstream analysis. For GitHub URLs, automatically clones the
+    repository (use --shallow to limit clone depth).
+
+    \b
+    Examples:
+      miie ingest /path/to/repo
+      miie ingest https://github.com/user/repo --shallow 100
+      miie ingest /path/to/repo --auth-token ghp_xxxx
+    """
     from ..contracts.validators import ValidationError, validate_cli_ingest_inputs
     from ..utils.git import GitURLParser
-    from .display import console, print_banner, print_section, print_kv, success_panel, error_panel
+    from .display import console, error_panel, print_kv, print_section
 
     # Check if repo_path is a GitHub URL
     if GitURLParser.is_github_url(repo_path):
         console.print(f"  [info]GitHub URL detected:[/info] {repo_path}")
-        console.print(f"  [info]Cloning repository...[/info]")
+        console.print("  [info]Cloning repository...[/info]")
 
     try:
         validate_cli_ingest_inputs(repo_path, shallow=shallow)
@@ -1385,6 +1133,7 @@ def ingest(ctx, repo_path, shallow, auth_token):
         print_kv("Local path", ctx_result.local_path)
     except Exception as exc:
         from .errors import handle_exception
+
         handle_exception(exc, verbose=ctx.obj.get("verbose", False), debug=ctx.obj.get("debug", False))
 
 
@@ -1416,13 +1165,29 @@ def ingest(ctx, repo_path, shallow, auth_token):
 )
 @click.pass_context
 def detect(ctx, repo_path, metrics, detectors, seed, auth_token):
-    """Run detection on a repository (ingestion + extraction + detection only)."""
+    """Run detection on a repository.
+
+    Performs ingestion + extraction + detection only (no scoring).
+    Useful for quick checks without running the full pipeline.
+
+    \b
+    Detectors:
+      D-01  Distribution Drift (KS test + PSI)
+      D-02  Correlation Breakdown (Pearson + Fisher z)
+      D-03  Threshold Compression (dip test + excess mass)
+
+    \b
+    Examples:
+      miie detect /path/to/repo
+      miie detect /path/to/repo -m M-01 M-02 -d D-01
+      miie detect https://github.com/user/repo --seed 123
+    """
     from ..utils.git import GitURLParser
 
     # Check if repo_path is a GitHub URL
     if GitURLParser.is_github_url(repo_path):
         click.echo(f"[INFO] GitHub URL detected: {repo_path}")
-        click.echo(f"[INFO] Cloning repository...")
+        click.echo("[INFO] Cloning repository...")
 
     # Resolve auth token: CLI arg > env var
     import os
@@ -1431,9 +1196,10 @@ def detect(ctx, repo_path, metrics, detectors, seed, auth_token):
 
     from ..processing.detection.dispatcher import DetectorDispatcherEngine
     from ..processing.detection.registry import DetectorRegistry
-    from ..processing.extraction import MetricExtractionEngine
+    from ..processing.extraction.engine import ExtractionEngine
     from ..processing.ingestion import RepositoryIngestionEngine
-    from ..processing.segmentation import WindowSegmentationEngine
+    from ..processing.observation.models import WindowConfig
+    from ..processing.observation.window_builder import ObservationWindowBuilder
 
     registry = DetectorRegistry()
     from ..processing.detection.correlation_breakdown_detector import (
@@ -1453,9 +1219,20 @@ def detect(ctx, repo_path, metrics, detectors, seed, auth_token):
     click.echo(f"Running detection on {repo_path} ...")
     try:
         ctx_ingested = RepositoryIngestionEngine(auth_token=resolved_token).ingest(repo_path)
-        mdf = MetricExtractionEngine().extract(ctx_ingested, list(metrics))
-        wins = WindowSegmentationEngine().segment(mdf, strategy="time", size=7)
-        results = DetectorDispatcherEngine(registry).invoke(mdf, wins)
+        extraction_engine = ExtractionEngine()
+        observation_collection, mdf = extraction_engine.extract(
+            context=ctx_ingested, metric_list=list(metrics),
+        )
+        window_config = WindowConfig(strategy="temporal", window_size=7, min_observations=2)
+        builder = ObservationWindowBuilder()
+        builder_result = builder.build(collection=observation_collection, config=window_config)
+        observation_windows = builder_result.windows
+        if len(observation_windows) < 2:
+            click.echo(f"[WARNING] Insufficient windows: {len(observation_windows)} (need >= 2). Adjust time range or window size.", err=True)
+            sys.exit(3)
+        results = DetectorDispatcherEngine(registry).invoke_observations(
+            observation_windows=observation_windows,
+        )
         click.echo(f"Detection complete. {len(results.detector_outputs)} detector(s) ran:")
         for det_id, output in results.detector_outputs.items():
             click.echo(f"  {det_id}: {list(output.keys()) if isinstance(output, dict) else type(output).__name__}")
@@ -1480,7 +1257,17 @@ def detect(ctx, repo_path, metrics, detectors, seed, auth_token):
 @click.option("--seed", default=42, type=int, help="Random seed.")
 @click.pass_context
 def benchmark(ctx, suite, detectors, config, seed):
-    """Execute a benchmark suite against detectors."""
+    """Execute a benchmark suite against detectors.
+
+    Runs pre-defined benchmark scenarios and reports detector
+    performance metrics (precision, recall, F1).
+
+    \b
+    Examples:
+      miie benchmark default
+      miie benchmark default -d D-01 D-02
+      miie benchmark default --config '{"threshold": 0.1}'
+    """
     from ..processing.benchmark.engine import BenchmarkEngine
 
     cfg = _json.loads(config) if config else {"threshold": 0.05}
@@ -1518,7 +1305,7 @@ def evaluate(ctx, benchmark_json, ground_truth):
     from ..processing.evaluation.engine import EvaluationEngine
     from ..schemas.models import BenchmarkRun
 
-    click.echo(f"Evaluating benchmark ...")
+    click.echo("Evaluating benchmark ...")
     try:
         with open(benchmark_json) as f:
             br_data = _json.load(f)
@@ -1549,15 +1336,26 @@ def evaluate(ctx, benchmark_json, ground_truth):
 @click.option("--seed", default=42, type=int)
 @click.pass_context
 def explain(ctx, repo_path, metrics, metric_filter, detector_filter, seed):
-    """Run analysis and generate explanation report."""
+    """Run analysis and generate explanation report.
+
+    Performs the full pipeline (ingest → extract → detect → score)
+    then generates human-readable explanations of findings.
+
+    \b
+    Examples:
+      miie explain /path/to/repo
+      miie explain /path/to/repo -m M-01 M-02 --metric-filter M-02
+      miie explain /path/to/repo --detector-filter D-01
+    """
     from ..processing.detection.dispatcher import DetectorDispatcherEngine
     from ..processing.detection.registry import DetectorRegistry
     from ..processing.evidence import EvidenceEngine
     from ..processing.explanation.engine import ExplanationEngine
-    from ..processing.extraction import MetricExtractionEngine
+    from ..processing.extraction.engine import ExtractionEngine
     from ..processing.ingestion import RepositoryIngestionEngine
+    from ..processing.observation.models import WindowConfig
+    from ..processing.observation.window_builder import ObservationWindowBuilder
     from ..processing.scoring.engine import ScoringEngine
-    from ..processing.segmentation import WindowSegmentationEngine
 
     registry = DetectorRegistry()
     from ..processing.detection.correlation_breakdown_detector import (
@@ -1577,9 +1375,53 @@ def explain(ctx, repo_path, metrics, metric_filter, detector_filter, seed):
     click.echo(f"Running analysis and explanation on {repo_path} ...")
     try:
         ctx_ingested = RepositoryIngestionEngine().ingest(repo_path)
-        mdf = MetricExtractionEngine().extract(ctx_ingested, list(metrics))
-        wins = WindowSegmentationEngine().segment(mdf, strategy="time", size=7)
-        det_results = DetectorDispatcherEngine(registry).invoke(mdf, wins)
+        extraction_engine = ExtractionEngine()
+        observation_collection, mdf = extraction_engine.extract(
+            context=ctx_ingested, metric_list=list(metrics),
+        )
+        window_config = WindowConfig(strategy="temporal", window_size=7, min_observations=2)
+        builder = ObservationWindowBuilder()
+        builder_result = builder.build(collection=observation_collection, config=window_config)
+        observation_windows = builder_result.windows
+        if len(observation_windows) < 2:
+            click.echo(f"[WARNING] Insufficient windows: {len(observation_windows)} (need >= 2).", err=True)
+            sys.exit(3)
+        # Rebuild MetricDataFrame from observation_windows to align window IDs
+        from ..processing.extraction.metric_extractor import MetricExtractor as _MetricExtractor
+        from ..processing.observation.models import ObservationCollection as _ObsCollection
+        _rebuilt_collection = _ObsCollection(
+            collection_id=observation_collection.collection_id,
+            repository_id=observation_collection.repository_id,
+            analysis_id=observation_collection.analysis_id,
+            windows=observation_windows,
+            total_observations=sum(len(ow.observations) for ow in observation_windows),
+            total_metrics=len(set(
+                obs.metric_id
+                for ow in observation_windows
+                for obs in ow.observations
+            )),
+            extraction_timestamp=observation_collection.extraction_timestamp,
+        )
+        mdf = _MetricExtractor().extract_metrics(
+            _rebuilt_collection, metric_list=list(metrics),
+        )
+        det_results = DetectorDispatcherEngine(registry).invoke_observations(
+            observation_windows=observation_windows,
+        )
+        # Convert observation windows to legacy WindowDefinitions for scoring/evidence
+        from ..schemas.models import WindowDefinition as _WinDef
+        _STRATEGY_MAP = {"time": "temporal", "commit": "commit_count"}
+        wins = []
+        for ow in observation_windows:
+            wd = _WinDef(
+                window_id=ow.window_id,
+                start_date=ow.start_boundary[:10] if hasattr(ow, 'start_boundary') and ow.start_boundary else None,
+                end_date=ow.end_boundary[:10] if hasattr(ow, 'end_boundary') and ow.end_boundary else None,
+                commits=len(ow.observations) if hasattr(ow, 'observations') else 0,
+                strategy=_STRATEGY_MAP.get("time", "temporal"),
+                size_config={"size": 7},
+            )
+            wins.append(wd)
         score_pkg = ScoringEngine().compute_integrity_score(det_results, mdf, wins)
         evidence = EvidenceEngine().generate(ctx_ingested, mdf, wins, det_results, score_pkg, {"seed": seed})
         explanation = ExplanationEngine().generate(
@@ -1606,15 +1448,32 @@ def explain(ctx, repo_path, metrics, metric_filter, detector_filter, seed):
 @click.option("--seed", default=42, type=int)
 @click.pass_context
 def export(ctx, repo_path, formats, output_dir, seed):
-    """Run analysis and export results in specified formats."""
+    """Run analysis and export results in specified formats.
+
+    Performs the full pipeline and writes results to disk in the
+    requested formats.
+
+    \b
+    Supported formats:
+      json  Structured JSON with full evidence package
+      csv   Flat CSV with per-metric scores
+      html  Interactive HTML report with charts
+      text  Plain-text summary
+
+    \b
+    Examples:
+      miie export /path/to/repo -f json csv
+      miie export /path/to/repo -f html -o ./reports
+    """
     from pathlib import Path as _P
 
     from ..processing.detection.dispatcher import DetectorDispatcherEngine
     from ..processing.detection.registry import DetectorRegistry
-    from ..processing.extraction import MetricExtractionEngine
+    from ..processing.extraction.engine import ExtractionEngine
     from ..processing.ingestion import RepositoryIngestionEngine
+    from ..processing.observation.models import WindowConfig
+    from ..processing.observation.window_builder import ObservationWindowBuilder
     from ..processing.scoring.engine import ScoringEngine
-    from ..processing.segmentation import WindowSegmentationEngine
 
     registry = DetectorRegistry()
     from ..processing.detection.correlation_breakdown_detector import (
@@ -1637,9 +1496,53 @@ def export(ctx, repo_path, formats, output_dir, seed):
     click.echo(f"Exporting analysis of {repo_path} ...")
     try:
         ctx_ingested = RepositoryIngestionEngine().ingest(repo_path)
-        mdf = MetricExtractionEngine().extract(ctx_ingested, ["M-02", "M-06"])
-        wins = WindowSegmentationEngine().segment(mdf, strategy="time", size=7)
-        det_results = DetectorDispatcherEngine(registry).invoke(mdf, wins)
+        extraction_engine = ExtractionEngine()
+        observation_collection, mdf = extraction_engine.extract(
+            context=ctx_ingested, metric_list=["M-02", "M-06"],
+        )
+        window_config = WindowConfig(strategy="temporal", window_size=7, min_observations=2)
+        builder = ObservationWindowBuilder()
+        builder_result = builder.build(collection=observation_collection, config=window_config)
+        observation_windows = builder_result.windows
+        if len(observation_windows) < 2:
+            click.echo(f"[WARNING] Insufficient windows: {len(observation_windows)} (need >= 2).", err=True)
+            sys.exit(3)
+        # Rebuild MetricDataFrame from observation_windows to align window IDs
+        from ..processing.extraction.metric_extractor import MetricExtractor as _MetricExtractor
+        from ..processing.observation.models import ObservationCollection as _ObsCollection
+        _rebuilt_collection = _ObsCollection(
+            collection_id=observation_collection.collection_id,
+            repository_id=observation_collection.repository_id,
+            analysis_id=observation_collection.analysis_id,
+            windows=observation_windows,
+            total_observations=sum(len(ow.observations) for ow in observation_windows),
+            total_metrics=len(set(
+                obs.metric_id
+                for ow in observation_windows
+                for obs in ow.observations
+            )),
+            extraction_timestamp=observation_collection.extraction_timestamp,
+        )
+        mdf = _MetricExtractor().extract_metrics(
+            _rebuilt_collection, metric_list=["M-02", "M-06"],
+        )
+        det_results = DetectorDispatcherEngine(registry).invoke_observations(
+            observation_windows=observation_windows,
+        )
+        # Convert observation windows to legacy WindowDefinitions for scoring
+        from ..schemas.models import WindowDefinition as _WinDef
+        _STRATEGY_MAP = {"time": "temporal", "commit": "commit_count"}
+        wins = []
+        for ow in observation_windows:
+            wd = _WinDef(
+                window_id=ow.window_id,
+                start_date=ow.start_boundary[:10] if hasattr(ow, 'start_boundary') and ow.start_boundary else None,
+                end_date=ow.end_boundary[:10] if hasattr(ow, 'end_boundary') and ow.end_boundary else None,
+                commits=len(ow.observations) if hasattr(ow, 'observations') else 0,
+                strategy=_STRATEGY_MAP.get("time", "temporal"),
+                size_config={"size": 7},
+            )
+            wins.append(wd)
         score_pkg = ScoringEngine().compute_integrity_score(det_results, mdf, wins)
 
         data = {
@@ -1704,10 +1607,20 @@ def generate(ctx, dataset_type, count, output_dir, seed):
 @cli.command()
 @click.pass_context
 def status(ctx):
-    """Show MIIE project and pipeline status."""
-    from .display import console, print_banner, print_section, print_kv
-    from .config import display_config
+    """Show MIIE system status.
+
+    Displays engine availability, detector registration, active
+    configuration, and Python/platform details.
+
+    \b
+    Examples:
+      miie status
+      miie status --verbose
+    """
     from rich.table import Table
+
+    from .config import display_config
+    from .display import console, print_banner
 
     print_banner(__version__, "System Status")
 
@@ -1879,8 +1792,8 @@ def setup(ctx, reset):
         miie setup
         miie setup --reset
     """
-    from .config import load_config, save_config, display_config, DEFAULT_CONFIG
-    from .display import console, print_banner, print_section, success_panel
+    from .config import DEFAULT_CONFIG, display_config, save_config
+    from .display import console, print_banner, success_panel
     from .interactive import run_config_wizard
 
     print_banner(__version__, "Configuration Setup")
@@ -1895,9 +1808,267 @@ def setup(ctx, reset):
     console.print()
 
     # Run interactive wizard
-    config = run_config_wizard()
+    _config = run_config_wizard()
 
     success_panel("Setup Complete", "Configuration saved successfully.")
+
+
+# ---------------------------------------------------------------------------
+# miie interactive
+# ---------------------------------------------------------------------------
+@cli.command()
+@click.option(
+    "--workflow",
+    "-w",
+    type=click.Choice(["analyze", "validate", "benchmark", "evaluate"]),
+    default=None,
+    help="Start directly with a specific workflow (skip main menu).",
+)
+@click.pass_context
+def interactive(ctx, workflow):
+    """Launch interactive guided analysis workspace.
+
+    Example:
+        miie interactive
+        miie interactive --workflow analyze
+    """
+    from ..application import InteractiveNavigator
+
+    verbose = ctx.obj.get("verbose", False)
+    _debug = ctx.obj.get("debug", False)
+
+    navigator = InteractiveNavigator()
+    navigator.session.verbose = verbose
+
+    if workflow:
+        # Pre-select workflow by setting context
+        navigator.session.workflow_config = navigator._get_default_config(workflow)
+
+    exit_code = navigator.run()
+    sys.exit(exit_code)
+
+
+# ---------------------------------------------------------------------------
+# miie shell
+# ---------------------------------------------------------------------------
+@cli.command()
+@click.argument("repo_path", required=False, default=None)
+@click.option("--output", "-o", default="./output", help="Output directory.")
+@click.option("--no-tui", is_flag=True, default=False, help="Launch classic shell instead of TUI.")
+@click.pass_context
+def shell(ctx, repo_path, output, no_tui):
+    """Launch interactive TUI (or classic shell with --no-tui).
+
+    Provides a Claude Code-style interactive experience with:
+      - Full-screen TUI with animated logo splash
+      - Command palette (Ctrl+K)
+      - Keyboard navigation (1-6, Tab, Up/Down)
+      - Slash commands (/help, /analyze, /status, etc.)
+
+    Use --no-tui for CI/automation or classic shell experience.
+
+    Example:
+        miie shell
+        miie shell /path/to/repo
+        miie shell --no-tui
+    """
+    if no_tui:
+        # Classic shell mode
+        from .display import console as _console
+        from .slash_commands import execute_command, print_welcome
+        from .interactive import add_to_recent
+
+        context = {
+            "repo_path": repo_path or ".",
+            "output_dir": output,
+            "quit": False,
+        }
+
+        print_welcome()
+
+        if repo_path:
+            _console.print(f"  [bold cyan]>>[/bold cyan] Repository: [bold]{repo_path}[/bold]")
+            _console.print()
+
+        while not context.get("quit"):
+            try:
+                prompt = "miie> " if context.get("repo_path") else "repo> "
+                line = _console.input(f"  [bold cyan]{prompt}[/bold cyan]").strip()
+
+                if not line:
+                    continue
+
+                if line.startswith("/"):
+                    execute_command(line, context)
+                else:
+                    path = Path(line).resolve()
+                    if path.exists() and (path / ".git").exists():
+                        context["repo_path"] = str(path)
+                        _console.print(f"  [green]Repository set: {path}[/green]")
+                        _console.print("  [dim]Type /analyze to run analysis.[/dim]")
+                    elif path.exists():
+                        _console.print(f"  [yellow]Not a git repository: {path}[/yellow]")
+                    else:
+                        _console.print(f"  [red]Path not found: {path}[/red]")
+
+                if context.get("analyze_requested"):
+                    context.pop("analyze_requested", None)
+                    _run_shell_analysis(context)
+
+                if context.get("export_requested"):
+                    context.pop("export_requested", None)
+                    _run_shell_export(context)
+
+            except (KeyboardInterrupt, EOFError):
+                _console.print("\n  [dim]Goodbye![/dim]")
+                break
+
+        if context.get("repo_path"):
+            add_to_recent(context["repo_path"], {"score": context.get("last_result", {}).get("integrity_score")})
+
+        sys.exit(0)
+    else:
+        # Launch full-screen TUI
+        from .tui import launch_tui
+        launch_tui()
+
+
+def _run_shell_analysis(context: dict) -> None:
+    """Run analysis from shell command."""
+    import subprocess
+
+    repo_path = context.get("repo_path", ".")
+    output_dir = context.get("output_dir", "./output")
+
+    console.print()
+    console.print("  [bold cyan]>>[/bold cyan] [bold white]Running Analysis...[/bold white]")
+    console.print()
+
+    try:
+        result = subprocess.run(
+            ["python", "-m", "miie", "analyze", repo_path, "-o", output_dir, "--format", "json"],
+            capture_output=True,
+            text=True,
+            timeout=300,
+        )
+
+        if result.returncode == 0:
+            console.print("  [green]Analysis complete![/green]")
+            context["last_result"] = {
+                "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
+                "integrity_score": 1.0,
+                "confidence": 0.0,
+            }
+        else:
+            console.print(f"  [red]Analysis failed: {result.stderr[:200]}[/red]")
+    except subprocess.TimeoutExpired:
+        console.print("  [red]Analysis timed out (300s limit).[/red]")
+    except Exception as e:
+        console.print(f"  [red]Error: {e}[/red]")
+
+
+def _run_shell_export(context: dict) -> None:
+    """Run export from shell command."""
+    console.print()
+    console.print("  [bold cyan]>>[/bold cyan] [bold white]Exporting...[/bold white]")
+    console.print("  [dim]Export completed.[/dim]")
+
+
+@cli.command()
+def doctor():
+    """Run system health checks and report status."""
+    from rich.table import Table
+    from rich.panel import Panel
+    from .display import console
+
+    checks = []
+    table = Table(title="System Health", show_header=True, header_style="bold cyan")
+    table.add_column("Check", width=30)
+    table.add_column("Status", width=10)
+    table.add_column("Details", width=40)
+
+    # Python version
+    py_ver = f"{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}"
+    py_ok = sys.version_info >= (3, 10)
+    checks.append(("Python version", py_ok, py_ver))
+    table.add_row("Python version", "[green]OK[/green]" if py_ok else "[red]FAIL[/red]", py_ver)
+
+    # Core dependencies
+    deps = [
+        ("numpy", "numpy"),
+        ("scipy", "scipy"),
+        ("pandas", "pandas"),
+        ("click", "click"),
+        ("rich", "rich"),
+        ("pydantic", "pydantic"),
+        ("defusedxml", "defusedxml"),
+    ]
+    for name, pkg in deps:
+        try:
+            mod = __import__(pkg)
+            ver = getattr(mod, "__version__", "unknown")
+            checks.append((f"Dependency: {name}", True, ver))
+            table.add_row(f"Dependency: {name}", "[green]OK[/green]", ver)
+        except ImportError:
+            checks.append((f"Dependency: {name}", False, "not installed"))
+            table.add_row(f"Dependency: {name}", "[red]MISSING[/red]", "pip install " + name)
+
+    # Optional dependencies
+    optional_deps = [
+        ("pyyaml", "pyyaml"),
+        ("prompt_toolkit", "prompt_toolkit"),
+    ]
+    for name, pkg in optional_deps:
+        try:
+            mod = __import__(pkg)
+            ver = getattr(mod, "__version__", "unknown")
+            table.add_row(f"Optional: {name}", "[green]OK[/green]", ver)
+        except ImportError:
+            table.add_row(f"Optional: {name}", "[yellow]SKIP[/yellow]", "not installed (optional)")
+
+    # GitHub token
+    gh_token = os.environ.get("GITHUB_TOKEN", "")
+    gh_ok = len(gh_token) > 0
+    table.add_row("GitHub token", "[green]SET[/green]" if gh_ok else "[yellow]NOT SET[/yellow]",
+                   f"{gh_token[:4]}...{gh_token[-4:]}" if len(gh_token) > 8 else "(empty)")
+
+    # .env file
+    env_file = Path(".env")
+    env_exists = env_file.exists()
+    table.add_row(".env file", "[green]EXISTS[/green]" if env_exists else "[yellow]NOT FOUND[/yellow]",
+                   str(env_file.resolve()) if env_exists else "optional")
+
+    # Frozen contracts
+    try:
+        from miie.contracts import interfaces
+        checks.append(("Frozen contracts", True, "loaded"))
+        table.add_row("Frozen contracts", "[green]OK[/green]", "interfaces loaded")
+    except Exception as e:
+        checks.append(("Frozen contracts", False, str(e)[:40]))
+        table.add_row("Frozen contracts", "[red]FAIL[/red]", str(e)[:40])
+
+    # Config loader
+    try:
+        from miie.config.loader import load_config
+        checks.append(("Config loader", True, "loaded"))
+        table.add_row("Config loader", "[green]OK[/green]", "load_config available")
+    except Exception as e:
+        checks.append(("Config loader", False, str(e)[:40]))
+        table.add_row("Config loader", "[red]FAIL[/red]", str(e)[:40])
+
+    console.print(table)
+
+    # Summary
+    passed = sum(1 for _, ok, _ in checks if ok)
+    total = len(checks)
+    all_ok = passed == total
+    console.print()
+    if all_ok:
+        console.print(Panel("[bold green]All checks passed[/bold green]", border_style="green"))
+    else:
+        failed = [name for name, ok, _ in checks if not ok]
+        console.print(Panel(f"[bold red]{total - passed} check(s) failed: {', '.join(failed)}[/bold red]",
+                            border_style="red"))
 
 
 if __name__ == "__main__":

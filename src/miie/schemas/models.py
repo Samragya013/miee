@@ -36,6 +36,7 @@ class RepositoryContext:
     is_shallow: bool = False
     is_fork: bool = False
     language_distribution: Optional[Dict[str, int]] = None
+    max_commits: int = 0  # 0 = unlimited; set from CLI --max-commits
 
     def __post_init__(self):
         """Validate RepositoryContext constraints."""
@@ -285,15 +286,14 @@ class Provenance:
 
         # ISO 8601 UTC timestamp validation
         from datetime import datetime
+
         try:
             # Handle both 'Z' suffix and '+00:00' suffix
             ts = self.timestamp.replace("Z", "+00:00")
             dt = datetime.fromisoformat(ts)
             # Verify it's UTC (offset should be 0)
             if dt.utcoffset().total_seconds() != 0:
-                raise ValueError(
-                    f"provenance.timestamp must be UTC (offset +00:00), got {self.timestamp}"
-                )
+                raise ValueError(f"provenance.timestamp must be UTC (offset +00:00), got {self.timestamp}")
         except (ValueError, AttributeError) as e:
             if "must be UTC" in str(e):
                 raise
@@ -424,6 +424,12 @@ class EvidencePackage:
     }
     """
 
+    schema_version: int = 2
+    """
+    Evidence schema version. Increment when EvidencePackage fields change
+    to support backward-compatible deserialization.
+    """
+
     def __post_init__(self):
         """Validate EvidencePackage structure."""
         # Validate provenance
@@ -511,6 +517,8 @@ class EvidencePackage:
             "detector_execution_metadata": self.detector_execution_metadata,
             "statistical_artifacts": self.statistical_artifacts,
             "configuration_snapshot": self.configuration_snapshot,
+            # Schema versioning for backward compatibility
+            "schema_version": self.schema_version,
         }
 
     def get_observation_trace(self, metric_id: str) -> Dict[str, Any]:
@@ -873,16 +881,12 @@ class ReportOutput:
         # Validate report_paths keys are non-empty strings
         for fmt in self.report_paths:
             if not isinstance(fmt, str) or not fmt.strip():
-                raise ValueError(
-                    f"report_paths key must be a non-empty string, got: {fmt!r}"
-                )
+                raise ValueError(f"report_paths key must be a non-empty string, got: {fmt!r}")
 
         # Validate checksums are strings
         for path, checksum in self.checksums.items():
             if not isinstance(checksum, str):
-                raise ValueError(
-                    f"checksums['{path}'] must be a string, got: {type(checksum).__name__}"
-                )
+                raise ValueError(f"checksums['{path}'] must be a string, got: {type(checksum).__name__}")
 
 
 @dataclass
@@ -978,20 +982,18 @@ class Annotation:
         # Validate annotation_type
         if self.annotation_type not in self.ALLOWED_TYPES:
             raise ValueError(
-                f"annotation_type must be one of {sorted(self.ALLOWED_TYPES)}, "
-                f"got {self.annotation_type}"
+                f"annotation_type must be one of {sorted(self.ALLOWED_TYPES)}, " f"got {self.annotation_type}"
             )
 
         # Validate timestamp format if provided
         if self.timestamp is not None:
             from datetime import datetime
+
             try:
                 ts = self.timestamp.replace("Z", "+00:00")
                 datetime.fromisoformat(ts)
             except (ValueError, AttributeError) as e:
-                raise ValueError(
-                    f"timestamp must be ISO 8601 format, got: {self.timestamp}"
-                ) from e
+                raise ValueError(f"timestamp must be ISO 8601 format, got: {self.timestamp}") from e
 
 
 # ---------------------------------------------------------------------------

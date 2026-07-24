@@ -20,18 +20,21 @@ from miie.schemas.serialization import json_dumps
 class BenchmarkRunner(IBenchmarkEngine):
     """Benchmark Runner that executes benchmark suites with isolation and leakage prevention."""
 
-    def __init__(self, benchmarks_dir: Optional[Path] = None):
+    def __init__(self, benchmarks_dir: Optional[Path] = None, shallow_depth: int = 0):
         """Initialize the benchmark runner.
 
         Args:
             benchmarks_dir: Path to the benchmarks directory. If None, defaults to
                            <project_root>/benchmarks.
+            shallow_depth: If >0, perform shallow clones to this depth.
         """
         if benchmarks_dir is None:
             # Default to benchmarks directory relative to this file
             self.benchmarks_dir = Path(__file__).parent.parent.parent / "benchmarks"
         else:
             self.benchmarks_dir = Path(benchmarks_dir)
+
+        self.shallow_depth = shallow_depth
 
         # Internal benchmark engine for actual execution
         self._benchmark_engine = ProcessingBenchmarkEngine()
@@ -165,7 +168,7 @@ class BenchmarkRunner(IBenchmarkEngine):
             return []
 
         try:
-            with open(manifest_path, "r") as f:
+            with open(manifest_path, "r", encoding="utf-8") as f:
                 manifest_data = json.load(f)
 
             candidates = manifest_data.get("candidates", {})

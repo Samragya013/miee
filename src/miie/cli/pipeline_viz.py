@@ -7,9 +7,8 @@ from __future__ import annotations
 
 import time
 from contextlib import contextmanager
-from typing import Any, Callable, Generator, Optional
+from typing import Generator
 
-from rich.console import Console
 from rich.progress import (
     BarColumn,
     MofNCompleteColumn,
@@ -113,11 +112,11 @@ def pipeline_progress(verbose: bool = False) -> Generator[PipelineProgress, None
 
 # ── Dry Run Display ────────────────────────────────────────────────────
 def display_dry_run(params: dict) -> None:
-    """Display a formatted dry-run plan."""
+    """Display a formatted dry-run plan with premium styling."""
     from rich.table import Table
 
-    table = Table(title="Dry Run Plan", show_header=False, border_style="cyan")
-    table.add_column("Parameter", style="bold")
+    table = Table(title="Dry Run Plan", show_header=False, border_style="cyan", padding=(0, 2))
+    table.add_column("Parameter", style="bold cyan", width=18)
     table.add_column("Value")
 
     for key, value in params.items():
@@ -126,26 +125,30 @@ def display_dry_run(params: dict) -> None:
     console.print()
     console.print(table)
     console.print()
-    console.print("  [bold]Pipeline Stages:[/bold]")
+
+    # Pipeline stages
+    console.print("  [bold cyan]Pipeline Stages:[/bold cyan]")
     for i, (_, name) in enumerate(PIPELINE_STAGES, 1):
-        console.print(f"    [cyan]{i}.[/cyan] {name}")
+        console.print(f"    [dim]{i}.[/dim] [bold white]{name}[/bold white]")
     console.print()
-    console.print("  [green]Validation: PASSED[/green]")
+
+    # Validation status
+    console.print("  [green]V Validation: PASSED[/green]")
     console.print("  [dim]No work performed (dry run).[/dim]")
 
 
 # ── Timing Summary ─────────────────────────────────────────────────────
 def display_timing_summary(timings: dict[str, float]) -> None:
-    """Display a timing summary table."""
+    """Display a timing summary table with premium styling."""
     table = Table(title="Stage Timing", show_header=True, header_style="bold cyan")
-    table.add_column("Stage", style="bold")
-    table.add_column("Time", justify="right")
+    table.add_column("Stage", style="bold", min_width=20)
+    table.add_column("Time", justify="right", style="cyan")
 
     for key, elapsed in timings.items():
         name = dict(PIPELINE_STAGES).get(key, key)
         table.add_row(name, f"{elapsed:.2f}s")
 
-    table.add_row("[bold]Total[/bold]", f"[bold]{sum(timings.values()):.2f}s[/bold]")
+    table.add_row("[bold white]Total[/bold white]", f"[bold cyan]{sum(timings.values()):.2f}s[/bold cyan]")
 
     console.print()
     console.print(table)

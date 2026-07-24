@@ -6,15 +6,30 @@ for the MIIE scientific analysis pipeline.
 
 from __future__ import annotations
 
-import sys
+import os
 from datetime import datetime
-from typing import Any, Optional
+from typing import Any
 
 from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
 from rich.text import Text
 from rich.theme import Theme
+
+# Import branding
+from .branding import (
+    LOGO_FULL,
+    LOGO_FULL_TALL,
+    LOGO_FULL_DOUBLE,
+    LOGO_COMPACT,
+    LOGO_MINIMAL,
+    PALETTE_PREMIUM,
+    print_banner as _print_premium_banner,
+    print_splash,
+    print_compact_banner,
+    print_footer as _print_premium_footer,
+    print_startup_screen,
+)
 
 # ── Theme ──────────────────────────────────────────────────────────────
 MIIE_THEME = Theme(
@@ -35,49 +50,76 @@ MIIE_THEME = Theme(
 )
 
 # Configure console with Windows encoding support
-import os
-_force_terminal = os.environ.get("MIIE_FORCE_TERMINAL", "0") == "1" or not os.environ.get("PYTHONDONTWRITEBYTECODE")
+# Force terminal mode when MIIE_FORCE_TERMINAL=1, or when running interactively
+_force_terminal = os.environ.get("MIIE_FORCE_TERMINAL", "0") == "1" or os.isatty(1)
+try:
+    _width = min(120, os.get_terminal_size().columns if os.isatty(1) else 120)
+except (OSError, ValueError):
+    _width = 120
 console = Console(
     theme=MIIE_THEME,
     force_terminal=_force_terminal,
-    width=min(120, os.get_terminal_size().columns if os.isatty(1) else 120),
+    width=_width,
 )
 
 
 # ── Banner ─────────────────────────────────────────────────────────────
-def print_banner(version: str, subtitle: str = "Measurement Integrity Analysis") -> None:
-    """Print the MIIE header banner."""
-    banner = Text()
-    banner.append(f"  MIIE v{version}\n", style="bold white")
-    banner.append(f"  {subtitle}", style="dim")
-    console.print(
-        Panel(banner, border_style="blue", padding=(0, 2), expand=False)
-    )
+def print_banner(version: str, subtitle: str = "Measurement Integrity Intelligence Engine") -> None:
+    """Print the premium MIIE header banner with ASCII art logo."""
+    _print_premium_banner(version=version, subtitle=subtitle, variant="full")
 
 
-def print_footer(message: str = "Analysis Complete") -> None:
+def print_footer(message: str = "Analysis Complete", success: bool = True) -> None:
     """Print the MIIE footer."""
-    console.print(
-        Panel(
-            Text(f"  {message}", style="bold green"),
-            border_style="blue",
-            padding=(0, 2),
-            expand=False,
-        )
-    )
+    _print_premium_footer(message=message, success=success)
+
+
+# ── Dividers ───────────────────────────────────────────────────────────
+def print_divider(style: str = "dim", char: str = "-", width: int | None = None) -> None:
+    """Print a horizontal divider line."""
+    if width is None:
+        try:
+            width = min(76, os.get_terminal_size().columns if os.isatty(1) else 76)
+        except (OSError, ValueError):
+            width = 76
+    console.print(f"  [{style}]{char * width}[/{style}]")
+
+
+def print_thick_divider(style: str = "cyan") -> None:
+    """Print a thick section divider."""
+    w = min(76, os.get_terminal_size().columns if os.isatty(1) else 76)
+    console.print(f"  [{style}]{'=' * w}[/{style}]")
 
 
 # ── Sections ───────────────────────────────────────────────────────────
-def print_section(title: str) -> None:
-    """Print a section header."""
+_SECTION_ICONS = {
+    "Analysis Coverage": "[cyan]>>[/cyan]",
+    "Integrity Findings": "[yellow]>>[/yellow]",
+    "Scientific Dashboard": "[blue]>>[/blue]",
+    "Forensic Details": "[magenta]>>[/magenta]",
+    "Reports Saved": "[green]>>[/green]",
+    "Assessment": "[bold cyan]>>[/bold cyan]",
+}
+
+
+def print_section(title: str, icon: str | None = None) -> None:
+    """Print a styled section header with optional icon."""
     console.print()
-    console.print(f"  [bold]{title}[/bold]")
-    console.print(f"  {'-' * 40}")
+    icon_str = icon or _SECTION_ICONS.get(title, "[dim]>[/dim]")
+    console.print(f"  {icon_str} [bold white]{title}[/bold white]")
+    console.print(f"  [dim]{'-' * 50}[/dim]")
 
 
 def print_kv(key: str, value: Any, indent: int = 2) -> None:
-    """Print a key-value pair."""
-    console.print(f"{' ' * indent}{key}: [bold]{value}[/bold]")
+    """Print a key-value pair with aligned formatting."""
+    padding = " " * indent
+    console.print(f"  {padding}[dim]{key}:[/dim] [bold]{value}[/bold]")
+
+
+def print_kv_aligned(key: str, value: Any, key_width: int = 18, indent: int = 2) -> None:
+    """Print a key-value pair with fixed key width for alignment."""
+    padding = " " * indent
+    console.print(f"  {padding}{key:<{key_width}s} [bold]{value}[/bold]")
 
 
 # ── Tables ─────────────────────────────────────────────────────────────
@@ -142,6 +184,19 @@ def warning_panel(title: str, content: str) -> None:
 
 
 # ── Score Display ──────────────────────────────────────────────────────
+def _score_rating(value: float, thresholds: tuple[float, float, float] = (0.9, 0.7, 0.5)) -> tuple[str, str]:
+    """Return (color, rating) for a score value."""
+    high, mid, low = thresholds
+    if value >= high:
+        return "green", "Very High"
+    elif value >= mid:
+        return "cyan", "High"
+    elif value >= low:
+        return "yellow", "Moderate"
+    else:
+        return "red", "Low"
+
+
 def print_score(
     label: str,
     value: float,
@@ -149,26 +204,48 @@ def print_score(
     thresholds: tuple[float, float, float] = (0.9, 0.7, 0.5),
 ) -> None:
     """Print a score with visual bar."""
-    high, mid, low = thresholds
-    if value >= high:
-        color = "green"
-        rating = "Very High"
-    elif value >= mid:
-        color = "cyan"
-        rating = "High"
-    elif value >= low:
-        color = "yellow"
-        rating = "Moderate"
-    else:
-        color = "red"
-        rating = "Low"
-
+    color, rating = _score_rating(value, thresholds)
     filled = int(value * width)
     bar = "#" * filled + "-" * (width - filled)
+    console.print(f"  {label:<20s} [{color}]{bar}[/{color}] " f"[bold {color}]{value:.3f}[/bold {color}] ({rating})")
+
+
+def print_score_premium(
+    label: str,
+    value: float,
+    width: int = 36,
+    thresholds: tuple[float, float, float] = (0.9, 0.7, 0.5),
+) -> None:
+    """Print a premium score with gradient bar and bold value."""
+    color, rating = _score_rating(value, thresholds)
+    filled = int(value * width)
+    empty = width - filled
+
+    # Build gradient-like bar using block chars
+    # Use different shades: filled = solid blocks, empty = dots
+    bar_filled = "#" * filled
+    bar_empty = "." * empty
+
+    console.print()
+    console.print(f"  [bold white]{label}[/bold white]")
     console.print(
-        f"  {label:<20s} [{color}]{bar}[/{color}] "
-        f"[bold {color}]{value:.3f}[/bold {color}] ({rating})"
+        f"    [{color}]{bar_filled}[/{color}][dim]{bar_empty}[/dim]"
+        f"  [bold {color}]{value:.3f}[/bold {color}]"
+        f"  [dim]({rating})[/dim]"
     )
+
+
+def print_score_compact(
+    label: str,
+    value: float,
+    width: int = 20,
+    thresholds: tuple[float, float, float] = (0.9, 0.7, 0.5),
+) -> None:
+    """Print a compact score for inline use."""
+    color, rating = _score_rating(value, thresholds)
+    filled = int(value * width)
+    bar = "#" * filled + "." * (width - filled)
+    console.print(f"  [dim]{label}:[/dim] [{color}]{bar}[/{color}] [bold {color}]{value:.3f}[/bold {color}] ({rating})")
 
 
 # ── Pipeline Stage Display ─────────────────────────────────────────────
@@ -180,19 +257,38 @@ def print_pipeline_stage(
     detail: str = "",
     elapsed: float | None = None,
 ) -> None:
-    """Print a pipeline stage with status icon."""
+    """Print a pipeline stage with status icon and progress bar."""
     icons = {
-        "running": "[cyan]*[/cyan]",
-        "done": "[green]OK[/green]",
-        "error": "[red]ERR[/red]",
+        "running": "[cyan]o[/cyan]",
+        "done": "[green]V[/green]",
+        "error": "[red]![/red]",
         "skip": "[yellow]-[/yellow]",
     }
     icon = icons.get(status, "[dim]?[/dim]")
-    elapsed_str = f" ({elapsed:.1f}s)" if elapsed is not None else ""
-    detail_str = f" -- {detail}" if detail else ""
-    console.print(
-        f"  {icon} [{stage_num}/{total}] [bold]{name}[/bold]{elapsed_str}{detail_str}"
-    )
+    elapsed_str = f" [dim]({elapsed:.1f}s)[/dim]" if elapsed is not None else ""
+    detail_str = f" [dim]-- {detail}[/dim]" if detail else ""
+
+    # Progress bar
+    progress = int((stage_num / total) * 20)
+    filled = "#" * progress
+    empty = "." * (20 - progress)
+
+    if status == "running":
+        console.print(f"    {icon} {stage_badge(stage_num, total)} [bold white]{name}[/bold white]")
+        console.print(f"       [cyan]{filled}[/cyan][dim]{empty}[/dim] [dim]{stage_num}/{total}[/dim]")
+    elif status == "done":
+        console.print(f"    {icon} {stage_badge(stage_num, total)} [bold white]{name}[/bold white]{elapsed_str}{detail_str}")
+        console.print(f"       [green]{filled}[/green][dim]{empty}[/dim] [dim]{stage_num}/{total}[/dim]")
+    elif status == "error":
+        console.print(f"    {icon} {stage_badge(stage_num, total)} [bold red]{name}[/bold red]{elapsed_str} [red]{detail}[/red]")
+        console.print(f"       [red]{filled}[/red][dim]{empty}[/dim] [dim]{stage_num}/{total}[/dim]")
+    else:
+        console.print(f"    {icon} {stage_badge(stage_num, total)} [dim]{name}[/dim]{detail_str}")
+
+
+def stage_badge(stage_num: int, total: int) -> str:
+    """Create a stage number badge."""
+    return f"[dim]{stage_num}/{total}[/dim]"
 
 
 # ── Detection Summary ──────────────────────────────────────────────────
@@ -226,11 +322,11 @@ def print_detection_summary(
 
         if failed:
             reason = det_data.get("reason", "unknown") if isinstance(det_data, dict) else "unknown"
-            console.print(f"  [yellow]![/yellow] [{det_id}] {name}: [red]{reason[:60]}[/red]")
+            console.print(f"    [yellow]![/yellow] [dim]{det_id}[/dim] {name}: [red]{reason[:60]}[/red]")
         elif triggered:
-            console.print(f"  [red]X[/red] [{det_id}] {name}: [red]DETECTED[/red]")
+            console.print(f"    [red]X[/red] [dim]{det_id}[/dim] {name}: [red]DETECTED[/red]")
         else:
-            console.print(f"  [green]OK[/green] [{det_id}] {name}: [green]CLEAR[/green]")
+            console.print(f"    [green]V[/green] [dim]{det_id}[/dim] {name}: [green]CLEAR[/green]")
 
 
 # ── Timestamp ──────────────────────────────────────────────────────────

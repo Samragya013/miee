@@ -121,6 +121,7 @@ class GitHubPullRequestProvider(BaseObservationProvider, ProviderMixin):
 
     def initialize(self, context: ProviderContext) -> None:
         """Validate repository accessibility and API health."""
+        self._state: ProviderState
         if self._state == ProviderState.DISPOSED:
             from miie.providers.exceptions import ProviderDisposedError
 
@@ -269,14 +270,29 @@ class GitHubPullRequestProvider(BaseObservationProvider, ProviderMixin):
         owner: str,
         repo: str,
         context: ProviderContext,
+        max_prs: int = 200,
     ) -> List[PullRequest]:
-        """Fetch and normalize pull requests from GitHub."""
+        """Fetch and normalize pull requests from GitHub.
+
+        Delegates to GitHubClient.list_pull_requests with max_prs cap.
+
+        Args:
+            owner: Repository owner.
+            repo: Repository name.
+            context: Extraction context.
+            max_prs: Maximum number of PRs to fetch (default 200).
+        """
+        since_dt = context.since if context.since else None
         raw_prs = self._client.list_pull_requests(
             owner,
             repo,
             state="all",
-            since=context.since,
+            sort="created",
+            direction="desc",
+            max_prs=max_prs,
+            since=since_dt,
         )
+
         result: List[PullRequest] = []
         for raw in raw_prs:
             try:
@@ -284,6 +300,7 @@ class GitHubPullRequestProvider(BaseObservationProvider, ProviderMixin):
                 result.append(pr)
             except Exception as exc:
                 logger.warning("Skipping malformed PR: %s", exc)
+
         return result
 
     def _process_pr(
@@ -310,17 +327,9 @@ class GitHubPullRequestProvider(BaseObservationProvider, ProviderMixin):
         if pr.draft and "M-02" in requested:
             observations.append(normalize_pr_draft(pr, provenance))
 
-        # Fetch reviews for this PR
-        try:
-            reviews = self._fetch_reviews(owner, repo, pr.number)
-            if reviews and "M-05" in requested:
-                unique_reviewers = {r.user.login for r in reviews}
-                observations.append(normalize_reviewer_count(pr, len(unique_reviewers), provenance))
-                observations.append(normalize_review_iterations(pr, len(reviews), provenance))
-                for review in reviews:
-                    observations.append(normalize_review(review, pr, provenance))
-        except GitHubAPIError as exc:
-            logger.warning("Cannot fetch reviews for PR #%d: %s", pr.number, str(exc))
+        # Fetch reviews for this PR (only for merged/closed PRs, skip to avoid timeout)
+        # Reviews are fetched separately if needed for detailed M-05 analysis.
+        # For basic M-05 (merge latency), we only need merge/close timestamps.
 
         return observations
 

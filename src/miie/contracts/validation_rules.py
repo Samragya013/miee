@@ -12,19 +12,10 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any, Dict, List, Optional
 
-from miie.contracts.observation_errors import (
-    DependencyViolationError,
-    FreshnessViolationError,
-    RangeViolationError,
-    SchemaViolationError,
-    ValidationError,
-)
 from miie.contracts.observation_types import (
     METRIC_BOUNDS,
-    MetricBounds,
-    ObservationMetrics,
     ValidationResult,
 )
 

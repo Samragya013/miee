@@ -18,25 +18,23 @@ uses ``GitObservationProvider``) and handles other metrics directly
 from external data sources.
 """
 
+import datetime
+import json
+import uuid
 import warnings as _warnings
+from pathlib import Path
+from typing import Any, List, Optional
+from defusedxml import ElementTree
+
+from miie.contracts.errors import ExtractionError
+from miie.contracts.interfaces import IExtractionEngine
+from miie.schemas.models import MetricDataFrame, RepositoryContext
 
 _warnings.warn(
     "miie.processing.extraction (module) is deprecated. " "Use miie.processing.extraction.ExtractionEngine instead.",
     DeprecationWarning,
     stacklevel=2,
 )
-
-import datetime
-import json
-import subprocess
-import uuid
-from pathlib import Path
-from typing import Any, List, Optional
-from xml.etree import ElementTree
-
-from miie.contracts.errors import ExtractionError
-from miie.contracts.interfaces import IExtractionEngine
-from miie.schemas.models import MetricDataFrame, RepositoryContext
 
 
 def validate_metric_ids(metric_list: List[str]) -> None:
@@ -61,7 +59,7 @@ def validate_metric_ids(metric_list: List[str]) -> None:
 
 # Metrics that are now extracted via GitObservationProvider / ExtractionEngine
 # Metrics available from GitObservationProvider (git-native, no external data needed)
-_PROVIDER_METRICS = frozenset({"M-01", "M-02", "M-03", "M-04", "M-06", "M-07"})
+_PROVIDER_METRICS = frozenset({"M-01", "M-02", "M-03", "M-04", "M-05", "M-06", "M-07"})
 
 
 class MetricExtractionEngine(IExtractionEngine):
@@ -153,24 +151,23 @@ class MetricExtractionEngine(IExtractionEngine):
                     until=until,
                     exclude_bots=exclude_bots,
                 )
-                metrics.update(mdf.metrics)
-            except Exception as exc:
+
+                # If windows are provided, redistribute observations across windows
+                if windows and _collection and _collection.windows:
+                    metrics = self._redistribute_to_windows(
+                        _collection, provider_metrics, windows
+                    )
+                else:
+                    metrics.update(mdf.metrics)
+            except Exception:
                 # Fallback: mark provider metrics as unavailable
                 for metric_id in provider_metrics:
                     metrics[metric_id] = None
 
         # --- Phase 2: Externally-sourced metrics (M-05 requires PR/issue data) ---
         for metric_id in external_metrics:
-            if metric_id == "M-01":
-                metrics[metric_id] = self._extract_code_coverage(context)
-            elif metric_id == "M-03":
-                metrics[metric_id] = self._extract_review_participation()
-            elif metric_id == "M-04":
+            if metric_id == "M-05":
                 metrics[metric_id] = self._extract_review_latency()
-            elif metric_id == "M-05":
-                metrics[metric_id] = self._extract_issue_resolution_time()
-            elif metric_id == "M-07":
-                metrics[metric_id] = self._extract_cyclomatic_complexity(context)
             else:
                 # Unavailable metrics - return None per missing data policy
                 metrics[metric_id] = None
@@ -185,6 +182,133 @@ class MetricExtractionEngine(IExtractionEngine):
             )
         except ValueError as e:
             raise ExtractionError(f"Invalid MetricDataFrame: {e}")
+
+    # ------------------------------------------------------------------
+    # Window redistribution
+    # ------------------------------------------------------------------
+
+    def _redistribute_to_windows(
+        self,
+        collection: Any,
+        metric_list: List[str],
+        windows: List[Any],
+    ) -> dict:
+        """Redistribute observations from a single-window collection across windows.
+
+        When the pipeline provides WindowDefinition objects, this method
+        assigns each observation to the matching window by timestamp and
+        aggregates per-window values into a MetricDataFrame-compatible dict.
+
+        Args:
+            collection: ObservationCollection with observations (possibly in one window)
+            metric_list: List of metric IDs to process
+            windows: List of WindowDefinition objects from segmentation
+
+        Returns:
+            Dict mapping metric_id -> {window_id -> [aggregated_value]}
+        """
+        from collections import defaultdict
+
+        # Collect all observations from the collection
+        all_observations = []
+        for window in collection.windows:
+            all_observations.extend(window.observations)
+
+        if not all_observations:
+            return {m: {} for m in metric_list}
+
+        # Build window lookup by date range
+        window_lookup = {}
+        for w in windows:
+            start_date = w.start_date if hasattr(w, "start_date") else None
+            end_date = w.end_date if hasattr(w, "end_date") else None
+            if start_date and end_date:
+                window_lookup[w.window_id] = (start_date, end_date)
+
+        # Aggregate metrics have only 1 observation for the whole repo
+        # (M-01: entropy, M-04: test coverage, M-07: branch freshness).
+        # These should appear in the last window (current state).
+        _AGGREGATE_METRICS = {"M-01", "M-04", "M-07"}
+
+        # Assign observations to windows by timestamp
+        obs_by_window = defaultdict(lambda: defaultdict(list))
+        unassigned = defaultdict(list)
+
+        for obs in all_observations:
+            metric_id = obs.metric_id
+            if metric_id not in metric_list:
+                continue
+
+            # Parse observation timestamp
+            obs_date = None
+            if obs.timestamp:
+                try:
+                    ts = obs.timestamp
+                    if isinstance(ts, str):
+                        # Handle ISO format with timezone
+                        ts = ts.replace("Z", "+00:00")
+                        if "+" in ts[10:] or ts.endswith("+00:00"):
+                            dt = datetime.datetime.fromisoformat(ts)
+                        else:
+                            dt = datetime.datetime.fromisoformat(ts).replace(
+                                tzinfo=datetime.timezone.utc
+                            )
+                        obs_date = dt.date()
+                    elif hasattr(ts, "date"):
+                        obs_date = ts.date()
+                except (ValueError, TypeError):
+                    pass
+
+            if obs_date is None:
+                unassigned[metric_id].append(obs)
+                continue
+
+            # Find matching window
+            assigned = False
+            for wid, (start, end) in window_lookup.items():
+                if start <= obs_date <= end:
+                    obs_by_window[metric_id][wid].append(obs)
+                    assigned = True
+                    break
+
+            if not assigned:
+                unassigned[metric_id].append(obs)
+
+        # Place aggregate metrics in the last window
+        if windows and unassigned:
+            last_window_id = windows[-1].window_id
+            for metric_id, obs_list in unassigned.items():
+                if metric_id in _AGGREGATE_METRICS and obs_list:
+                    obs_by_window[metric_id][last_window_id].extend(obs_list)
+
+        # Aggregate per window
+        result = {}
+        for metric_id in metric_list:
+            window_values = {}
+            metric_obs = obs_by_window.get(metric_id, {})
+
+            for w in windows:
+                wid = w.window_id
+                obs_list = metric_obs.get(wid, [])
+
+                if obs_list:
+                    values = [o.value for o in obs_list if o.value is not None]
+                    if values:
+                        # Aggregate: sum for count metrics, mean for ratio metrics
+                        if metric_id in ("M-02", "M-06"):
+                            window_values[wid] = [sum(values)]
+                        elif metric_id == "M-05":
+                            window_values[wid] = [sum(values) / len(values)]
+                        else:
+                            window_values[wid] = [sum(values) / len(values)]
+                    else:
+                        window_values[wid] = [0.0]
+                else:
+                    window_values[wid] = [0.0]
+
+            result[metric_id] = window_values
+
+        return result
 
     # ------------------------------------------------------------------
     # External data source extractors (M-01, M-03-M-05, M-07)
