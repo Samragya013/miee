@@ -197,12 +197,9 @@ def cliffs_delta(x: np.ndarray, y: np.ndarray) -> EffectSizeResult:
             interpretation="Insufficient data",
         )
 
-    # Count pairwise comparisons
-    greater = 0.0
-    less = 0.0
-    for xi in x:
-        greater += np.sum(xi > y)
-        less += np.sum(xi < y)
+    # Vectorized pairwise comparisons using numpy broadcasting
+    greater = float(np.sum(x[:, None] > y[None, :]))
+    less = float(np.sum(x[:, None] < y[None, :]))
 
     delta_val = (greater - less) / (n1 * n2)
 

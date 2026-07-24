@@ -277,6 +277,13 @@ class CorrelationBreakdownDetector(BaseDetector):
         """
         detector_outputs: Dict[str, Any] = {}
 
+        # Extract thresholds from self (matching main execute path)
+        sudden_drop = self.sudden_drop_threshold
+        sign_min = self.sign_reversal_min_correlation
+        erosion_slope = self.gradual_erosion_slope_threshold
+        erosion_start = self.gradual_erosion_window_start_min
+        erosion_end = self.gradual_erosion_window_end_max
+
         available_metrics = [
             m
             for m in self.supported_metrics
@@ -336,6 +343,11 @@ class CorrelationBreakdownDetector(BaseDetector):
                 pearson_values,
                 spearman_values,
                 confidence_intervals,
+                sudden_drop,
+                sign_min,
+                erosion_slope,
+                erosion_start,
+                erosion_end,
             )
             breakdown_events.extend(pair_breakdowns)
 
@@ -474,45 +486,64 @@ class CorrelationBreakdownDetector(BaseDetector):
         erosion_start_min: float = 0.3,
         erosion_end_max: float = 0.1,
     ) -> List[Dict[str, Any]]:
-        """Detect breakdowns for a single metric pair across windows."""
+        """Detect breakdowns for a single metric pair across windows.
+
+        Uses max(|Pearson|, |Spearman|) for breakdown detection (FIX-4).
+        """
         breakdown_events: List[Dict[str, Any]] = []
         K = len(window_ids)
 
         if K < 2:
             return breakdown_events
 
+        effective: List[Optional[float]] = []
+        for k in range(K):
+            p = pearson_values[k] if k < len(pearson_values) else None
+            s = spearman_values[k] if k < len(spearman_values) else None
+            if p is not None and s is not None:
+                effective.append(max(abs(p), abs(s)) * (1 if (p if abs(p) >= abs(s) else s) >= 0 else -1))
+            elif p is not None:
+                effective.append(p)
+            elif s is not None:
+                effective.append(s)
+            else:
+                effective.append(None)
+
         # Breakdown Type 1: Sudden drop
         for k in range(K - 1):
-            if pearson_values[k] is None or pearson_values[k + 1] is None:
+            if effective[k] is None or effective[k + 1] is None:
                 continue
-            delta = abs(pearson_values[k + 1] - pearson_values[k])
+            delta = abs(effective[k + 1] - effective[k])
             if delta > sudden_drop_threshold:
                 breakdown_events.append(
                     {
                         "metric_pair": [metric_i, metric_j],
                         "breakdown_type": "sudden_drop",
                         "window_pair": [window_ids[k], window_ids[k + 1]],
-                        "delta_pearson": delta,
+                        "delta_effective": delta,
                         "pearson_values": [pearson_values[k], pearson_values[k + 1]],
+                        "spearman_values": [spearman_values[k] if k < len(spearman_values) else None, spearman_values[k + 1] if k + 1 < len(spearman_values) else None],
                         "detection_method": "sudden_drop",
                     }
                 )
 
         # Breakdown Type 2: Sign reversal
         for k in range(K - 1):
-            if pearson_values[k] is None or pearson_values[k + 1] is None:
+            if effective[k] is None or effective[k + 1] is None:
                 continue
             if (
-                np.sign(pearson_values[k]) != np.sign(pearson_values[k + 1])
-                and abs(pearson_values[k]) > sign_reversal_min
-                and abs(pearson_values[k + 1]) > sign_reversal_min
+                np.sign(effective[k]) != np.sign(effective[k + 1])
+                and abs(effective[k]) > sign_reversal_min
+                and abs(effective[k + 1]) > sign_reversal_min
             ):
                 breakdown_events.append(
                     {
                         "metric_pair": [metric_i, metric_j],
                         "breakdown_type": "sign_reversal",
                         "window_pair": [window_ids[k], window_ids[k + 1]],
+                        "effective_values": [effective[k], effective[k + 1]],
                         "pearson_values": [pearson_values[k], pearson_values[k + 1]],
+                        "spearman_values": [spearman_values[k] if k < len(spearman_values) else None, spearman_values[k + 1] if k + 1 < len(spearman_values) else None],
                         "detection_method": "sign_reversal",
                     }
                 )
@@ -520,14 +551,14 @@ class CorrelationBreakdownDetector(BaseDetector):
         # Breakdown Type 3: Gradual erosion (requires K >= 4)
         if K >= 4:
             if (
-                pearson_values[0] is not None
-                and pearson_values[-1] is not None
-                and pearson_values[0] > erosion_start_min
-                and pearson_values[-1] < erosion_end_max
+                effective[0] is not None
+                and effective[-1] is not None
+                and effective[0] > erosion_start_min
+                and effective[-1] < erosion_end_max
             ):
                 valid_indices = []
                 valid_values = []
-                for idx, val in enumerate(pearson_values):
+                for idx, val in enumerate(effective):
                     if val is not None:
                         valid_indices.append(idx)
                         valid_values.append(val)
@@ -548,7 +579,9 @@ class CorrelationBreakdownDetector(BaseDetector):
                                     "breakdown_type": "gradual_erosion",
                                     "window_pair": [window_ids[0], window_ids[-1]],
                                     "slope": slope,
+                                    "effective_values": effective,
                                     "pearson_values": pearson_values,
+                                    "spearman_values": spearman_values,
                                     "detection_method": "gradual_erosion",
                                 }
                             )
@@ -567,10 +600,9 @@ class CorrelationBreakdownDetector(BaseDetector):
                             "breakdown_type": "confidence_exclusion",
                             "window_pair": [window_ids[k], window_ids[k + 1]],
                             "confidence_intervals": [ci_curr, ci_next],
-                            "pearson_values": [
-                                pearson_values[k],
-                                pearson_values[k + 1],
-                            ],
+                            "effective_values": [effective[k], effective[k + 1]],
+                            "pearson_values": [pearson_values[k], pearson_values[k + 1]],
+                            "spearman_values": [spearman_values[k] if k < len(spearman_values) else None, spearman_values[k + 1] if k + 1 < len(spearman_values) else None],
                             "detection_method": "confidence_exclusion",
                         }
                     )

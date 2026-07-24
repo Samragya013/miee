@@ -180,7 +180,7 @@ class DistributionDriftDetector(BaseDetector):
                     family_test_ids.append(f"{metric}_{pair_key}")
 
             if family_p_values:
-                result = StatisticalInferenceEngine.bonferroni(
+                result = StatisticalInferenceEngine.holm(
                     family_p_values,
                     alpha=ks_threshold,
                     family_id=f"KS_{pair_key}",
@@ -204,7 +204,7 @@ class DistributionDriftDetector(BaseDetector):
             "drift_directions": flat_dirs,
             "window_pairs_analyzed": [[window_ids[i], window_ids[i + 1]] for i in range(len(window_ids) - 1)],
             "inference": {
-                "method": "bonferroni",
+                "method": "holm",
                 "alpha": ks_threshold,
                 "families": inference_families,
                 "summary": {
@@ -355,7 +355,7 @@ class DistributionDriftDetector(BaseDetector):
                     fam_ids.append(f"{metric}_{pair_key}")
 
             if fam_p:
-                result = StatisticalInferenceEngine.bonferroni(
+                result = StatisticalInferenceEngine.holm(
                     fam_p,
                     alpha=self.ks_p_value_threshold,
                     family_id=f"KS_{pair_key}",
@@ -377,7 +377,7 @@ class DistributionDriftDetector(BaseDetector):
             },
             "window_pairs_analyzed": [[window_ids[i], window_ids[i + 1]] for i in range(len(window_ids) - 1)],
             "inference": {
-                "method": "bonferroni",
+                "method": "holm",
                 "alpha": self.ks_p_value_threshold,
                 "families": inference_families,
                 "summary": {

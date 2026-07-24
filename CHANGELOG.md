@@ -20,6 +20,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Installation guide with platform-specific instructions
 - Troubleshooting FAQ
 - Contributing guide with development workflow
+- Measurement Intelligence Reasoning Layer (reasoning package)
+- 11 reasoning dataclasses, 8 engine functions, 36 reasoning tests
+- Scientific Assurance Framework (assurance package)
+- Assumption validation, evidence sufficiency, threats-to-validity
+- Limitation reporting, extended audit trails, assurance engine
+- 28 assurance tests, 1285+ lines of assurance code
 
 ### Fixed
 - requirements.txt now matches actual dependencies

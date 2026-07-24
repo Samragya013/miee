@@ -11,7 +11,7 @@ Reference: DES-v2.0 §16.5, §23, IMS-v1.0 Phase 5
 
 from __future__ import annotations
 
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 import numpy as np
 
@@ -208,7 +208,7 @@ class ThresholdCompressionDetector(BaseDetector):
                         fam_ids.append(key)
 
             if fam_p:
-                result = StatisticalInferenceEngine.bonferroni(
+                result = StatisticalInferenceEngine.holm(
                     fam_p,
                     alpha=dip_p_thresh,
                     family_id=f"DIP_{wid}",
@@ -233,7 +233,7 @@ class ThresholdCompressionDetector(BaseDetector):
                 "per_event": compression_diagnostics,
             },
             "inference": {
-                "method": "bonferroni",
+                "method": "holm",
                 "alpha": dip_p_thresh,
                 "families": inference_families,
                 "summary": {
@@ -400,7 +400,7 @@ class ThresholdCompressionDetector(BaseDetector):
                         fam_ids.append(key)
 
             if fam_p:
-                result = StatisticalInferenceEngine.bonferroni(
+                result = StatisticalInferenceEngine.holm(
                     fam_p,
                     alpha=self.dip_test_p_threshold,
                     family_id=f"DIP_{wid}",
@@ -425,7 +425,7 @@ class ThresholdCompressionDetector(BaseDetector):
                 "per_event": compression_diagnostics_legacy,
             },
             "inference": {
-                "method": "bonferroni",
+                "method": "holm",
                 "alpha": self.dip_test_p_threshold,
                 "families": inference_families,
                 "summary": {

@@ -7,12 +7,12 @@ keys are present in the output dicts.
 
 Actual inference structure (per detector output):
 {
-  "method": "bonferroni" | "benjamini_hochberg",
+  "method": "holm" | "benjamini_hochberg",
   "alpha": 0.05,
   "families": [
     {
       "family_id": "KS_w00_w01",
-      "correction_method": "bonferroni",
+      "correction_method": "holm",
       "alpha": 0.05,
       "num_tests": 1,
       "num_rejections": 0,
@@ -134,7 +134,7 @@ class TestD01Inference:
         assert "alpha" in inf
         assert "families" in inf
         assert "summary" in inf
-        assert inf["method"] == "bonferroni"
+        assert inf["method"] == "holm"
         assert inf["alpha"] == 0.05
 
     def test_inference_has_multiple_families(self):
@@ -154,7 +154,7 @@ class TestD01Inference:
         result = self.detector.execute(D01_DRIFT_MDF)
         inf = result.detector_outputs["D-01"]["inference"]
         for fam in inf["families"]:
-            assert fam["correction_method"] == "bonferroni"
+            assert fam["correction_method"] == "holm"
 
     def test_inference_tests_have_required_fields(self):
         result = self.detector.execute(D01_DRIFT_MDF)
@@ -181,7 +181,7 @@ class TestD01Inference:
         result = self.detector.execute(D01_NODRIFT_MDF)
         inf = result.detector_outputs["D-01"]["inference"]
         # Inference structure should be well-formed regardless of rejection outcome
-        assert inf["method"] == "bonferroni"
+        assert inf["method"] == "holm"
         assert inf["alpha"] == 0.05
         assert isinstance(inf["families"], list)
         assert len(inf["families"]) >= 1
@@ -241,11 +241,11 @@ class TestD03Inference:
     def test_inference_structure(self):
         result = self.detector.execute(D03_COMPRESSED_MDF)
         inf = result.detector_outputs["D-03"]["inference"]
-        assert inf["method"] == "bonferroni"
+        assert inf["method"] == "holm"
         assert inf["alpha"] == 0.05
         assert len(inf["families"]) >= 1
         for fam in inf["families"]:
-            assert fam["correction_method"] == "bonferroni"
+            assert fam["correction_method"] == "holm"
             assert fam["num_tests"] > 0
 
     def test_original_decision_preserved(self):

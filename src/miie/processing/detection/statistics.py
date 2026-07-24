@@ -42,6 +42,12 @@ def ks_2samp(data1: List[float], data2: List[float]) -> Tuple[float, float]:
     if n1 == 0 or n2 == 0:
         return 0.0, 1.0
 
+    from scipy.stats import ks_2samp as scipy_ks_2samp
+
+    if n1 < 30 or n2 < 30:
+        result = scipy_ks_2samp(data1, data2)
+        return float(result.statistic), float(result.pvalue)
+
     data1_sorted = np.sort(data1)
     data2_sorted = np.sort(data2)
 

@@ -243,7 +243,7 @@ class ScoringEngine(IScoringEngine):
             return 1.0
 
         obs_count = obs_data.get("count", 0)
-        window_count = obs_data.get("window_count", 0)
+        _window_count = obs_data.get("window_count", 0)
 
         if obs_count <= 0:
             return 0.5  # No observations: reduce severity by half
@@ -300,6 +300,25 @@ class ScoringEngine(IScoringEngine):
                             except (ValueError, TypeError):
                                 pass
 
+                # Fallback: extract severity from structured drift_events
+                if not drift_detected and isinstance(det_output.get("drift_events"), list):
+                    events = det_output["drift_events"]
+                    if events:
+                        severities = []
+                        for e in events:
+                            if not isinstance(e, dict):
+                                continue
+                            for field in ("severity", "ks_statistic", "psi_value"):
+                                if field in e:
+                                    try:
+                                        severities.append(float(e[field]))
+                                    except (ValueError, TypeError):
+                                        pass
+                                    break
+                        if severities:
+                            drift_magnitude = compute_clamped(max(severities))
+                            drift_detected = True
+
                 if drift_detected:
                     drift_magnitudes.append(drift_magnitude)
 
@@ -347,6 +366,26 @@ class ScoringEngine(IScoringEngine):
                             except (ValueError, TypeError):
                                 pass
 
+                # Fallback: extract severity from structured breakdown_events
+                if not breakdown_detected and isinstance(det_output.get("breakdown_events"), list):
+                    events = det_output["breakdown_events"]
+                    if events:
+                        severities = []
+                        for e in events:
+                            if not isinstance(e, dict):
+                                continue
+                            for field in ("severity", "delta_pearson", "slope"):
+                                if field in e:
+                                    try:
+                                        val = abs(float(e[field]))
+                                        severities.append(min(1.0, val / 0.3))
+                                    except (ValueError, TypeError):
+                                        pass
+                                    break
+                        if severities:
+                            breakdown_magnitude = compute_clamped(max(severities))
+                            breakdown_detected = True
+
                 if breakdown_detected:
                     breakdown_magnitudes.append(breakdown_magnitude)
 
@@ -393,6 +432,25 @@ class ScoringEngine(IScoringEngine):
                                 break
                             except (ValueError, TypeError):
                                 pass
+
+                # Fallback: extract severity from structured compression_events
+                if not compression_detected and isinstance(det_output.get("compression_events"), list):
+                    events = det_output["compression_events"]
+                    if events:
+                        severities = []
+                        for e in events:
+                            if not isinstance(e, dict):
+                                continue
+                            for field in ("severity", "compression_index", "excess_mass_z"):
+                                if field in e:
+                                    try:
+                                        severities.append(float(e[field]))
+                                    except (ValueError, TypeError):
+                                        pass
+                                    break
+                        if severities:
+                            compression_index = compute_clamped(max(severities))
+                            compression_detected = True
 
                 if compression_detected:
                     compression_indices.append(compression_index)
@@ -451,7 +509,7 @@ class ScoringEngine(IScoringEngine):
         beta_3 = self._compute_missing_data_factor(metric_dataframe, windows, observation_metadata)
 
         # β₄: Window Balance Factor - enhanced with observation counts
-        beta_4 = self._compute_window_balance_factor(windows, observation_metadata)
+        beta_4 = self._compute_window_balance_factor(windows, observation_metadata, metric_dataframe)
 
         # β₅: Detector Success Factor - enhanced with execution metadata
         beta_5 = self._compute_detector_success_factor(detector_results, metric_dataframe, evidence_package)
@@ -653,6 +711,9 @@ class ScoringEngine(IScoringEngine):
         if total_pairs == 0:
             return 0.0
 
+        # Aggregate metrics only need 1 observation total, not per-window
+        _AGGREGATE_METRICS = {"M-01", "M-04", "M-07"}
+
         missing_pairs = 0
 
         for metric_id, metric_series in metric_dataframe.metrics.items():
@@ -661,10 +722,22 @@ class ScoringEngine(IScoringEngine):
             ):
                 missing_pairs += num_windows
             else:
-                for window_key in metric_series.keys():
-                    value_list = metric_series[window_key]
-                    if not isinstance(value_list, list) or len(value_list) == 0 or all(x is None for x in value_list):
-                        missing_pairs += 1
+                # For aggregate metrics, count as present if any window has data
+                if metric_id in _AGGREGATE_METRICS:
+                    has_any = False
+                    for window_key in metric_series.keys():
+                        value_list = metric_series[window_key]
+                        if isinstance(value_list, list) and len(value_list) > 0 and any(x is not None for x in value_list):
+                            has_any = True
+                            break
+                    if not has_any:
+                        missing_pairs += num_windows
+                    # else: aggregate metric has data, don't count missing
+                else:
+                    for window_key in metric_series.keys():
+                        value_list = metric_series[window_key]
+                        if not isinstance(value_list, list) or len(value_list) == 0 or all(x is None for x in value_list):
+                            missing_pairs += 1
 
         return compute_missing_data_factor(missing_pairs, total_pairs)
 
@@ -672,6 +745,7 @@ class ScoringEngine(IScoringEngine):
         self,
         windows: List[WindowDefinition],
         observation_metadata: Optional[Dict[str, Any]] = None,
+        metric_dataframe: Optional[MetricDataFrame] = None,
     ) -> float:
         """Compute f₄: 1.0 - min(1.0, std_size / mean_size)
 
@@ -680,6 +754,7 @@ class ScoringEngine(IScoringEngine):
         Args:
             windows: List of window definitions
             observation_metadata: Optional observation metadata from evidence package
+            metric_dataframe: Optional metric dataframe with per-window observation counts
 
         Returns:
             Window balance factor in [0, 1]
@@ -702,7 +777,22 @@ class ScoringEngine(IScoringEngine):
                 if window_sizes:
                     return compute_balance_factor(window_sizes)
 
-        # Fallback to commit count proxy
+        # Fallback: compute from metric_dataframe observation counts
+        if metric_dataframe and metric_dataframe.metrics:
+            window_ids = [w.window_id for w in windows]
+            obs_counts: List[float] = []
+            for window_id in window_ids:
+                window_obs_count = 0
+                for metric_series in metric_dataframe.metrics.values():
+                    if isinstance(metric_series, dict) and window_id in metric_series:
+                        value_list = metric_series[window_id]
+                        if isinstance(value_list, list):
+                            window_obs_count += len([v for v in value_list if v is not None])
+                obs_counts.append(float(window_obs_count))
+            if obs_counts and any(c > 0 for c in obs_counts):
+                return compute_balance_factor(obs_counts)
+
+        # Final fallback to commit count proxy
         window_sizes = [float(w.commits) for w in windows]
         return compute_balance_factor(window_sizes)
 
