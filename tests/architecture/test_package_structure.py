@@ -12,6 +12,8 @@ SRC_DIR = ROOT_DIR / "src" / "miie"
 # (common, detection, interface removed — empty legacy packages)
 EXPECTED_PACKAGES = {
     "api",
+    "application",
+    "assurance",
     "benchmark",
     "cli",
     "config",
@@ -22,6 +24,7 @@ EXPECTED_PACKAGES = {
     "orchestration",
     "processing",
     "providers",
+    "reasoning",
     "reporting",
     "sampling",
     "schemas",
@@ -29,6 +32,7 @@ EXPECTED_PACKAGES = {
     "storage",
     "utils",
     "validation",
+    "workspace",
 }
 
 

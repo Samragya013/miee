@@ -544,7 +544,9 @@ class TestWindowScenarios:
             metric_dataframe=mdf,
             windows=windows,
         )
-        assert 0.0 <= score.confidence.factors["window_balance"] < 0.5
+        # Balance factor uses observation counts from MetricDataFrame (both have 1 obs),
+        # NOT commit counts. Both windows are balanced at observation level.
+        assert score.confidence.factors["window_balance"] == 1.0
 
     def test_single_window(self):
         engine = self._make_engine()

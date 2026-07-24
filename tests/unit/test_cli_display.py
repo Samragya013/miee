@@ -1,34 +1,29 @@
 """Tests for MIIE CLI display module."""
 
 import re
-import pytest
-from io import StringIO
-from unittest.mock import patch
+
+from miie.cli.display import (
+    add_detector_row,
+    add_metric_row,
+    error_panel,
+    info_panel,
+    make_table,
+    print_banner,
+    print_detection_summary,
+    print_footer,
+    print_kv,
+    print_pipeline_stage,
+    print_score,
+    print_section,
+    success_panel,
+    warning_panel,
+)
 
 ANSI_RE = re.compile(r"\x1b\[[0-9;]*m")
 
 
 def strip_ansi(text: str) -> str:
     return ANSI_RE.sub("", text)
-
-
-from miie.cli.display import (
-    console,
-    print_banner,
-    print_footer,
-    print_section,
-    print_kv,
-    make_table,
-    add_metric_row,
-    add_detector_row,
-    info_panel,
-    success_panel,
-    error_panel,
-    warning_panel,
-    print_score,
-    print_pipeline_stage,
-    print_detection_summary,
-)
 
 
 class TestPrintBanner:

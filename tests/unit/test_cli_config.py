@@ -1,17 +1,15 @@
 """Tests for MIIE CLI configuration module."""
 
 import json
-import pytest
-from pathlib import Path
 
 from miie.cli.config import (
     DEFAULT_CONFIG,
+    display_config,
+    get_config_value,
     load_config,
     save_config,
-    get_config_value,
     set_config_value,
     validate_config,
-    display_config,
 )
 
 

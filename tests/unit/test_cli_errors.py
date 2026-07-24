@@ -1,8 +1,6 @@
 """Tests for MIIE CLI error handling module."""
 
-import pytest
 from pathlib import Path
-from unittest.mock import patch
 
 from miie.cli.errors import (
     ERROR_CATALOG,
@@ -64,12 +62,12 @@ class TestSavePartialResults:
         assert result.exists()
 
         import json
+
         data = json.loads(result.read_text())
         assert data["error"] == "Test error"
         assert data["partial"] is True
 
     def test_save_partial_results_invalid_dir(self, monkeypatch):
-        from pathlib import Path
 
         def mock_mkdir(*args, **kwargs):
             raise OSError("Permission denied")

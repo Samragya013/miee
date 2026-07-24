@@ -716,9 +716,9 @@ class TestGraphStateManager:
         for node in sample_nodes:
             sm.add_node(node)
 
-        snapshot1 = sm.create_snapshot()
-        snapshot2 = sm.create_snapshot()
-        snapshot3 = sm.create_snapshot()
+        sm.create_snapshot()
+        sm.create_snapshot()
+        sm.create_snapshot()
 
         versions = sm.get_all_versions()
 

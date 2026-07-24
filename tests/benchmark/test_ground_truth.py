@@ -19,10 +19,10 @@ from miie.benchmark.ground_truth import (
     AnomalySeverity,
     AnomalyType,
     Certification,
-    DetectorID,
-    DetectorOutput,
     DatasetStatus,
     DatasetType,
+    DetectorID,
+    DetectorOutput,
     ExpectedScores,
     GroundTruth,
     GroundTruthDataset,
@@ -291,9 +291,7 @@ class TestGroundTruth:
             anomaly_window_start=5,
             anomaly_window_end=10,
             expected_detector_outputs={
-                DetectorID.D01: DetectorOutput(
-                    detected=True, severity=AnomalySeverity.HIGH
-                ),
+                DetectorID.D01: DetectorOutput(detected=True, severity=AnomalySeverity.HIGH),
                 DetectorID.D02: DetectorOutput(detected=False),
                 DetectorID.D03: DetectorOutput(detected=False),
             },
@@ -387,19 +385,19 @@ class TestLicensing:
     """Tests for Licensing dataclass."""
 
     def test_create_default(self):
-        l = Licensing()
-        assert l.license == "MIT"
-        assert l.attribution is None
-        assert l.usage_restrictions is None
+        lic = Licensing()
+        assert lic.license == "MIT"
+        assert lic.attribution is None
+        assert lic.usage_restrictions is None
 
     def test_create_custom(self):
-        l = Licensing(
+        lic = Licensing(
             license="Apache-2.0",
             attribution="MIIE Benchmark",
             usage_restrictions="research-only",
         )
-        assert l.license == "Apache-2.0"
-        assert l.usage_restrictions == "research-only"
+        assert lic.license == "Apache-2.0"
+        assert lic.usage_restrictions == "research-only"
 
 
 class TestGroundTruthDataset:

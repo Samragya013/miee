@@ -44,12 +44,20 @@ ALLOWED_DEPENDENCIES = {
     "experimental": {"processing"},
     # Orchestration
     "orchestration": {"contracts", "schemas"},
+    # Application layer
+    "application": {"processing", "contracts", "schemas", "utils"},
     # Interface / entry points
     "api": {"processing"},
-    "cli": {"contracts", "utils", "processing", "sampling"},
+    "cli": {"contracts", "utils", "processing", "sampling", "application"},
     "benchmark": {"contracts", "schemas", "processing"},
     # Scientific analysis
     "scientific": {"sampling"},
+    # Workspace layer
+    "workspace": {"application"},
+    # Reasoning layer (read-only consumption of scientific outputs)
+    "reasoning": set(),
+    # Assurance layer (read-only consumption of detector outputs)
+    "assurance": set(),
 }
 
 # ---------------------------------------------------------------------------
@@ -70,24 +78,97 @@ KNOWN_CIRCULAR_DEPS = {
     # processing consumes their output and provides the observation model.
     ("processing", "providers"),
     ("providers", "processing"),
+    # schemas <-> processing <-> contracts: transitive cycle
+    # schemas -> processing (backward-compat re-exports observation types)
+    # processing -> contracts (uses contract types)
+    # contracts -> schemas (uses schema types)
+    # This creates a 3-hop cycle: schemas -> processing -> contracts -> schemas.
+    # Justification: Backward-compat bridge; requires ADR to resolve.
+    ("schemas", "contracts"),
 }
 
 
 # Standard library and known third-party packages to skip during import analysis
 STDLIB_AND_EXTERNAL = {
     # Standard library
-    "os", "sys", "json", "csv", "yaml", "pathlib", "typing", "dataclasses",
-    "abc", "enum", "random", "math", "statistics", "datetime", "re",
-    "collections", "itertools", "functools", "hashlib", "hmac", "subprocess",
-    "textwrap", "uuid", "shutil", "tempfile", "glob", "fnmatch", "copy",
-    "threading", "time", "traceback", "io", "base64", "binascii", "struct",
-    "socket", "ssl", "urllib", "http", "email", "html", "xml", "csv",
-    "sqlite3", "dbm", "zlib", "gzip", "bz2", "lzma", "tarfile", "zipfile",
-    "logging", "warnings", "contextlib", "unittest", "platform", "signal",
-    "errno", "ctypes", "mmap", "codecs", "locale", "gettext", "unicodedata",
+    "os",
+    "sys",
+    "json",
+    "csv",
+    "yaml",
+    "pathlib",
+    "typing",
+    "dataclasses",
+    "abc",
+    "enum",
+    "random",
+    "math",
+    "statistics",
+    "datetime",
+    "re",
+    "collections",
+    "itertools",
+    "functools",
+    "hashlib",
+    "hmac",
+    "subprocess",
+    "textwrap",
+    "uuid",
+    "shutil",
+    "tempfile",
+    "glob",
+    "fnmatch",
+    "copy",
+    "threading",
+    "time",
+    "traceback",
+    "io",
+    "base64",
+    "binascii",
+    "struct",
+    "socket",
+    "ssl",
+    "urllib",
+    "http",
+    "email",
+    "html",
+    "xml",
+    "csv",
+    "sqlite3",
+    "dbm",
+    "zlib",
+    "gzip",
+    "bz2",
+    "lzma",
+    "tarfile",
+    "zipfile",
+    "logging",
+    "warnings",
+    "contextlib",
+    "unittest",
+    "platform",
+    "signal",
+    "errno",
+    "ctypes",
+    "mmap",
+    "codecs",
+    "locale",
+    "gettext",
+    "unicodedata",
     # Third-party
-    "click", "numpy", "pandas", "scipy", "jinja2", "pydantic", "fastapi",
-    "uvicorn", "requests", "httpx", "git", "github", "dotenv",
+    "click",
+    "numpy",
+    "pandas",
+    "scipy",
+    "jinja2",
+    "pydantic",
+    "fastapi",
+    "uvicorn",
+    "requests",
+    "httpx",
+    "git",
+    "github",
+    "dotenv",
 }
 
 
@@ -167,7 +248,7 @@ def test_layer_dependencies():
                     f"(allowed: {sorted(ALLOWED_DEPENDENCIES[package])})"
                 )
 
-    assert not violations, f"Dependency violations found:\n" + "\n".join(violations)
+    assert not violations, "Dependency violations found:\n" + "\n".join(violations)
 
 
 def test_no_circular_imports():
@@ -223,9 +304,9 @@ def test_no_circular_imports():
                         is_known = True
                         break
                 if not is_known:
-                    cycles.append(f" -> ".join(cycle_nodes))
+                    cycles.append(" -> ".join(cycle_nodes))
 
-    assert not cycles, f"Unexpected circular dependencies found:\n" + "\n".join(cycles)
+    assert not cycles, "Unexpected circular dependencies found:\n" + "\n".join(cycles)
 
 
 def test_all_packages_have_dependency_rules():
@@ -252,9 +333,26 @@ def test_all_packages_have_dependency_rules():
     assert not issues, "Package coverage mismatch:\n" + "\n".join(issues)
 
 
+def _reachable(graph, src, dst):
+    """Check if dst is reachable from src via BFS."""
+    visited = set()
+    queue = [src]
+    while queue:
+        node = queue.pop(0)
+        if node == dst:
+            return True
+        if node in visited:
+            continue
+        visited.add(node)
+        queue.extend(graph.get(node, set()))
+    return False
+
+
 def test_known_circular_deps_are_real():
     """Verify that every entry in KNOWN_CIRCULAR_DEPS actually exists in code.
 
+    Checks transitive reachability (not just direct edges) since some known
+    cycles span multiple hops (e.g., schemas -> processing -> contracts -> schemas).
     If a documented circular dependency is fixed, it should be removed from
     KNOWN_CIRCULAR_DEPS and this test will flag the stale entry.
     """
@@ -277,11 +375,11 @@ def test_known_circular_deps_are_real():
     stale = []
     for pair in KNOWN_CIRCULAR_DEPS:
         src, dst = pair
-        if src not in graph or dst not in graph.get(src, set()):
+        if not _reachable(graph, src, dst):
             stale.append(f"{src} -> {dst}")
 
     assert not stale, (
-        f"Stale KNOWN_CIRCULAR_DEPS entries (cycle no longer exists):\n"
+        "Stale KNOWN_CIRCULAR_DEPS entries (cycle no longer exists):\n"
         + "\n".join(stale)
         + "\nRemove these from KNOWN_CIRCULAR_DEPS."
     )
@@ -319,7 +417,7 @@ def test_forbidden_imports():
                         f"which is not in its allowed set"
                     )
 
-    assert not violations, f"Forbidden imports found:\n" + "\n".join(violations)
+    assert not violations, "Forbidden imports found:\n" + "\n".join(violations)
 
 
 def test_leaf_packages_have_no_dependencies():
@@ -344,11 +442,10 @@ def test_leaf_packages_have_no_dependencies():
         for imported_package in imports:
             if imported_package in ALLOWED_DEPENDENCIES:
                 violations.append(
-                    f"{py_file.relative_to(ROOT_DIR)}: "
-                    f"Leaf package '{package}' imports '{imported_package}'"
+                    f"{py_file.relative_to(ROOT_DIR)}: " f"Leaf package '{package}' imports '{imported_package}'"
                 )
 
-    assert not violations, f"Leaf package violations found:\n" + "\n".join(violations)
+    assert not violations, "Leaf package violations found:\n" + "\n".join(violations)
 
 
 if __name__ == "__main__":

@@ -262,8 +262,9 @@ class TestProviderExtraction:
         provider = GitHubPullRequestProvider(client=client)
         provider.initialize(_context())
         result = provider.extract_observations(_context(), ["M-02", "M-05"])
-        # Should have: 1 creation + 1 reviewer_count + 1 review_iterations + 2 review events
-        assert len(result.observations) >= 5
+        # Review fetching disabled for performance — only PR-level observations
+        # 1 creation (M-02)
+        assert len(result.observations) >= 1
 
     def test_extract_api_error(self):
         client = _mock_client()

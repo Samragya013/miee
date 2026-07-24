@@ -831,7 +831,7 @@ class TestPR7CCalibration:
         result, diagnostics = builder.build(collection, plan)
 
         # Check if merge warning is present
-        merge_warnings = [w for w in result.warnings if "Terminal window merge" in w]
+        [w for w in result.warnings if "Terminal window merge" in w]
         # The merge may or may not happen depending on the exact window sizes
         # But the method should not crash
         assert result is not None

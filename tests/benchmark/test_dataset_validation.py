@@ -12,8 +12,6 @@ import json
 from datetime import datetime, timezone
 from pathlib import Path
 
-import pytest
-
 from miie.benchmark.dataset_validation import (
     DatasetRegistry,
     DatasetValidationError,
@@ -22,18 +20,13 @@ from miie.benchmark.dataset_validation import (
 )
 from miie.benchmark.ground_truth import (
     AcceptanceCriteria,
-    AnomalySeverity,
-    AnomalyType,
     Certification,
-    DetectorID,
-    DetectorOutput,
     DatasetStatus,
     DatasetType,
     ExpectedScores,
     GroundTruth,
     GroundTruthDataset,
     Licensing,
-    MetricID,
     Provenance,
     RepositoryClassification,
     Versioning,
@@ -258,9 +251,7 @@ class TestDatasetValidator:
 
 class TestDatasetRegistry:
     def setup_method(self):
-        self.registry = DatasetRegistry(
-            base_path=Path("benchmarks/ground_truth")
-        )
+        self.registry = DatasetRegistry(base_path=Path("benchmarks/ground_truth"))
 
     def test_load_index(self):
         index = self.registry.load_index()
@@ -315,11 +306,21 @@ class TestSchemaCompliance:
 
     def test_all_datasets_have_required_fields(self):
         required = [
-            "dataset_id", "dataset_name", "dataset_version",
-            "dataset_type", "status", "created_by", "created_at",
-            "description", "repository_classification", "provenance",
-            "ground_truth", "acceptance_criteria", "versioning",
-            "certification", "licensing",
+            "dataset_id",
+            "dataset_name",
+            "dataset_version",
+            "dataset_type",
+            "status",
+            "created_by",
+            "created_at",
+            "description",
+            "repository_classification",
+            "provenance",
+            "ground_truth",
+            "acceptance_criteria",
+            "versioning",
+            "certification",
+            "licensing",
         ]
         datasets = self._load_all_datasets()
         assert len(datasets) > 0
@@ -329,6 +330,7 @@ class TestSchemaCompliance:
 
     def test_all_datasets_have_valid_id(self):
         import re
+
         pattern = r"^GT-(SYN|REAL|ADV)-[A-Z_]+-\d{3}$"
         datasets = self._load_all_datasets()
         for name, data in datasets:
@@ -336,6 +338,7 @@ class TestSchemaCompliance:
 
     def test_all_datasets_have_valid_version(self):
         import re
+
         datasets = self._load_all_datasets()
         for name, data in datasets:
             assert re.match(r"^\d+\.\d+\.\d+$", data["dataset_version"]), f"{name}: invalid version"

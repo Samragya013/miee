@@ -4,7 +4,6 @@ from datetime import datetime, timezone
 
 import pytest
 
-from miie.contracts.observation_types import ValidationResult
 from miie.contracts.validation_rules import (
     CompositeValidationRule,
     ConfidenceValidationRule,
@@ -329,7 +328,7 @@ class TestCompositeValidationRule:
         """Test AND validation with all rules passing."""
         rule1 = RangeValidationRule("M-01", 0.0, 1.0)
         rule2 = ConfidenceValidationRule()
-        composite = CompositeValidationRule([rule1, rule2], operator="and")
+        CompositeValidationRule([rule1, rule2], operator="and")
         result = rule1.validate(0.5)  # Passes range
         assert result.is_valid is True
 

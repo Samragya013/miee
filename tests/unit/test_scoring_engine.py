@@ -248,3 +248,82 @@ def test_mock_scoring_engines():
     assert perfect_scores.confidence.overall == 1.0
     assert all(score == 1.0 for score in perfect_scores.integrity.per_metric.values())
     assert all(factor == 1.0 for factor in perfect_scores.confidence.factors.values())
+
+
+def test_window_balance_uses_observation_counts_not_commit_counts():
+    """Window balance factor should use observation counts from MetricDataFrame.
+
+    When MetricDataFrame has observations for all windows, the balance factor
+    should be computed from observation counts (equal across windows = 1.0),
+    NOT from commit counts in WindowDefinition (which may be unbalanced).
+    """
+    engine = ScoringEngine()
+
+    detector_results = DetectorResults(
+        detector_outputs={
+            "D-01": {"status": "executed"},
+            "D-02": {"status": "executed"},
+            "D-03": {"status": "executed"},
+        }
+    )
+
+    # MetricDataFrame: 2 metrics, 5 windows, 1 obs each (perfectly balanced)
+    metric_dataframe = MetricDataFrame(
+        repo_id="test",
+        run_id="test_run",
+        timestamp=datetime.datetime.now(datetime.timezone.utc),
+        metrics={
+            "M-02": {
+                "w00": [1.0], "w01": [139.0], "w02": [18.0],
+                "w03": [14.0], "w04": [6.0],
+            },
+            "M-06": {
+                "w00": [44713.0], "w01": [67015.0], "w02": [63483.0],
+                "w03": [1236032.0], "w04": [1476.0],
+            },
+        },
+    )
+
+    # WindowDefinitions with wildly unbalanced commit counts (2, 278, 36, 28, 12)
+    # The balance factor should NOT use these commit counts
+    windows = [
+        WindowDefinition(
+            window_id="w00",
+            start_date=datetime.datetime(2020, 1, 1).date(),
+            end_date=datetime.datetime(2020, 1, 8).date(),
+            commits=2, strategy="temporal",
+        ),
+        WindowDefinition(
+            window_id="w01",
+            start_date=datetime.datetime(2020, 1, 8).date(),
+            end_date=datetime.datetime(2020, 2, 5).date(),
+            commits=278, strategy="temporal",
+        ),
+        WindowDefinition(
+            window_id="w02",
+            start_date=datetime.datetime(2020, 2, 5).date(),
+            end_date=datetime.datetime(2020, 2, 12).date(),
+            commits=36, strategy="temporal",
+        ),
+        WindowDefinition(
+            window_id="w03",
+            start_date=datetime.datetime(2020, 2, 12).date(),
+            end_date=datetime.datetime(2020, 2, 19).date(),
+            commits=28, strategy="temporal",
+        ),
+        WindowDefinition(
+            window_id="w04",
+            start_date=datetime.datetime(2020, 2, 19).date(),
+            end_date=datetime.datetime(2020, 2, 26).date(),
+            commits=12, strategy="temporal",
+        ),
+    ]
+
+    score_pkg = engine.compute_integrity_score(detector_results, metric_dataframe, windows)
+
+    # Window balance should be 1.0 (observation counts are equal: 1 per window)
+    # NOT 0.0 (which would be the result if using commit counts)
+    assert score_pkg.confidence.factors["window_balance"] == 1.0
+
+    # Confidence should be > 0 (was 0.0 before the fix)
+    assert score_pkg.confidence.overall > 0.0

@@ -1,7 +1,5 @@
 """Tests for miie.contracts.quality_state_machine module."""
 
-from datetime import datetime, timezone
-
 import pytest
 
 from miie.contracts.observation_types import QualityState

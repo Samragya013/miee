@@ -1,15 +1,12 @@
 """Tests for MIIE CLI interactive module."""
 
 import json
-import pytest
-from pathlib import Path
-from unittest.mock import patch
 
 from miie.cli.interactive import (
-    load_recent,
-    save_recent,
     add_to_recent,
+    load_recent,
     prompt_repository_source,
+    save_recent,
 )
 
 

@@ -75,61 +75,61 @@ class TestGitHubClientInit:
 
 
 class TestGitHubClientRepository:
-    @patch("miie.providers.github.api.urllib.request.urlopen")
-    def test_get_repository(self, mock_urlopen):
+    @patch.object(GitHubClient, "_open")
+    def test_get_repository(self, mock_open):
         repo_data = {"full_name": "owner/repo", "default_branch": "main"}
-        mock_urlopen.return_value = _mock_response(repo_data)
+        mock_open.return_value = _mock_response(repo_data)
         client = GitHubClient()
         result = client.get_repository("owner", "repo")
         assert result["full_name"] == "owner/repo"
         assert result["default_branch"] == "main"
 
-    @patch("miie.providers.github.api.urllib.request.urlopen")
-    def test_get_default_branch(self, mock_urlopen):
+    @patch.object(GitHubClient, "_open")
+    def test_get_default_branch(self, mock_open):
         repo_data = {"default_branch": "develop"}
-        mock_urlopen.return_value = _mock_response(repo_data)
+        mock_open.return_value = _mock_response(repo_data)
         client = GitHubClient()
         branch = client.get_default_branch("owner", "repo")
         assert branch == "develop"
 
 
 class TestGitHubClientPullRequests:
-    @patch("miie.providers.github.api.urllib.request.urlopen")
-    def test_list_pull_requests(self, mock_urlopen):
+    @patch.object(GitHubClient, "_open")
+    def test_list_pull_requests(self, mock_open):
         prs = [{"number": 1, "state": "open"}, {"number": 2, "state": "closed"}]
-        mock_urlopen.return_value = _mock_response(prs)
+        mock_open.return_value = _mock_response(prs)
         client = GitHubClient()
         result = client.list_pull_requests("owner", "repo")
         assert len(result) == 2
         assert result[0]["number"] == 1
 
-    @patch("miie.providers.github.api.urllib.request.urlopen")
-    def test_list_pull_requests_empty(self, mock_urlopen):
-        mock_urlopen.return_value = _mock_response([])
+    @patch.object(GitHubClient, "_open")
+    def test_list_pull_requests_empty(self, mock_open):
+        mock_open.return_value = _mock_response([])
         client = GitHubClient()
         result = client.list_pull_requests("owner", "repo")
         assert len(result) == 0
 
-    @patch("miie.providers.github.api.urllib.request.urlopen")
-    def test_get_pull_request(self, mock_urlopen):
+    @patch.object(GitHubClient, "_open")
+    def test_get_pull_request(self, mock_open):
         pr_data = {"number": 42, "state": "open", "title": "Test PR"}
-        mock_urlopen.return_value = _mock_response(pr_data)
+        mock_open.return_value = _mock_response(pr_data)
         client = GitHubClient()
         result = client.get_pull_request("owner", "repo", 42)
         assert result["number"] == 42
 
-    @patch("miie.providers.github.api.urllib.request.urlopen")
-    def test_list_pull_request_reviews(self, mock_urlopen):
+    @patch.object(GitHubClient, "_open")
+    def test_list_pull_request_reviews(self, mock_open):
         reviews = [{"id": 1, "state": "APPROVED"}, {"id": 2, "state": "COMMENTED"}]
-        mock_urlopen.return_value = _mock_response(reviews)
+        mock_open.return_value = _mock_response(reviews)
         client = GitHubClient()
         result = client.list_pull_request_reviews("owner", "repo", 42)
         assert len(result) == 2
 
 
 class TestGitHubClientPagination:
-    @patch("miie.providers.github.api.urllib.request.urlopen")
-    def test_pagination_multi_page(self, mock_urlopen):
+    @patch.object(GitHubClient, "_open")
+    def test_pagination_multi_page(self, mock_open):
         page1 = [{"number": i} for i in range(100)]
         page2 = [{"number": i} for i in range(100, 105)]
         empty = []
@@ -139,33 +139,33 @@ class TestGitHubClientPagination:
             _mock_response(page2),
             _mock_response(empty),
         ]
-        mock_urlopen.side_effect = responses
+        mock_open.side_effect = responses
 
         client = GitHubClient()
         result = client.list_pull_requests("owner", "repo", per_page=100)
         assert len(result) == 105
 
-    @patch("miie.providers.github.api.urllib.request.urlopen")
-    def test_pagination_single_page(self, mock_urlopen):
+    @patch.object(GitHubClient, "_open")
+    def test_pagination_single_page(self, mock_open):
         prs = [{"number": 1}, {"number": 2}]
-        mock_urlopen.return_value = _mock_response(prs)
+        mock_open.return_value = _mock_response(prs)
         client = GitHubClient()
         result = client.list_pull_requests("owner", "repo", per_page=100)
         assert len(result) == 2
 
 
 class TestGitHubClientErrors:
-    @patch("miie.providers.github.api.urllib.request.urlopen")
-    def test_404_raises_error(self, mock_urlopen):
-        mock_urlopen.side_effect = _mock_error(404)
+    @patch.object(GitHubClient, "_open")
+    def test_404_raises_error(self, mock_open):
+        mock_open.side_effect = _mock_error(404)
         client = GitHubClient()
         with pytest.raises(GitHubAPIError) as exc_info:
             client.get_repository("owner", "nonexistent")
         assert exc_info.value.status_code == 404
 
-    @patch("miie.providers.github.api.urllib.request.urlopen")
-    def test_403_raises_error(self, mock_urlopen):
-        mock_urlopen.side_effect = _mock_error(403, "Forbidden")
+    @patch.object(GitHubClient, "_open")
+    def test_403_raises_error(self, mock_open):
+        mock_open.side_effect = _mock_error(403, "Forbidden")
         client = GitHubClient()
         with pytest.raises(GitHubAPIError) as exc_info:
             client.get_repository("owner", "private-repo")
@@ -173,10 +173,10 @@ class TestGitHubClientErrors:
 
 
 class TestGitHubClientRateLimit:
-    @patch("miie.providers.github.api.urllib.request.urlopen")
-    def test_get_rate_limit(self, mock_urlopen):
+    @patch.object(GitHubClient, "_open")
+    def test_get_rate_limit(self, mock_open):
         rl_data = {"resources": {"core": {"limit": 5000, "remaining": 4999, "used": 1}}}
-        mock_urlopen.return_value = _mock_response(rl_data)
+        mock_open.return_value = _mock_response(rl_data)
         client = GitHubClient()
         info = client.get_rate_limit()
         assert info.limit == 5000

@@ -3,8 +3,6 @@
 from typing import Any, Dict, FrozenSet, List, Optional
 from unittest.mock import MagicMock
 
-import pytest
-
 from miie.contracts.observation_interfaces import (
     CommitObservationProvider,
     GitObservationProvider,
@@ -19,14 +17,12 @@ from miie.contracts.observation_interfaces import (
 from miie.contracts.observation_types import (
     ExtractionResult,
     HealthStatus,
-    ObservationMetrics,
     PriorityLevel,
     ProviderCapability,
     ProviderContext,
     ProviderEntry,
     ProviderHealth,
     ProviderState,
-    QualityState,
     ValidationResult,
 )
 

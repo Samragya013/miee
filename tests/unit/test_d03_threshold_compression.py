@@ -83,22 +83,22 @@ class TestThresholdCompressionDetector:
 
     def test_validate_input_sufficient_metrics(self):
         """Test input validation with sufficient metrics."""
-        assert self.detector.validate_input(self.test_metric_dataframe) == True
+        assert self.detector.validate_input(self.test_metric_dataframe)
 
     def test_validate_input_insufficient_metrics(self):
         """Test input validation with only one metric."""
         # For D03, at least one metric is sufficient
-        assert self.detector.validate_input(self.single_metric_dataframe) == True
+        assert self.detector.validate_input(self.single_metric_dataframe)
 
     def test_validate_input_no_metrics(self):
         """Test input validation with no metrics."""
-        assert self.detector.validate_input(self.empty_metric_dataframe) == False
+        assert not self.detector.validate_input(self.empty_metric_dataframe)
 
     def test_validate_input_insufficient_data(self):
         """Test input validation passes (validation only checks metric presence, not data size)."""
         # The validate_input method only checks if at least one metric is present
         # It does not check window sizes or data points - those are checked in execute
-        assert self.detector.validate_input(self.insufficient_metric_dataframe) == True
+        assert self.detector.validate_input(self.insufficient_metric_dataframe)
 
     def test_execute_returns_detector_result(self):
         """Test that execute returns a DetectorResult."""
@@ -147,7 +147,7 @@ class TestThresholdCompressionDetector:
 
         # Our test data should show compression, especially in M-06 w02 (all 50s)
         # We expect at least one compression event
-        assert detector_output["compression_detected"] == True
+        assert detector_output["compression_detected"]
         assert len(detector_output["compression_events"]) > 0
         assert detector_output["compression_index"] >= 0.0
         assert detector_output["compression_index"] <= 1.0
@@ -161,7 +161,7 @@ class TestThresholdCompressionDetector:
             assert "metric" in event
             assert "threshold" in event
             assert "window" in event
-            assert event["compression_detected"] == True
+            assert event["compression_detected"]
             assert "compression_index" in event
             assert "excess_mass_z_score" in event
             assert "dip_test_statistic" in event
@@ -176,7 +176,7 @@ class TestThresholdCompressionDetector:
         detector_output = result.detector_outputs[self.detector.get_detector_id()]
 
         # With only 3 observations per window (<20 required), no compression should be detected
-        assert detector_output["compression_detected"] == False
+        assert not detector_output["compression_detected"]
         assert detector_output["compression_index"] == 0.0
         assert len(detector_output["compression_events"]) == 0
         assert len(detector_output["windows_analyzed"]) == 0
@@ -188,7 +188,7 @@ class TestThresholdCompressionDetector:
         result = self.detector.execute(self.empty_metric_dataframe)
         detector_output = result.detector_outputs[self.detector.get_detector_id()]
 
-        assert detector_output["compression_detected"] == False
+        assert not detector_output["compression_detected"]
         assert detector_output["compression_index"] == 0.0
         assert detector_output["metrics_analyzed"] == []
         assert len(detector_output["compression_events"]) == 0
@@ -262,19 +262,19 @@ class TestInferCause:
 
     def test_has_policy_marker(self):
         """Test _has_policy_marker method."""
-        assert self.detector._has_policy_marker("POLICY_RATE") == True
-        assert self.detector._has_policy_marker("REGULATORY_SCORE") == True
-        assert self.detector._has_policy_marker("M-02") == False
+        assert self.detector._has_policy_marker("POLICY_RATE")
+        assert self.detector._has_policy_marker("REGULATORY_SCORE")
+        assert not self.detector._has_policy_marker("M-02")
 
     def test_has_sla_marker(self):
         """Test _has_sla_marker method."""
-        assert self.detector._has_sla_marker("SLA_UPTIME") == True
-        assert self.detector._has_sla_marker("LATENCY_P99") == True
-        assert self.detector._has_sla_marker("M-02") == False
+        assert self.detector._has_sla_marker("SLA_UPTIME")
+        assert self.detector._has_sla_marker("LATENCY_P99")
+        assert not self.detector._has_sla_marker("M-02")
 
     def test_detect_gaming_pattern(self):
         """Test _detect_gaming_pattern method."""
-        assert self.detector._detect_gaming_pattern("M-02", 50.0) == False
+        assert not self.detector._detect_gaming_pattern("M-02", 50.0)
 
 
 if __name__ == "__main__":

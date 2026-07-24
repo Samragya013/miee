@@ -202,8 +202,9 @@ class TestIngestionToExtractionIntegration:
         # Verify result
         assert isinstance(result, MetricDataFrame)
 
-        # M-05 requires external PR data — should be None
-        assert result.metrics["M-05"] is None
+        # M-05 is now a provider metric — returns zeros without GitHub API
+        assert result.metrics["M-05"] is not None
+        assert result.metrics["M-05"]["w00"] == [0.0]
 
     def test_ingestion_extraction_with_unavailable_context(self):
         """Test that extraction handles unavailable repositories gracefully per missing data policy."""

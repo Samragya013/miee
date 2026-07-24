@@ -313,13 +313,18 @@ class TestM05IssueResolutionTime:
         assert result is None
 
     def test_extract_m05_via_extract_method(self):
-        """Test M-05 through the main extract() method."""
+        """Test M-05 through the main extract() method.
+
+        M-05 is now a provider metric routed through ExtractionEngine
+        (GitHub PR API). Without a GitHub token, it returns empty.
+        """
         context = _make_context(Path("/tmp"))
-        engine = MetricExtractionEngine(issue_export_path=FIXTURES_DIR / "sample_issue_export.json")
+        engine = MetricExtractionEngine()
         mdf = engine.extract(context, ["M-05"])
 
+        # M-05 is now a provider metric — without GitHub API access, no data
         assert mdf.metrics["M-05"] is not None
-        assert mdf.metrics["M-05"]["w00"][0] == 3.0
+        assert mdf.metrics["M-05"]["w00"] == [0.0]
 
 
 # ---------------------------------------------------------------------------
@@ -357,7 +362,7 @@ class TestM07CyclomaticComplexity:
         py_file = tmp_path / "example.py"
         py_file.write_text("def foo():\n    return 1\n")
 
-        context = _make_context(tmp_path)
+        _make_context(tmp_path)
 
         # Create a mock lizard module
         mock_lizard = mock.MagicMock()
@@ -379,7 +384,7 @@ class TestM07CyclomaticComplexity:
         py_file = tmp_path / "example.py"
         py_file.write_text("def foo():\n    pass\n")
 
-        context = _make_context(tmp_path)
+        _make_context(tmp_path)
 
         mock_lizard = mock.MagicMock()
         mock_func1 = mock.MagicMock()
@@ -401,7 +406,7 @@ class TestM07CyclomaticComplexity:
         py_file = tmp_path / "example.py"
         py_file.write_text("def foo():\n    return 1\n")
 
-        context = _make_context(tmp_path)
+        _make_context(tmp_path)
 
         mock_block = mock.MagicMock()
         mock_block.complexity = 4
@@ -449,18 +454,18 @@ class TestGracefulFallback:
     """Tests for graceful fallback when artifacts or tools are missing."""
 
     def test_all_unavailable_metrics_return_none(self, tmp_path):
-        """Test that M-05 (the only remaining external metric) returns None when no issue export."""
+        """Test that M-05 (now a provider metric) returns empty without GitHub API access."""
         context = _make_context(tmp_path)
         engine = MetricExtractionEngine()
 
-        # M-01 through M-04, M-06-M-07 are now provider metrics
-        # Only M-05 (issue resolution) is still external
+        # M-05 is now a provider metric — without GitHub token, returns empty values
         mdf = engine.extract(context, ["M-05"])
 
-        assert mdf.metrics["M-05"] is None
+        assert mdf.metrics["M-05"] is not None
+        assert mdf.metrics["M-05"]["w00"] == [0.0]
 
     def test_mixed_available_and_unavailable(self, tmp_path):
-        """Test extraction with provider metrics and one external metric."""
+        """Test extraction with provider metrics including M-05."""
         import shutil
 
         src = FIXTURES_DIR / "sample_coverage.xml"
@@ -478,8 +483,9 @@ class TestGracefulFallback:
             assert "M-01" in mdf.metrics
             assert "M-02" in mdf.metrics
             assert "M-06" in mdf.metrics
-            # M-05 is external — returns None without issue export
-            assert mdf.metrics["M-05"] is None
+            # M-05 is now a provider metric — returns zeros without GitHub API
+            assert mdf.metrics["M-05"] is not None
+            assert mdf.metrics["M-05"]["w00"] == [0.0]
 
     def test_malformed_json_returns_none(self, tmp_path):
         """Test that malformed JSON files return None instead of raising."""

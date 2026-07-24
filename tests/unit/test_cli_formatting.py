@@ -1,14 +1,12 @@
 """Tests for MIIE CLI formatting module."""
 
 import json
-import pytest
-from pathlib import Path
 
 from miie.cli.formatting import (
-    generate_markdown_report,
-    generate_csv_scores,
     generate_csv_metrics,
+    generate_csv_scores,
     generate_html_report,
+    generate_markdown_report,
     write_reports,
 )
 

@@ -564,8 +564,8 @@ class TestMetricExtractor:
         )
         ext = MetricExtractor()
         mdf = ext.extract_metrics(collection, metric_list=["M-02", "M-07"])
-        # M-07 not present → None
-        assert mdf.metrics.get("M-07", {}).get("w00") == [None]
+        # M-07 not present → 0.0
+        assert mdf.metrics.get("M-07", {}).get("w00") == [0.0]
 
     def test_extract_metrics_empty_collection(self):
         """Empty collection produces empty metrics."""

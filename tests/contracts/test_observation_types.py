@@ -1,7 +1,6 @@
 """Tests for miie.contracts.observation_types module."""
 
 from dataclasses import FrozenInstanceError
-from datetime import datetime, timezone
 
 import pytest
 
@@ -20,16 +19,12 @@ from miie.contracts.observation_types import (
     HealthStatus,
     MetricBounds,
     ObservationMetrics,
-    ObservationState,
-    ObservationTransition,
     PriorityLevel,
     ProviderCapability,
     ProviderContext,
-    ProviderEntry,
     ProviderErrorContext,
     ProviderFactoryResult,
     ProviderHealth,
-    ProviderPausedState,
     ProviderRegistrationConfig,
     ProviderState,
     QualityState,

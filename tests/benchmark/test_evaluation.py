@@ -210,7 +210,7 @@ class TestEvaluationEngine:
         assert all(p in [0, 1] for p in predictions)
 
         # Check that approximately 60% are zeros (allowing for randomness)
-        zeros_count = predictions.count(0)
+        predictions.count(0)
         # With seed 42, we should get deterministic results
         # Let's not assert exact count as it depends on the random implementation
 

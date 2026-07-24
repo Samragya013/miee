@@ -565,7 +565,7 @@ def test_validate_evidence_inputs_valid():
     score_package = _make_score_package()
 
     # Minimal valid provenance with required fields
-    provenance = {
+    {
         "miie_version": "1.0.0",
         "config_hash": "abc123",
         "timestamp": datetime.now().isoformat() + "Z",

@@ -238,7 +238,7 @@ def test_layer_isolation():
         except (UnicodeDecodeError, OSError):
             continue
 
-    assert not violations, f"Layer isolation violations:\n" + "\n".join(violations)
+    assert not violations, "Layer isolation violations:\n" + "\n".join(violations)
 
 
 if __name__ == "__main__":

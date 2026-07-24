@@ -4,6 +4,7 @@ import hashlib
 import os
 
 import numpy as np
+import pytest
 from scipy.stats import rankdata
 
 from miie.benchmark.evaluation import EvaluationEngine as MockEvaluationEngine
@@ -152,7 +153,6 @@ class TestReproducibility:
         # Check that at least some output files differ
         files_to_compare = ["evidence.json", "analysis_report_20230615_120000.json"]
 
-        at_least_one_different = False
         for file_name in files_to_compare:
             file_path_1 = output_dir_1 / file_name
             file_path_2 = output_dir_2 / file_name
@@ -161,7 +161,6 @@ class TestReproducibility:
                 hash_1 = self._get_file_hash(str(file_path_1))
                 hash_2 = self._get_file_hash(str(file_path_2))
                 if hash_1 != hash_2:
-                    at_least_one_different = True
                     break
 
         # With different seeds, we expect at least some outputs to differ

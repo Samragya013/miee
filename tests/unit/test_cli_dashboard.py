@@ -1,12 +1,10 @@
 """Tests for MIIE CLI dashboard module."""
 
-import pytest
-
 from miie.cli.dashboard import (
-    display_dashboard,
-    display_compact_dashboard,
-    display_verdict,
     _score_label,
+    display_compact_dashboard,
+    display_dashboard,
+    display_verdict,
 )
 
 

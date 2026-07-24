@@ -89,7 +89,7 @@ class TestSegmentationIntegration:
         """Verify segmentation works with actual metric data."""
         # Arrange
         with tempfile.TemporaryDirectory() as temp_dir:
-            output_dir = Path(temp_dir)
+            Path(temp_dir)
 
             # Create a metric dataframe with some data
             ingestion_engine = MockIngestionEngine()

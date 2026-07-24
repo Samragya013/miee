@@ -102,7 +102,7 @@ class MockProvider(BaseObservationProvider):
             raise ExtractionError("Extraction failed", error_code="EXTRACT_FAILED")
 
         now_iso = "2025-01-01T00:00:00+00:00"
-        provenance = ObservationProvenance(
+        ObservationProvenance(
             extractor_id=self._provider_id,
             extraction_timestamp=now_iso,
         )

@@ -167,12 +167,18 @@ class TestFERACriticalFindings:
     def test_cli_analyze_dry_run(self):
         """C4: CLI analyze --dry-run should exit cleanly."""
         import subprocess
+        import os
 
+        env = os.environ.copy()
+        env["PYTHONIOENCODING"] = "utf-8"
         result = subprocess.run(
             ["python", "-m", "miie", "analyze", ".", "--dry-run"],
             capture_output=True,
             text=True,
             timeout=30,
+            env=env,
+            encoding="utf-8",
+            errors="replace",
         )
         assert result.returncode == 0
         assert "Dry Run" in result.stdout or "dry run" in result.stdout.lower()

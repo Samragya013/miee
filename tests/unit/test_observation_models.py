@@ -349,7 +349,7 @@ class TestObservation:
         assert obs.metadata == {}
 
     def test_metadata_populated(self) -> None:
-        obs = _make_observation()
+        _make_observation()
         # Observation is frozen, so we test creation with metadata
         obs_id = generate_observation_id("commit", SAMPLE_COMMIT_SHA, "M-02")
         obs2 = Observation(

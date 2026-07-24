@@ -1,7 +1,5 @@
 """Tests for miie.contracts.observation_errors module."""
 
-from datetime import datetime, timezone
-
 import pytest
 
 from miie.contracts.observation_errors import (

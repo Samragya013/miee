@@ -117,7 +117,7 @@ def test_anomaly_flags_consistent():
         anomaly_type = candidate_info.get("anomaly_type")
         anomaly_types = candidate_info.get("anomaly_types", [])
         expected_metrics = candidate_info["expected_metrics"]
-        tags = candidate_info["tags"]
+        candidate_info["tags"]
 
         if anomaly_present:
             # Anomaly should have a type defined

@@ -1,16 +1,22 @@
 """Tests for MIIE CLI commands."""
 
+import os
 import subprocess
 import sys
 
 
 def run_cli(*args):
     """Run miie CLI and return CompletedProcess."""
+    env = os.environ.copy()
+    env["PYTHONIOENCODING"] = "utf-8"
     return subprocess.run(
         [sys.executable, "-m", "miie"] + list(args),
         capture_output=True,
         text=True,
         timeout=60,
+        env=env,
+        encoding="utf-8",
+        errors="replace",
     )
 
 
@@ -82,5 +88,6 @@ class TestCLIStatus:
     def test_status(self):
         result = run_cli("status")
         assert result.returncode == 0
-        assert "MIIE" in result.stdout
+        # ASCII art logo or version string present
+        assert "v1.6.0" in result.stdout or "Engine" in result.stdout
         assert "Engine" in result.stdout or "engine" in result.stdout

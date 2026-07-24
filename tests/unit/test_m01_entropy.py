@@ -65,7 +65,14 @@ class TestClassifyCommitMessage:
     def test_all_categories_are_defined(self):
         assert len(ALL_CATEGORIES) == 8
         assert set(ALL_CATEGORIES) == {
-            "feat", "fix", "docs", "refactor", "test", "chore", "ci", "other",
+            "feat",
+            "fix",
+            "docs",
+            "refactor",
+            "test",
+            "chore",
+            "ci",
+            "other",
         }
 
     def test_patterns_count(self):
@@ -111,16 +118,27 @@ class TestComputeMessageEntropy:
 
     def test_seven_categories(self):
         msgs = [
-            "feat: a", "fix: b", "docs: c", "refactor: d",
-            "test: e", "chore: f", "ci: g",
+            "feat: a",
+            "fix: b",
+            "docs: c",
+            "refactor: d",
+            "test: e",
+            "chore: f",
+            "ci: g",
         ]
         result = compute_message_entropy(msgs)
         assert result > 0.8
 
     def test_eight_categoriesIncludingOther(self):
         msgs = [
-            "feat: a", "fix: b", "docs: c", "refactor: d",
-            "test: e", "chore: f", "ci: g", "random: h",
+            "feat: a",
+            "fix: b",
+            "docs: c",
+            "refactor: d",
+            "test: e",
+            "chore: f",
+            "ci: g",
+            "random: h",
         ]
         result = compute_message_entropy(msgs)
         assert abs(result - 1.0) < 0.01
@@ -156,8 +174,7 @@ class TestComputeMessageEntropy:
             ["feat: a"],
             ["feat: a", "fix: b"],
             ["feat: a"] * 100 + ["fix: b"],
-            ["feat: a", "fix: b", "docs: c", "refactor: d",
-             "test: e", "chore: f", "ci: g", "other: h"],
+            ["feat: a", "fix: b", "docs: c", "refactor: d", "test: e", "chore: f", "ci: g", "other: h"],
         ]
         for msgs in test_cases:
             result = compute_message_entropy(msgs)
@@ -193,6 +210,7 @@ class TestComputeEntropyFromDistribution:
         """Pre-computed distribution should match message-based computation."""
         msgs = ["feat: a", "feat: b", "fix: c", "docs: d"]
         from collections import Counter
+
         counts = Counter(classify_commit_message(m) for m in msgs)
         r1 = compute_message_entropy(msgs)
         r2 = compute_entropy_from_distribution(dict(counts))
@@ -267,8 +285,14 @@ class TestM01EdgeCases:
     def test_uniform_all_categories(self):
         """One per category → ER = 1.0."""
         msgs = [
-            "feat: a", "fix: b", "docs: c", "refactor: d",
-            "test: e", "chore: f", "ci: g", "other: h",
+            "feat: a",
+            "fix: b",
+            "docs: c",
+            "refactor: d",
+            "test: e",
+            "chore: f",
+            "ci: g",
+            "other: h",
         ]
         assert abs(compute_message_entropy(msgs) - 1.0) < 0.01
 

@@ -76,17 +76,17 @@ class TestCorrelationBreakdownDetector:
 
     def test_validate_input_sufficient_metrics(self):
         """Test input validation with sufficient metrics."""
-        assert self.detector.validate_input(self.test_metric_dataframe) == True
+        assert self.detector.validate_input(self.test_metric_dataframe)
 
     def test_validate_input_insufficient_metrics(self):
         """Test input validation with only one metric."""
-        assert self.detector.validate_input(self.single_metric_dataframe) == False
+        assert not self.detector.validate_input(self.single_metric_dataframe)
 
     def test_validate_input_insufficient_data(self):
         """Test input validation passes (validation only checks metric presence, not data size)."""
         # The validate_input method only checks if at least two metrics are present
         # It does not check window sizes or data points - those are checked in execute
-        assert self.detector.validate_input(self.insufficient_metric_dataframe) == True
+        assert self.detector.validate_input(self.insufficient_metric_dataframe)
 
     def test_execute_returns_detector_result(self):
         """Test that execute returns a DetectorResult."""
@@ -153,7 +153,7 @@ class TestCorrelationBreakdownDetector:
         detector_output = result.detector_outputs[self.detector.get_detector_id()]
 
         # With only 3 observations per window (<10 required), no breakdowns should be detected
-        assert detector_output["breakdown_detected"] == False
+        assert not detector_output["breakdown_detected"]
         assert detector_output["breakdown_type"] is None
         assert len(detector_output["breakdown_events"]) == 0
         assert len(detector_output["window_pairs_flagged"]) == 0
@@ -208,7 +208,7 @@ class TestCorrelationBreakdownDetector:
         result = self.detector.execute(empty_dataframe)
         detector_output = result.detector_outputs[self.detector.get_detector_id()]
 
-        assert detector_output["breakdown_detected"] == False
+        assert not detector_output["breakdown_detected"]
         assert detector_output["breakdown_type"] is None
         assert detector_output["metric_pairs_analyzed"] == []
         assert len(detector_output["breakdown_events"]) == 0

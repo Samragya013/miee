@@ -74,6 +74,26 @@ _SAMPLE_GIT_LOG = (
     "\n"
 )
 
+_SAMPLE_GIT_LOG_META = (
+    "aaa1111111111111111111111111111111111111\n"
+    "Alice\n"
+    "alice@example.com\n"
+    "2025-06-01T10:00:00+00:00\n"
+    "feat: add feature\n"
+    "\n"
+    "bbb2222222222222222222222222222222222222\n"
+    "Bob\n"
+    "bob@example.com\n"
+    "2025-06-02T11:00:00+00:00\n"
+    "fix: bug fix\n"
+    "\n"
+)
+
+_SAMPLE_DIFF_STATS = {
+    "aaa1111111111111111111111111111111111111": (10, 5),
+    "bbb2222222222222222222222222222222222222": (3, 2),
+}
+
 
 @pytest.fixture
 def provider() -> GitObservationProvider:
@@ -86,6 +106,17 @@ def initialized_provider(provider: GitObservationProvider) -> GitObservationProv
     with patch.object(provider, "_run_git_command", return_value="true"):
         provider.initialize(ctx)
     return provider
+
+
+def _mock_extract(provider, sample_log=_SAMPLE_GIT_LOG_META, stats=None):
+    """Context manager that mocks _run_git_command and _parallel_diff_stats."""
+    if stats is None:
+        stats = _SAMPLE_DIFF_STATS
+    from contextlib import ExitStack
+    stack = ExitStack()
+    stack.enter_context(patch.object(provider, "_run_git_command", return_value=sample_log))
+    stack.enter_context(patch.object(provider, "_parallel_diff_stats", return_value=stats))
+    return stack
 
 
 # ---------------------------------------------------------------------------
@@ -368,11 +399,7 @@ class TestParseAuthorDate:
 class TestExtractObservations:
     def test_extracts_m02_and_m06(self, initialized_provider: GitObservationProvider):
         ctx = _make_context()
-        with patch.object(
-            initialized_provider,
-            "_run_git_command",
-            return_value=_SAMPLE_GIT_LOG,
-        ):
+        with _mock_extract(initialized_provider):
             result = initialized_provider.extract_observations(ctx, ["M-02", "M-06"])
 
         assert result.provider_id == PROVIDER_ID
@@ -380,11 +407,7 @@ class TestExtractObservations:
 
     def test_extracts_only_m02(self, initialized_provider: GitObservationProvider):
         ctx = _make_context()
-        with patch.object(
-            initialized_provider,
-            "_run_git_command",
-            return_value=_SAMPLE_GIT_LOG,
-        ):
+        with _mock_extract(initialized_provider):
             result = initialized_provider.extract_observations(ctx, ["M-02"])
 
         assert result.observation_count == 2  # 2 commits × 1 metric
@@ -393,11 +416,7 @@ class TestExtractObservations:
 
     def test_extracts_only_m06(self, initialized_provider: GitObservationProvider):
         ctx = _make_context()
-        with patch.object(
-            initialized_provider,
-            "_run_git_command",
-            return_value=_SAMPLE_GIT_LOG,
-        ):
+        with _mock_extract(initialized_provider):
             result = initialized_provider.extract_observations(ctx, ["M-06"])
 
         assert result.observation_count == 2
@@ -419,11 +438,7 @@ class TestExtractObservations:
 
     def test_unsupported_metric_only(self, initialized_provider: GitObservationProvider):
         ctx = _make_context()
-        with patch.object(
-            initialized_provider,
-            "_run_git_command",
-            return_value=_SAMPLE_GIT_LOG,
-        ):
+        with _mock_extract(initialized_provider):
             result = initialized_provider.extract_observations(ctx, ["M-05"])
 
         assert result.observation_count == 0
@@ -431,11 +446,7 @@ class TestExtractObservations:
 
     def test_mixed_supported_and_unsupported(self, initialized_provider: GitObservationProvider):
         ctx = _make_context()
-        with patch.object(
-            initialized_provider,
-            "_run_git_command",
-            return_value=_SAMPLE_GIT_LOG,
-        ):
+        with _mock_extract(initialized_provider):
             result = initialized_provider.extract_observations(ctx, ["M-05", "M-02", "M-04"])
 
         # M-02 produces 2 per-commit observations; M-04 produces 1 aggregate; M-05 produces 0
@@ -471,11 +482,7 @@ class TestExtractObservations:
 
     def test_m06_value_is_insertions_plus_deletions(self, initialized_provider: GitObservationProvider):
         ctx = _make_context()
-        with patch.object(
-            initialized_provider,
-            "_run_git_command",
-            return_value=_SAMPLE_GIT_LOG,
-        ):
+        with _mock_extract(initialized_provider):
             result = initialized_provider.extract_observations(ctx, ["M-06"])
 
         # First commit: 10 ins + 5 del = 15.0
@@ -485,11 +492,7 @@ class TestExtractObservations:
 
     def test_m02_value_is_one(self, initialized_provider: GitObservationProvider):
         ctx = _make_context()
-        with patch.object(
-            initialized_provider,
-            "_run_git_command",
-            return_value=_SAMPLE_GIT_LOG,
-        ):
+        with _mock_extract(initialized_provider):
             result = initialized_provider.extract_observations(ctx, ["M-02"])
 
         for obs in result.observations:
@@ -497,22 +500,14 @@ class TestExtractObservations:
 
     def test_metadata_contains_commit_count(self, initialized_provider: GitObservationProvider):
         ctx = _make_context()
-        with patch.object(
-            initialized_provider,
-            "_run_git_command",
-            return_value=_SAMPLE_GIT_LOG,
-        ):
+        with _mock_extract(initialized_provider):
             result = initialized_provider.extract_observations(ctx, ["M-02"])
 
         assert result.metadata["total_commits"] == 2
 
     def test_observations_have_provenance(self, initialized_provider: GitObservationProvider):
         ctx = _make_context()
-        with patch.object(
-            initialized_provider,
-            "_run_git_command",
-            return_value=_SAMPLE_GIT_LOG,
-        ):
+        with _mock_extract(initialized_provider):
             result = initialized_provider.extract_observations(ctx, ["M-02"])
 
         for obs in result.observations:
@@ -521,11 +516,7 @@ class TestExtractObservations:
 
     def test_observations_have_commit_metadata(self, initialized_provider: GitObservationProvider):
         ctx = _make_context()
-        with patch.object(
-            initialized_provider,
-            "_run_git_command",
-            return_value=_SAMPLE_GIT_LOG,
-        ):
+        with _mock_extract(initialized_provider):
             result = initialized_provider.extract_observations(ctx, ["M-02"])
 
         obs = result.observations[0]
@@ -551,11 +542,7 @@ class TestExtractObservations:
 class TestExtractCommits:
     def test_delegates_to_extract_observations(self, initialized_provider: GitObservationProvider):
         ctx = _make_context()
-        with patch.object(
-            initialized_provider,
-            "_run_git_command",
-            return_value=_SAMPLE_GIT_LOG,
-        ):
+        with _mock_extract(initialized_provider):
             result = initialized_provider.extract_commits(ctx)
 
         assert result.observation_count == 4  # 2 commits × 2 metrics
@@ -564,35 +551,23 @@ class TestExtractCommits:
         since = datetime.datetime(2025, 6, 1, tzinfo=datetime.timezone.utc)
         until = datetime.datetime(2025, 6, 30, tzinfo=datetime.timezone.utc)
         ctx = _make_context(since=since, until=until)
-        with patch.object(
-            initialized_provider,
-            "_run_git_command",
-            return_value=_SAMPLE_GIT_LOG,
-        ) as mock_run:
-            initialized_provider.extract_commits(ctx)
+        with patch.object(initialized_provider, "_run_git_command", return_value=_SAMPLE_GIT_LOG_META) as mock_run:
+            with patch.object(initialized_provider, "_parallel_diff_stats", return_value=_SAMPLE_DIFF_STATS):
+                initialized_provider.extract_commits(ctx)
 
-        # The mock receives a ProviderContext with since/until set
         call_args = mock_run.call_args
         assert call_args is not None
 
     def test_exclude_bots_propagates(self, initialized_provider: GitObservationProvider):
         ctx = _make_context(exclude_bots=True)
-        with patch.object(
-            initialized_provider,
-            "_run_git_command",
-            return_value=_SAMPLE_GIT_LOG,
-        ):
+        with _mock_extract(initialized_provider):
             result = initialized_provider.extract_commits(ctx)
 
         assert result.observation_count == 4
 
     def test_custom_since_string(self, initialized_provider: GitObservationProvider):
         ctx = _make_context()
-        with patch.object(
-            initialized_provider,
-            "_run_git_command",
-            return_value=_SAMPLE_GIT_LOG,
-        ):
+        with _mock_extract(initialized_provider):
             result = initialized_provider.extract_commits(ctx, since="2025-06-01T00:00:00+00:00")
 
         assert result.observation_count == 4
@@ -606,17 +581,9 @@ class TestExtractCommits:
 class TestObservationIds:
     def test_m02_observation_ids_are_deterministic(self, initialized_provider: GitObservationProvider):
         ctx = _make_context()
-        with patch.object(
-            initialized_provider,
-            "_run_git_command",
-            return_value=_SAMPLE_GIT_LOG,
-        ):
+        with _mock_extract(initialized_provider):
             r1 = initialized_provider.extract_observations(ctx, ["M-02"])
-        with patch.object(
-            initialized_provider,
-            "_run_git_command",
-            return_value=_SAMPLE_GIT_LOG,
-        ):
+        with _mock_extract(initialized_provider):
             r2 = initialized_provider.extract_observations(ctx, ["M-02"])
 
         ids1 = [o.observation_id for o in r1.observations]
@@ -625,11 +592,7 @@ class TestObservationIds:
 
     def test_m02_and_m06_have_different_ids(self, initialized_provider: GitObservationProvider):
         ctx = _make_context()
-        with patch.object(
-            initialized_provider,
-            "_run_git_command",
-            return_value=_SAMPLE_GIT_LOG,
-        ):
+        with _mock_extract(initialized_provider):
             result = initialized_provider.extract_observations(ctx, ["M-02", "M-06"])
 
         m02_ids = {o.observation_id for o in result.observations if o.metric_id == "M-02"}
@@ -638,11 +601,7 @@ class TestObservationIds:
 
     def test_m06_has_derived_from_relationship(self, initialized_provider: GitObservationProvider):
         ctx = _make_context()
-        with patch.object(
-            initialized_provider,
-            "_run_git_command",
-            return_value=_SAMPLE_GIT_LOG,
-        ):
+        with _mock_extract(initialized_provider):
             result = initialized_provider.extract_observations(ctx, ["M-02", "M-06"])
 
         m06_obs = [o for o in result.observations if o.metric_id == "M-06"]
@@ -654,11 +613,7 @@ class TestObservationIds:
 
     def test_m06_without_m02_has_no_relationships(self, initialized_provider: GitObservationProvider):
         ctx = _make_context()
-        with patch.object(
-            initialized_provider,
-            "_run_git_command",
-            return_value=_SAMPLE_GIT_LOG,
-        ):
+        with _mock_extract(initialized_provider):
             result = initialized_provider.extract_observations(ctx, ["M-06"])
 
         for obs in result.observations:
