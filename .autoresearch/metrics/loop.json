@@ -1,0 +1,11 @@
+{
+  "interval": "5m",
+  "cron_expression": "*/5 * * * *",
+  "started": "2026-07-20T16:55:15+00:00",
+  "experiment": "metrics/all-seven-functional",
+  "goal": "All 7 metrics functional",
+  "current_best": "6/7",
+  "schedule_method": "PowerShell_start_loop.ps1",
+  "stop_command": "Stop-Job -Name 'ar-metrics-loop'",
+  "note": "M-05 requires GitHub remote. Local test repos will always show 6/7."
+}

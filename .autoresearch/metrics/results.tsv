@@ -1,0 +1,3 @@
+run	target	metric	commit	message	status	timestamp
+1	src/miie/processing/extraction/engine.py	6	abc1234	baseline: 6/7 metrics working (M-05 needs GitHub remote)	KEEP	2026-07-20T00:00:00+00:00
+2	src/miie/processing/extraction/engine.py	6	-	run 2: 6/7 metrics	DISCARD	2026-07-20T11:25:17.751283+00:00
