@@ -107,3 +107,32 @@ archive/temporary/
 
 # Release candidate reports (generated, not source)
 release/
+
+# Ruff linter cache
+.ruff_cache/
+
+# Agent files (not part of package)
+CLAUDE.md
+MEMORY.md
+
+# PM analysis output
+pm_analysis/
+
+# Red team artifacts
+red_team_attack_sim.py
+red_team_report.md
+
+# CLI threats data
+threats_cli.json
+
+# All reports (generated, not source)
+reports/
+
+# Archive (historical, not source)
+archive/
+
+# Temporary benchmark repos
+benchmarks/pr14/repos/
+
+# Temporary benchmark artifacts
+benchmarks/tmp/

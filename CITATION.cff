@@ -1,0 +1,25 @@
+cff-version: 1.2.0
+title: "MIIE: Measurement Integrity Intelligence Engine"
+message: "If you use this software, please cite it as below."
+type: software
+authors:
+  - family-names: "MIIE Contributors"
+    name: "MIIE Contributors"
+repository-code: "https://github.com/mie-project/miie"
+license: MIT
+version: "1.6.0"
+date-released: "2026-07-15"
+keywords:
+  - software-engineering
+  - metric-integrity
+  - version-control
+  - statistical-analysis
+  - drift-detection
+abstract: >
+  MIIE (Measurement Integrity Intelligence Engine) evaluates the validity
+  and integrity of software engineering metrics extracted from version control
+  histories. It detects distribution drift, correlation breakdown, and
+  threshold compression using statistical methods (Kolmogorov-Smirnov tests,
+  Pearson correlation with bootstrap CIs, dip tests for unimodality).
+  Includes observation-level provenance, confidence scoring, and deterministic
+  analysis with 2733 tests.

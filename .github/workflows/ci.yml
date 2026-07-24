@@ -33,7 +33,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ['3.10', '3.11', '3.12']
+        python-version: ['3.10', '3.11', '3.12', '3.13']
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -69,9 +69,8 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - run: pip install pip-audit safety
-      - run: pip-audit --ignore-vulnerabilities || true
-      - run: safety check || true
+      - run: pip install pip-audit
+      - run: pip-audit
 
   detector-regression:
     runs-on: ubuntu-latest
@@ -81,4 +80,4 @@ jobs:
         with:
           python-version: '3.12'
       - run: pip install -e .
-      - run: grep -r "detector_output" src/ tests/
+      - run: pytest tests/unit/test_d01_distribution_drift.py tests/unit/test_d02_correlation_breakdown.py tests/unit/test_d03_threshold_compression.py -x -q --tb=short

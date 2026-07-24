@@ -1,177 +1,208 @@
 # Contributing to MIIE
 
-Thank you for your interest in contributing to MIIE! This document provides guidelines and information for contributors.
+Thank you for your interest in contributing to MIIE! This guide will help you get started.
 
 ## Development Setup
 
 ### Prerequisites
 
-- Python 3.10+
+- Python 3.10-3.13
 - Git
-- Poetry
+- Poetry (recommended) or pip
 
-### Setup Steps
+### Setup
 
 ```bash
 # Clone the repository
 git clone https://github.com/Samragya013/miie.git
 cd miie
 
-# Install dependencies
+# Install with Poetry (recommended)
 poetry install
-
-# Install pre-commit hooks
 poetry run pre-commit install
 
-# Run tests to verify setup
-poetry run pytest tests/unit/ -x -q
+# Or with pip
+pip install -e ".[dev]"
+pip install pre-commit
+pre-commit install
 ```
 
-## Branching Strategy
+### Verify Setup
 
-- `main` — Stable release branch
-- `develop` — Active development branch
-- `feature/*` — Feature branches
-- `fix/*` — Bug fix branches
-- `release/*` — Release preparation branches
+```bash
+# Run tests
+make test-unit
 
-### Workflow
+# Run linting
+make lint
 
-1. Create a feature branch from `develop`
-2. Make your changes
-3. Add tests
-4. Ensure CI passes
-5. Submit a pull request to `develop`
+# Run type checking
+make typecheck
+```
 
-## Coding Conventions
+## Development Workflow
 
-### Style
+### 1. Create a Branch
 
-- Follow PEP 8
-- Use type hints for all public functions
-- Write docstrings for public functions and classes
-- Maximum line length: 88 characters (Black default)
+```bash
+git checkout -b feature/your-feature-name
+```
 
-### Code Quality
+### 2. Make Changes
+
+- Follow existing code style
+- Add tests for new functionality
+- Update documentation if needed
+
+### 3. Run Quality Checks
+
+```bash
+# Run all checks
+make check
+
+# Or run individually
+make lint
+make typecheck
+make test-unit
+```
+
+### 4. Commit
+
+```bash
+git add .
+git commit -m "feat: add new feature"
+```
+
+We use [Conventional Commits](https://www.conventionalcommits.org/):
+- `feat:` — New feature
+- `fix:` — Bug fix
+- `docs:` — Documentation
+- `test:` — Tests
+- `refactor:` — Code refactoring
+- `chore:` — Maintenance
+
+### 5. Push and Create PR
+
+```bash
+git push origin feature/your-feature-name
+```
+
+Create a pull request on GitHub with:
+- Clear description of changes
+- Link to related issues
+- Test results
+
+## Code Style
+
+### Python
+
+- Line length: 120 characters
+- Formatter: black
+- Import sorting: isort (profile: black)
+- Linting: flake8 + flake8-bugbear
+- Type checking: mypy
+
+### Running Formatters
 
 ```bash
 # Format code
-poetry run black src/ tests/
+black src/ tests/
+isort src/ tests/
 
-# Sort imports
-poetry run isort src/ tests/
-
-# Lint
-poetry run flake8 src/ tests/
-
-# Type check
-poetry run mypy src/miie/ --ignore-missing-imports
+# Check without modifying
+black --check src/ tests/
+isort --check-only src/ tests/
 ```
-
-### Naming Conventions
-
-- `snake_case` for functions and variables
-- `PascalCase` for classes
-- `UPPER_SNAKE_CASE` for constants
-- Prefix private methods with `_`
 
 ## Testing
-
-### Running Tests
-
-```bash
-# Run all tests
-poetry run pytest tests/
-
-# Run unit tests only
-poetry run pytest tests/unit/
-
-# Run with coverage
-poetry run pytest tests/ --cov=src/miie --cov-report=term-missing
-
-# Run specific test file
-poetry run pytest tests/unit/test_scoring_engine.py
-```
-
-### Writing Tests
-
-- Write tests for all new features
-- Aim for ≥90% code coverage
-- Use descriptive test names
-- Follow the Arrange-Act-Assert pattern
-- Mock external dependencies
 
 ### Test Structure
 
 ```
 tests/
-├── unit/           # Unit tests (isolated, fast)
+├── unit/           # Individual module tests
+├── integration/    # End-to-end pipeline tests
+├── contract/       # Interface compliance tests
+├── architecture/   # Layer dependency tests
+├── benchmark/      # Benchmark execution tests
 ├── schema/         # Schema validation tests
-├── contract/       # Interface contract tests
-├── architecture/   # Architecture compliance tests
-├── integration/    # Integration tests
-├── workflow/       # End-to-end workflow tests
-├── regression/     # Regression tests
-├── performance/    # Performance tests
-└── benchmark/      # Benchmark validation tests
+└── regression/     # Regression tests
 ```
 
-## Pull Request Process
+### Writing Tests
 
-### Before Submitting
+```python
+# tests/unit/test_my_feature.py
+import pytest
+from miie.my_module import my_function
 
-1. Ensure all tests pass: `poetry run pytest tests/`
-2. Format code: `poetry run black src/ tests/`
-3. Sort imports: `poetry run isort src/ tests/`
-4. Lint: `poetry run flake8 src/ tests/`
-5. Update documentation if needed
 
-### PR Template
+def test_my_function_basic():
+    """Test basic functionality."""
+    result = my_function(input)
+    assert result == expected
 
-```markdown
-## Description
-[Describe your changes]
 
-## Type of Change
-- [ ] Bug fix
-- [ ] New feature
-- [ ] Breaking change
-- [ ] Documentation update
-
-## Testing
-- [ ] Tests pass locally
-- [ ] New tests added (if applicable)
-- [ ] Coverage maintained/improved
-
-## Checklist
-- [ ] Code follows style guidelines
-- [ ] Self-review completed
-- [ ] Documentation updated
-- [ ] No breaking changes (or documented)
+def test_my_function_edge_case():
+    """Test edge case."""
+    with pytest.raises(ValueError):
+        my_function(bad_input)
 ```
 
-### Review Process
+### Running Tests
 
-1. Submit PR to `develop` branch
-2. CI must pass
-3. At least one approval required
-4. Address review comments
-5. Merge via squash or rebase
+```bash
+# All tests
+make test-all
 
-## Architecture
+# Unit tests only
+make test-unit
 
-MIIE follows a 9-stage pipeline architecture:
+# Specific test file
+pytest tests/unit/test_my_feature.py -v
 
+# With coverage
+pytest tests/ --cov=miie --cov-report=html
 ```
-Ingestion → Extraction → Segmentation → Detection → Scoring → Evidence → Explanation → Reporting
+
+## Frozen Core
+
+Some components are **frozen** and cannot be modified without explicit justification. See `docs/architecture/FROZEN_CORE_RATIONALE.md` for details.
+
+### What's Frozen?
+
+- Statistical methods (D-01, D-02, D-03)
+- Confidence scoring parameters
+- Integrity scoring parameters
+- Evidence generation logic
+
+### How to Modify Frozen Components
+
+1. Document the reason
+2. Provide evidence
+3. Get approval from two maintainers
+4. Version the change
+5. Update `FROZEN_CORE_RATIONALE.md`
+
+## Documentation
+
+### Building Docs
+
+```bash
+# If using MkDocs
+mkdocs serve
 ```
 
-### Key Principles
+### Writing Docs
 
-- **Deterministic**: Same input → same output
-- **Offline-first**: No external API calls during analysis
-- **Evidence-based**: All claims backed by executable evidence
-- **Frozen architecture**: Changes require RFC process
+- Use clear, concise language
+- Include code examples
+- Update the table of contents
+
+## Getting Help
+
+- **Issues**: [GitHub Issues](https://github.com/Samragya013/miie/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/Samragya013/miie/discussions)
 
 ## License
 
